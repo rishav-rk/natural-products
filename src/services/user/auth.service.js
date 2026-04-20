@@ -12,7 +12,6 @@ import {
   updateToken,
 } from "../token.service.js";
 import { successResponse } from "../../utils/response.js";
-import { token } from "morgan";
 
 export const signUp = async (userData) => {
   if (await User.findOne({ phoneNumber: userData.phoneNumber })) {

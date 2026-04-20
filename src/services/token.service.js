@@ -42,7 +42,7 @@ export const saveToken = async (data) => {
     dataToBeSaved.admin = data.user
   } dataToBeSaved.user = data.user
 
-  await deletePreviousToken(dataToBeSaved)
+ // await deletePreviousToken(dataToBeSaved)
 
   const tokenDoc = await Token.create(dataToBeSaved);
 

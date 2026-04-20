@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
+import { type } from "os";
 
 const userSchema = new mongoose.Schema(
   {
@@ -17,7 +18,6 @@ const userSchema = new mongoose.Schema(
     },
     countryCode: {
       type: String,
-      required: [true, "Please provide your country code"],
       default: "+91",
     },
     password: {
@@ -40,10 +40,35 @@ const userSchema = new mongoose.Schema(
     ],
     addresses: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Address",
-      },
-    ],
+        zipCode: {
+          type: String,
+        },
+        city: {
+          type: String,
+        },
+        state: {
+          type: String,
+        },
+        country: {
+          type: String,
+        },
+        type: {
+          type: String,
+          enum: ["home", "work", "other"],
+        },
+        location: {
+          type: {
+            type: String,
+            enum: ["Point"],
+            default: "Point",
+          },
+          coordinates: {
+            type: [Number],
+            default: [0, 0],  // [longitude, latitude]
+          }
+        }
+      }
+      ],
   },
   {
     timestamps: true,
@@ -61,6 +86,8 @@ const userSchema = new mongoose.Schema(
     }
   },
 );
+
+userSchema.index({ "addresses.location": "2dsphere" });
 
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {

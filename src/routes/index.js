@@ -1,6 +1,7 @@
 import {Router} from "express";
 import authRoute from "./user/auth.route.js";
-import testRoutes from "./user/test.route.js";
+import profileRoute from "./user/profile.route.js";
+
 
 const router = Router();
 
@@ -10,8 +11,8 @@ const defaultRoutes = [
     route: authRoute,
   },
   {
-    path: "/", 
-    route: testRoutes
+    path: "/profile",
+    route: profileRoute,
   }
 ];
 

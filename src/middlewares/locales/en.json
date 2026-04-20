@@ -101,5 +101,9 @@
 	"User successfully logged out": "User successfully logged out",
 	"OTP sent successfully": "OTP sent successfully",
 	"OTP verified successfully": "OTP verified successfully",
-	"You cannot change password before verification": "You cannot change password before verification"
+	"You cannot change password before verification": "You cannot change password before verification",
+	"name is required": "name is required",
+	"name is not allowed to be empty": "name is not allowed to be empty",
+	"phoneNumber is not allowed, password is not allowed": "phoneNumber is not allowed, password is not allowed",
+	"img is not allowed": "img is not allowed"
 }

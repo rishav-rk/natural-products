@@ -1,4 +1,3 @@
-import * as authValidator from "../../validators/user/auth.validator.js";
 import * as authService from "../../services/user/auth.service.js";
 import { successResponse } from "../../utils/response.js";
 import { STATUS_CODES, SUCCESS_MESSAGES } from "../../config/appConstants.js";
