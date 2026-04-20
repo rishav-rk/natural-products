@@ -1,0 +1,51 @@
+{
+  "name": "nature-products",
+  "version": "1.0.0",
+  "description": "naturally made cosmetics products",
+  "keywords": [
+    "nature",
+    "lab",
+    "cosmetic"
+  ],
+  "license": "ISC",
+  "author": "Rishav",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev" : "nodemon src/server.js"
+  },
+  "dependencies": {
+    "@apidevtools/swagger-parser": "^12.1.0",
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
+    "cron": "^4.3.3",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "express-fileupload": "^1.5.1",
+    "express-mongo-sanitize": "^2.2.0",
+    "express-rate-limit": "^5.2.6",
+    "hbs": "^4.1.2",
+    "i18n": "^0.14.2",
+    "joi": "^17.4.0",
+    "joi-to-swagger": "^6.2.0",
+    "jsonwebtoken": "^9.0.3",
+    "moment": "^2.29.1",
+    "moment-timezone": "^0.5.46",
+    "mongoose": "^6.2.10",
+    "morgan": "^1.10.1",
+    "node-cron": "^3.0.1",
+    "passport": "^0.6.0",
+    "passport-jwt": "^4.0.0",
+    "swagger-ui-express": "^5.0.1",
+    "twilio": "^5.13.1",
+    "uuid": "^13.0.0",
+    "winston": "^3.3.3",
+    "yamljs": "^0.3.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.6.0",
+    "nodemon": "^3.1.14"
+  }
+}
