@@ -1,5 +1,5 @@
 import Joi from "joi";
-import { objectId, password } from "../validations/custom.validation.js"; // Adjust path as needed
+import { objectId, password } from "../validators/custom.validator.js" // Adjust path as needed
 
 export const TOKEN_TYPE = {
   ACCESS: "access",
@@ -36,7 +36,7 @@ export const JOI = {
     .pattern(/^\+\d{1,3}$/)
     .message("Enter a valid country code")
     .example("+91"),
-  MOBILENUMBER: Joi.string()
+  PHONENUMBER: Joi.string()
     .required()
     .pattern(/^\d+$/)
     .max(15)
@@ -56,7 +56,7 @@ export const JOI = {
   DEVICE_ID: Joi.string().required().example("unique device id"),
   DEVICE_TOKEN: Joi.string().example("fcm token"),
   ROLE: Joi.string()
-    .valid(USER_TYPE.CUSTOMER, USER_TYPE.COMPANY)
+    .valid(...Object.values(USER_TYPE))
     .required()
     .example("customer"),
   ADDRESS: Joi.array()

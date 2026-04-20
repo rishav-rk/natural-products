@@ -3,14 +3,14 @@ import {
   USER_TYPE,
   ERROR_MESSAGES,
   STATUS_CODES,
-} from "../configs/appConstants.js";
-import { AuthFailedError, OperationalError } from "../utils/errors.js";
+} from "../config/appConstants.js";
+import { AuthFailedError, OperationalError } from "../utils/error.js";
 
 const isUnauthorized = () =>
   new AuthFailedError(ERROR_MESSAGES.UNAUTHORIZED, STATUS_CODES.AUTH_FAILED);
 
-const verifyOtpRoute = (req, userType) =>
-  [`${userType}/verifyOtp`, `${userType}/resendOtp`].includes(req.url);
+const verifyOtpRoute = (req) =>
+  [`/verifyOtp`, `/resendOtp`].includes(req.url);
 
 const validateUserStatus = (user) => {
   if (user.isDeleted) {
@@ -60,19 +60,13 @@ const verifyCallback =
         return resolve();
       }
 
-      // Determine user type
-      const userType =
-        token.role === USER_TYPE.CUSTOMER
-          ? USER_TYPE.CUSTOMER
-          : USER_TYPE.COMPANY;
-
-      const user = token[userType];
+      const user = token.user;
       if (!user) throw new AuthFailedError();
 
       validateUserStatus(user);
 
       // OTP route validation
-      if (verifyOtpRoute(req, userType) && !token.otp) {
+      if (verifyOtpRoute(req) && !token.otp) {
         throw new AuthFailedError(
           ERROR_MESSAGES.INVALID_TOKEN,
           STATUS_CODES.ACTION_FAILED

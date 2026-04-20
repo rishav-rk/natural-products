@@ -2,13 +2,13 @@ import {
   STATUS_CODES,
   SUCCESS_MESSAGES,
   ERROR_MESSAGES,
-} from "../configs/appConstants.js";
+} from "../config/appConstants.js";
 import {
   ValidationError,
   OperationalError,
   NotFoundError,
   AuthFailedError,
-} from "./errors.js";
+} from "./error.js";
 
 const successResponse = (
   req,

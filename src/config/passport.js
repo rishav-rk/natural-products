@@ -1,7 +1,7 @@
 import { Strategy as JwtStrategy, ExtractJwt } from "passport-jwt";
 import config from "./config.js";
 import { TOKEN_TYPE, USER_TYPE } from "./appConstants.js";
-import { AuthFailedError } from "../utils/errors.js";
+import { AuthFailedError } from "../utils/error.js";
 import { Token } from "../models/index.js";
 
 const jwtOptions = {
@@ -12,13 +12,9 @@ const jwtOptions = {
 const jwtVerify = async (payload, done) => {
   try {
     let token = {};
-    if (payload.role === USER_TYPE.CUSTOMER) {
+    if (payload.role === USER_TYPE.USER) {
       token = await Token.findOne({ _id: payload.id, isDeleted: false })
-        .populate("customer", "image name email mobileNumber countryCode")
-        .lean();
-    } else if (payload.role === USER_TYPE.COMPANY) {
-      token = await Token.findOne({ _id: payload.id, isDeleted: false })
-        .populate({ path: "company", select: { faqs: 0 } })
+        .populate("user", "image name phoneNumber countryCode")
         .lean();
     } else {
       token = await Token.findOne({ _id: payload.id, isDeleted: false })

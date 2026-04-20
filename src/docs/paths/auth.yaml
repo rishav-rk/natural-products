@@ -1,0 +1,121 @@
+signup:
+  post:
+    summary: Signup for admin, customer and company
+    tags:
+      - Auth
+    requestBody:
+      required: true
+      description: Fields required for signup
+      content:
+        application/json:
+          schema:
+            $ref: '#components/schemas/signUpValidatorRequest'
+    responses:
+      201:
+        description: Signup successful
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  type: object
+
+login:
+  post:
+    summary: Login for admin, customer and company
+    tags:
+      - Auth
+    requestBody:
+      required: true
+      description: Fields required for login
+      content:
+        application/json:
+          schema:
+            $ref: '#components/schemas/loginValidatorRequest'
+    responses:
+      200:
+        description: Login successful
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+
+forgotPassword:
+  post:
+    summary: Forgot password (generate OTP and token)
+    tags:
+      - Auth
+    requestBody:
+      required: true
+      description: forgot password
+      content:
+        application/json:
+          schema:
+            $ref: '#components/schemas/forgotPasswordValidatorRequest'
+    responses:
+      200:
+        description: OTP and token generated
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+
+verifyOTP:
+  post:
+    summary: Verify OTP for forgot password
+    tags:
+      - Auth
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      description: verify OTP
+      content:
+        application/json:
+          schema:
+            $ref: '#components/schemas/verifyOtpValidatorRequest'
+    responses:
+      200:
+        description: OTP verified successfully
+
+resetPassword:
+  post:
+    summary: Reset password using token from forgot password
+    tags:
+      - Auth
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      description: reset password
+      content:
+        application/json:
+          schema:
+            $ref: '#components/schemas/resetPasswordValidatorRequest'
+    responses:
+      200:
+        description: Password reset successful
+
+logout:
+  post:
+    summary: Logout for admin and company
+    tags:
+      - Auth
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            $ref: '#components/schemas/logoutValidatorRequest'
+    responses:
+      200:
+        description: Logout successful

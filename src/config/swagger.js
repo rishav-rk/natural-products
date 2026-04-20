@@ -4,7 +4,6 @@ import { fileURLToPath } from "url"
 import generateSchemas from "../docs/joiSchemas.js"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-
 const filePath = path.join(__dirname, "../docs/swagger.yaml")
 
 let swaggerDocument

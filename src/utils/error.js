@@ -1,4 +1,4 @@
-import { ERROR_MESSAGES, STATUS_CODES } from "../configs/appConstants.js";
+import { ERROR_MESSAGES, STATUS_CODES } from "../config/appConstants.js";
 
 class ValidationError extends Error {
   constructor(

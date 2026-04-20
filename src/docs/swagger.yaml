@@ -1,0 +1,37 @@
+openapi: 3.0.0
+info:
+  title: Nature's Lab
+  version: 1.0.0
+  description: API documentation for nature's lab
+
+servers:
+  - url: http://localhost:8001/api
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT Bearer token authorization
+
+paths:
+
+  /auth/signup:
+    $ref: "./paths/auth.yaml#/signup"
+
+  /auth/login:
+    $ref: "./paths/auth.yaml#/login"
+  
+  /auth/logout:
+    $ref: "./paths/auth.yaml#/logout"
+
+  /auth/forgot-password:
+    $ref: "./paths/auth.yaml#/forgotPassword"
+  
+  /auth/verify-otp:
+    $ref: "./paths/auth.yaml#/verifyOTP"
+  
+  /auth/reset-password:
+    $ref: "./paths/auth.yaml#/resetPassword"
+  

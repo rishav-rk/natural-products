@@ -1,7 +1,7 @@
 import Joi from "joi"; // Importing Joi for validation
 import { pick } from "../utils/universalFunctions.js"; // Destructuring 'pick' from a utility function file
-import config from "../configs/config.js"; // Importing configuration settings
-import { ValidationError } from "../utils/errors.js"; // Destructuring 'ValidationError' from custom errors
+import config from "../config/config.js"; // Importing configuration settings
+import { ValidationError } from "../utils/error.js"; // Destructuring 'ValidationError' from custom errors
 
 const validate = (schema) => (req, res, next) => {
   const validSchema = pick(schema, ["params", "query", "body"]);

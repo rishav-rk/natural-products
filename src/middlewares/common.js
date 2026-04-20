@@ -1,9 +1,9 @@
 import { v4 as uuidv4 } from "uuid";
 import rateLimit from "express-rate-limit";
 
-import { NotFoundError } from "../utils/errors.js";
+import { NotFoundError } from "../utils/error.js";
 import { errorResponse } from "../utils/response.js";
-import { ERROR_MESSAGES, STATUS_CODES } from "../configs/appConstants.js";
+import { ERROR_MESSAGES, STATUS_CODES } from "../config/appConstants.js";
 
 const errorHandler = (error, req, res, next) => {
  

@@ -6,11 +6,11 @@ import path from "path";
 import fileUpload from "express-fileupload";
 import morgan from "morgan";
 
-import { jwtStrategy } from "./configs/passport.js";
+import { jwtStrategy } from "./config/passport.js";
 import routes from "./routes/index.js";
 
 import swaggerUI from "swagger-ui-express"
-import swaggerSpec from "./configs/swagger.js"
+import swaggerSpec from "./config/swagger.js"
 
 import {
   errorHandler,
@@ -36,24 +36,12 @@ app.use((req, res, next) => {
 
 app.use(fileUpload());
 
-// stripe webhook to track payments
-// app.post(
-//     "/webhook", 
-//     express.raw({type : 'application/json'}),
-//     handleStripeHook
-// )
-
-// email sending from brevo
 
 // parse json request body
 app.use(express.json());
 
 //swagger
 app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerSpec))
-
-app.get('/', (req, res)=>{
-  return res.send('<h1>Hello World</h1>')
-})
 
 app.use(
   morgan("dev", {
@@ -69,7 +57,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(mongoSanitize());
 
 // gzip compression
-app.use(compression());
 
 // enable cors
 app.use(cors());

@@ -1,4 +1,5 @@
 {
+	"400": "400",
 	"Success": "Success",
 	"Not found": "Not found",
 	"Please authenticate": "Please authenticate",
@@ -96,5 +97,9 @@
 	"deviceId is required, role is required": "deviceId is required, role is required",
 	"email is required, deviceType is required, deviceId is required, role is required": "email is required, deviceType is required, deviceId is required, role is required",
 	"amount is required": "amount is required",
-	"Invalid amount": "Invalid amount"
+	"Invalid amount": "Invalid amount",
+	"User successfully logged out": "User successfully logged out",
+	"OTP sent successfully": "OTP sent successfully",
+	"OTP verified successfully": "OTP verified successfully",
+	"You cannot change password before verification": "You cannot change password before verification"
 }

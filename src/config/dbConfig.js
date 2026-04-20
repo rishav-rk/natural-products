@@ -1,6 +1,6 @@
 import mongoose from "mongoose"
 import config from "./config.js"
-import { OperationalError } from "../utils/errors.js";
+import { OperationalError } from "../utils/error.js";
 
 async function connectDB(){
     try {
