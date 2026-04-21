@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
-import { type } from "os";
 
 const userSchema = new mongoose.Schema(
   {
@@ -23,9 +22,9 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Please provide your password"],
     },
-    isBlocked: {
+    isActive: {
       type: Boolean,
-      default: false,
+      default: true,
     },
     isDeleted: {
       type: Boolean,

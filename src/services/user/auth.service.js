@@ -51,7 +51,7 @@ export const login = async (loginData) => {
   if (!user) {
     throw new OperationalError(
       STATUS_CODES.ACTION_FAILED,
-      ERROR_MESSAGES.USER_NOT_FOUND,
+      ERROR_MESSAGES.ACCOUNT_NOT_EXIST,
     );
   }
 
@@ -83,7 +83,7 @@ export const forgotPassword = async (data) => {
   if (!user) {
     throw new OperationalError(
       STATUS_CODES.ACTION_FAILED,
-      ERROR_MESSAGES.USER_NOT_FOUND,
+      ERROR_MESSAGES.ACCOUNT_NOT_EXIST,
     );
   }
 

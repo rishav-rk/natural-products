@@ -112,5 +112,11 @@
 	"Your account has been deleted by Admin": "Your account has been deleted by Admin",
 	"Your account has been deleted": "Your account has been deleted",
 	"Invalid token": "Invalid token",
-	"name is required, phoneNumber is required, password is required": "name is required, phoneNumber is required, password is required"
+	"name is required, phoneNumber is required, password is required": "name is required, phoneNumber is required, password is required",
+	"email is required, password is required, deviceType is required, deviceId is required": "email is required, password is required, deviceType is required, deviceId is required",
+	"email is not allowed": "email is not allowed",
+	"name is not allowed to be empty, image is not allowed to be empty": "name is not allowed to be empty, image is not allowed to be empty",
+	"name length must be at least 3 characters long, image is not allowed to be empty": "name length must be at least 3 characters long, image is not allowed to be empty",
+	"image is not allowed to be empty": "image is not allowed to be empty",
+	"name length must be at least 3 characters long": "name length must be at least 3 characters long"
 }

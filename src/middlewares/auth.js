@@ -16,11 +16,11 @@ const validateUserStatus = (user) => {
   if (user.isDeleted) {
     throw new OperationalError(
       STATUS_CODES.AUTH_FAILED,
-      ERROR_MESSAGES.ACCOUNT_DELETED
+      ERROR_MESSAGES.ACCOUNT_NOT_EXIST
     );
   }
 
-  if (user.isBlocked) {
+  if (!user.isActive) {
     throw new OperationalError(
       STATUS_CODES.AUTH_FAILED,
       ERROR_MESSAGES.ACCOUNT_BLOCKED
