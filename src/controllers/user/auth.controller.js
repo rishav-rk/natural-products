@@ -5,13 +5,13 @@ import { formatUser } from "../../utils/formatResponse.js";
 import { catchAsync } from "../../utils/universalFunctions.js";
 
 export const signUp = catchAsync(async (req, res) => {
-  const user = await authService.signUp(req.body);
+  const { user, token } = await authService.signUp(req.body);
   return successResponse(
     res,
     res,
     STATUS_CODES.CREATED,
     SUCCESS_MESSAGES.USER_CREATED,
-    formatUser(user),
+    { user: formatUser(user), token },
   );
 })
 

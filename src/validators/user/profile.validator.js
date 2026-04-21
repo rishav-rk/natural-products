@@ -11,3 +11,10 @@ export const updateProfileValidator = {
     image: Joi.string().uri(),
   }).required(),
 };
+
+export const changePasswordValidator = {
+  body: Joi.object({
+    currentPassword: JOI.PASSWORD,
+    newPassword: JOI.PASSWORD,
+  }).required(),
+};

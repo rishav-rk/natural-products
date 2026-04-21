@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   getProfileValidator,
   updateProfileValidator,
+  changePasswordValidator
 } from "../../validators/user/profile.validator.js";
 import { validate } from "../../middlewares/validate.js";
 import { USER_TYPE } from "../../config/appConstants.js";
@@ -17,12 +18,14 @@ router.get(
   profileController.getProfile,
 );
 
-router.post(
+router.patch(
   "/change-password",
   auth(USER_TYPE.USER),
-  validate(updateProfileValidator),
-  profileController.updateProfile,
+  validate(changePasswordValidator),
+  profileController.changePassword,
 );
+
+router.delete("/", auth(USER_TYPE.USER), profileController.deleteAccount);
 
 router.put(
   "/",

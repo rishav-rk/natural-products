@@ -32,7 +32,6 @@ export const JOI = {
     .example("user@example.com"),
   PASSWORD: Joi.string().custom(password).required().example("AbBcd@123"),
   COUNTRY_CODE: Joi.string()
-    .required()
     .pattern(/^\+\d{1,3}$/)
     .message("Enter a valid country code")
     .example("+91"),
@@ -103,8 +102,8 @@ export const ERROR_MESSAGES = {
   UNAUTHORIZED: "You are not authorized to perform this action",
   ACCOUNT_NOT_EXIST: "Account does not exist",
   WRONG_PASSWORD: "Password is Incorrect",
-  ACCOUNT_DELETED: "Your account has been deleted by Admin",
-  ACCOUNT_BLOCKED: "Your account has been blocked. Please contact the admin",
+  ACCOUNT_DELETED: "Your account has been deleted",
+  ACCOUNT_BLOCKED: "Your account has been deleted/blocked. Please contact the admin",
   USER_NOT_FOUND: "User not found",
   PHONE_NUMBER_ALREADY_EXIST: "Account already exist with this phone number",
   ACCOUNT_NOT_VERIFIED: "Please verify your account first",

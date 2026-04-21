@@ -1,6 +1,7 @@
 import {
   ERROR_MESSAGES,
   STATUS_CODES,
+  TOKEN_TYPE,
   USER_TYPE,
 } from "../../config/appConstants.js";
 import { OperationalError } from "../../utils/error.js";
@@ -12,22 +13,39 @@ import {
   updateToken,
 } from "../token.service.js";
 import { successResponse } from "../../utils/response.js";
+import bcrypt from "bcrypt";
 
 export const signUp = async (userData) => {
-  if (await User.findOne({ phoneNumber: userData.phoneNumber })) {
+  if (
+    await User.findOne({ phoneNumber: userData.phoneNumber, isDeleted: false })
+  ) {
     throw new OperationalError(
       STATUS_CODES.ACTION_FAILED,
       ERROR_MESSAGES.ACCOUNT_ALREADY_EXIST,
     );
   }
 
+    const otp = {
+    code: Math.floor(1000 + Math.random() * 9000),
+    expiresAt: new Date().setSeconds(new Date().getSeconds() + 300),
+  };
+
   const user = await User.create(userData);
-  return user.toObject();
+  const authToken = await generateAuthToken(
+    user._id,
+    USER_TYPE.USER,
+    userData.deviceToken,
+    userData.deviceType,
+    userData.deviceId,
+    otp
+  );
+  return {user:user.toObject(), token: authToken};
 };
 
 export const login = async (loginData) => {
   const user = await User.findOne({
     phoneNumber: loginData.phoneNumber,
+    isDeleted: false,
   }).select("+password");
 
   if (!user) {
@@ -94,14 +112,15 @@ export const verifyOtp = async (data, token) => {
     await updateToken(token._id);
     return;
   }
-  if (token.isVerified) {
+
+  if(token.isVerified) {
     throw new OperationalError(
       STATUS_CODES.ACTION_FAILED,
       ERROR_MESSAGES.OTP_ALREADY_VERIFIED,
     );
   }
 
-  if (token.otp.code !== data.otp || token.otp.expiresAt < new Date()) {
+  if (token.otp.code != data.otp || token.otp.expiresAt < new Date()) {
     throw new OperationalError(
       STATUS_CODES.ACTION_FAILED,
       ERROR_MESSAGES.INVALID_OTP,
@@ -112,8 +131,12 @@ export const verifyOtp = async (data, token) => {
 };
 
 export const resetPassword = async (data, token) => {
-  const user = await User.findById(token.user._id);
-console.log("User found for password reset:", data, token);
+  if (token.type !== TOKEN_TYPE.FORGOT_PASSWORD) {
+    throw new OperationalError(
+      STATUS_CODES.ACTION_FAILED,
+      ERROR_MESSAGES.INVALID_TOKEN,
+    );
+  }
 
   if (!token.isVerified) {
     throw new OperationalError(
@@ -122,8 +145,12 @@ console.log("User found for password reset:", data, token);
     );
   }
 
-  await deletePreviousToken(token._id);
+  const hashedPassword = await bcrypt.hash(data.password, 10);
 
-  user.password = data.password;
-  await user.save();
+  await Promise.all([
+    await User.findByIdAndUpdate(token.user._id, {
+      $set: { password: hashedPassword },
+    }),
+    await deletePreviousToken(token._id),
+  ]);
 };

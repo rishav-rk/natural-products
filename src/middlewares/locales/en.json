@@ -105,5 +105,12 @@
 	"name is required": "name is required",
 	"name is not allowed to be empty": "name is not allowed to be empty",
 	"phoneNumber is not allowed, password is not allowed": "phoneNumber is not allowed, password is not allowed",
-	"img is not allowed": "img is not allowed"
+	"img is not allowed": "img is not allowed",
+	"countryCode is required, phoneNumber is required, password is required, deviceId is required, deviceType is required": "countryCode is required, phoneNumber is required, password is required, deviceId is required, deviceType is required",
+	"deviceId is required": "deviceId is required",
+	"currentPassword is required, newPassword is required": "currentPassword is required, newPassword is required",
+	"Your account has been deleted by Admin": "Your account has been deleted by Admin",
+	"Your account has been deleted": "Your account has been deleted",
+	"Invalid token": "Invalid token",
+	"name is required, phoneNumber is required, password is required": "name is required, phoneNumber is required, password is required"
 }

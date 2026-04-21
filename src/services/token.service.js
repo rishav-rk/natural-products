@@ -95,7 +95,7 @@ export const updateToken = async (tokenId) => {
   await Token.updateOne(
     { _id: tokenId },
     {
-     $set : { isVerified: true }
+     $set : { isVerified: true, otp: null }
     },
   );
 };

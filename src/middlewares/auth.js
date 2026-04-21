@@ -10,7 +10,7 @@ const isUnauthorized = () =>
   new AuthFailedError(ERROR_MESSAGES.UNAUTHORIZED, STATUS_CODES.AUTH_FAILED);
 
 const verifyOtpRoute = (req) =>
-  [`/verifyOtp`, `/resendOtp`].includes(req.url);
+  [`/verify-otp`, `/resend-otp`].includes(req.url);
 
 const validateUserStatus = (user) => {
   if (user.isDeleted) {

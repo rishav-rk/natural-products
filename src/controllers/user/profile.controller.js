@@ -10,7 +10,7 @@ export const getProfile = catchAsync(async (req, res) => {
     res,
     STATUS_CODES.SUCCESS,
     SUCCESS_MESSAGES.SUCCESS,
-    formatUser(req.token.user),
+    formatUser(req.token.user), 
   );
 })
 
@@ -20,7 +20,27 @@ export const updateProfile = catchAsync(async (req, res) => {
     res,
     res,
     STATUS_CODES.SUCCESS,
-    SUCCESS_MESSAGES.PROFILE_UPDATED,
+    SUCCESS_MESSAGES.SUCCESS,
     formatUser(user),
+  );
+})
+
+export const changePassword = catchAsync(async (req, res) => {
+  await profileService.changePassword(req.body, req.token);
+  return successResponse(
+    res,
+    res,
+    STATUS_CODES.ACTION_COMPLETE,
+    SUCCESS_MESSAGES.SUCCESS,
+  );
+})
+
+export const deleteAccount = catchAsync(async (req, res) => {
+  await profileService.deleteAccount(req.token);
+  return successResponse(
+    res,
+    res,
+    STATUS_CODES.ACTION_COMPLETE,
+    SUCCESS_MESSAGES.SUCCESS,
   );
 })

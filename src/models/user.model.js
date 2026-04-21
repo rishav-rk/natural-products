@@ -14,7 +14,6 @@ const userSchema = new mongoose.Schema(
     phoneNumber: {
       type: String,
       required: [true, "Please provide your email"],
-      unique: true,
     },
     countryCode: {
       type: String,
