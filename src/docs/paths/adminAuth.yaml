@@ -1,0 +1,93 @@
+login:
+  post:
+    summary: Login for admin
+    tags:
+      - Admin Auth
+    requestBody:
+      required: true
+      description: Fields required for admin login
+      content:
+        application/json:
+          schema:
+            $ref: '#components/schemas/loginAdminValidatorRequest'
+    responses:
+      200:
+        description: Admin login successful
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  type: object
+                token:
+                  type: string
+
+getProfile:
+    summary: Get admin profile
+    tags:
+      - Admin Profile
+    security:
+      - bearerAuth: []
+    responses:
+      200:
+        description: Admin profile retrieved successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  type: object
+
+updateProfile:
+    summary: Update admin profile
+    tags:
+      - Admin Profile
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      description: Fields to update admin profile
+      content:
+        application/json:
+          schema:
+            $ref: '#components/schemas/updateAdminProfileValidatorRequest'
+    responses:
+      200:
+        description: Admin profile updated successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  type: object
+
+changePassword:
+    summary: Change admin password
+    tags:
+      - Admin Profile
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      description: Old and new password
+      content:
+        application/json:
+          schema:
+            $ref: '#components/schemas/changeAdminPasswordValidatorRequest'
+    responses:
+      200:
+        description: Admin password changed successfully
+
+logout:
+  post:
+    summary: Logout for admin
+    tags:
+      - Admin Auth
+    security:
+      - bearerAuth: []
+    responses:
+      200:
+        description: Admin logout successful

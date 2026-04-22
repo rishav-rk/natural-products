@@ -70,3 +70,7 @@ export const changePassword = async (passwordData, token) => {
   const hashedPassword = await bcrypt.hash(passwordData.newPassword, 10);
   await Admin.findByIdAndUpdate(token.admin._id, {$set: { password: hashedPassword }});
 }
+
+export const logout = async (token) => {
+  await deletePreviousToken(token._id);
+}

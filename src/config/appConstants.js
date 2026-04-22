@@ -42,7 +42,7 @@ export const JOI = {
     .min(8)
     .message("Please enter a valid phone number")
     .example("927348247"),
-  LIMIT: Joi.number().default(10).min(3),
+  LIMIT: Joi.number().default(10).min(10),
   PAGE: Joi.number().default(0),
   OBJECTID: Joi.string()
     .custom(objectId)

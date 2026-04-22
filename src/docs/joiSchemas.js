@@ -1,6 +1,8 @@
 import j2s from "joi-to-swagger";
 import * as authValidation from "../validators/user/auth.validator.js";
 import * as profileValidation from "../validators/user/profile.validator.js";
+import * as userValidation from "../validators/admin/user.validator.js";
+import * as adminAuthValidation from "../validators/admin/auth.validator.js";
 
 const generateSchemas = () => {
   const schemas = {};
@@ -8,6 +10,8 @@ const generateSchemas = () => {
   const validatorSources = [
     authValidation,
     profileValidation,
+    userValidation, 
+    adminAuthValidation
   ];
 
   // Process each validator source

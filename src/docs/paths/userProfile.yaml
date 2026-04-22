@@ -2,7 +2,7 @@ getProfile:
     summary: Get user profile
     description: Retrieve the profile information of the authenticated user.
     tags:
-      - Profile
+      - User Profile
     security:
       - bearerAuth: []
     responses:
@@ -39,7 +39,7 @@ updateProfile:
     summary: Update user profile
     description: Update the profile information of the authenticated user.
     tags:
-      - Profile
+      - User Profile
     security:
       - bearerAuth: []
     requestBody:
@@ -83,7 +83,7 @@ changePassword:
     summary: Change user password
     description: Change the password of the authenticated user.
     tags:
-      - Profile
+      - User Profile
     security:
       - bearerAuth: []
     requestBody:
@@ -112,7 +112,7 @@ deleteAccount:
     summary: Delete user account
     description: Permanently delete the authenticated user account.
     tags:
-      - Profile
+      - User Profile
     security:
       - bearerAuth: []
     responses:

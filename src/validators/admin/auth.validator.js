@@ -1,7 +1,7 @@
 import {JOI} from "../../config/appConstants.js"
 import Joi from "joi"
 
-export const loginValidator = {
+export const loginAdminValidator = {
     body : Joi.object({
         "email" : JOI.EMAIL, 
         "password" : JOI.PASSWORD, 
@@ -11,14 +11,14 @@ export const loginValidator = {
     }).required()
 }
 
-export const updateProfileValidator = {
+export const updateAdminProfileValidator = {
     body : Joi.object({
         "name" : Joi.string().min(3).max(30),
         "image" : Joi.string().uri(),
     }).required()
 }
 
-export const changePasswordValidator = {
+export const changeAdminPasswordValidator = {
     body : Joi.object({
         "oldPassword" : JOI.PASSWORD,
         "newPassword" : JOI.PASSWORD

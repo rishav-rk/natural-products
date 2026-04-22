@@ -9,7 +9,7 @@ const router = Router();
 
 router.post(
   "/auth/login",
-  validate(adminValidator.loginValidator),
+  validate(adminValidator.loginAdminValidator),
   adminController.login,
 );
 
@@ -22,20 +22,19 @@ router.get(
 router.patch(
   "/change-password",
   auth(USER_TYPE.ADMIN),
-  validate(adminValidator.changePasswordValidator),
+  validate(adminValidator.changeAdminPasswordValidator),
   adminController.changePassword,
 );
 
 router.put("/update-profile",
   auth(USER_TYPE.ADMIN),
-  validate(adminValidator.updateProfileValidator),
+  validate(adminValidator.updateAdminProfileValidator),
   adminController.updateProfile,
 );
 
 router.post(
   "/logout",
   auth(USER_TYPE.ADMIN),
-  validate(adminValidator.logoutValidator),
   adminController.logout,
 );
 

@@ -2,6 +2,7 @@ import {Router} from "express";
 import authRoute from "./user/auth.route.js";
 import profileRoute from "./user/profile.route.js";
 import adminAuthRoute from "./admin/auth.route.js"
+import userRoute from "./admin/user.route.js";
 
 const router = Router();
 
@@ -17,6 +18,10 @@ const defaultRoutes = [
   {
     path: "/admin",
     route: adminAuthRoute,
+  }, 
+  {
+    path: "/admin/users",
+    route: userRoute,
   }
 ];
 

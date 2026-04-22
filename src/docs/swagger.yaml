@@ -20,8 +20,12 @@ components:
   tags:
     - name: Auth
       description: Authentication endpoints for user signup, login, password reset
-    - name: Profile
+    - name: User Profile
       description: User profile management endpoints
+    - name: Admin Auth
+      description: Admin authentication endpoints for login, profile management
+    - name: Admin Profile
+      description: Admin profile management endpoints
 
 paths:
   /auth/signup:
@@ -44,6 +48,22 @@ paths:
   
   /resend-otp:
     $ref: "./paths/auth.yaml#/resendOTP"
+
+  /admin/auth/login:
+    $ref: "./paths/adminAuth.yaml#/login"
+
+  /admin/profile:
+    get:
+      $ref: "./paths/adminAuth.yaml#/getProfile"
+    put:
+      $ref: "./paths/adminAuth.yaml#/updateProfile"
+
+  /admin/profile/change-password:
+    patch:
+      $ref: "./paths/adminAuth.yaml#/changePassword"
+
+  /admin/logout:
+    $ref: "./paths/adminAuth.yaml#/logout"
 
   /profile:
     get:

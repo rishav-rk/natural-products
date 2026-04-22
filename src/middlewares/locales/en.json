@@ -122,5 +122,7 @@
 	"Account does not exist": "Account does not exist",
 	"Your account has been deleted/blocked": {
 		" Please contact the admin": "Your account has been deleted/blocked. Please contact the admin"
-	}
+	},
+	"id must be a valid mongo id": "id must be a valid mongo id",
+	"userId is required, id is not allowed": "userId is required, id is not allowed"
 }
