@@ -6,6 +6,9 @@ info:
 
 servers:
   - url: http://localhost:5000/api
+    description: Development server
+  - url: https://api.bestpriceindia.net/api
+    description: Production server
 
 components:
   securitySchemes:
