@@ -21,9 +21,6 @@ const envVarsSchema = Joi.object()
     ENVIRONMENT: Joi.string()
       .required()
       .valid(...Object.values(ENVIRONMENT)),
-      TWILIO_ACCOUNT_SID: Joi.string().required().description('twilio account sid'),
-      TWILIO_AUTH_TOKEN: Joi.string().required().description('twilio authentication token'), 
-      TWILIO_PHONE_NUMBER: Joi.string().required().description('twilio sender phone number')
   })
   .unknown();
 
@@ -50,10 +47,5 @@ export default {
   },
   baseurl: envVars.HOST_URL,
   projectName: envVars.PROJECT_NAME,
-  twilio: {
-    accountSid:envVars.TWILIO_ACCOUNT_SID,
-    authToken:envVars.TWILIO_AUTH_TOKEN, 
-    phoneNumber: envVars.TWILIO_PHONE_NUMBER,
-  },
   environment: envVars.ENVIRONMENT,
 };
