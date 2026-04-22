@@ -11,6 +11,7 @@ import {
   generateAuthToken,
   generateForgotPasswordToken,
   updateToken,
+  resendOTP,
 } from "../token.service.js";
 import { successResponse } from "../../utils/response.js";
 import bcrypt from "bcrypt";
@@ -154,3 +155,15 @@ export const resetPassword = async (data, token) => {
     await deletePreviousToken(token._id),
   ]);
 };
+
+export const resendOtp = async (token) => {
+
+  const otp = {
+    code: Math.floor(1000 + Math.random() * 9000),
+    expiresAt: new Date().setSeconds(new Date().getSeconds() + 300),
+  };
+
+  // otp sent via sms
+
+  await resendOTP(token._id, otp);
+}

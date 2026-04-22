@@ -5,7 +5,7 @@ info:
   description: API documentation for nature's lab
 
 servers:
-  - url: http://localhost:8001/api
+  - url: http://localhost:5000/api
 
 components:
   securitySchemes:
@@ -14,9 +14,13 @@ components:
       scheme: bearer
       bearerFormat: JWT
       description: JWT Bearer token authorization
+  tags:
+    - name: Auth
+      description: Authentication endpoints for user signup, login, password reset
+    - name: Profile
+      description: User profile management endpoints
 
 paths:
-
   /auth/signup:
     $ref: "./paths/auth.yaml#/signup"
 
@@ -34,4 +38,19 @@ paths:
   
   /auth/reset-password:
     $ref: "./paths/auth.yaml#/resetPassword"
+  
+  /resend-otp:
+    $ref: "./paths/auth.yaml#/resendOTP"
+
+  /profile:
+    get:
+      $ref: "./paths/userProfile.yaml#/getProfile"
+    put:
+      $ref: "./paths/userProfile.yaml#/updateProfile"
+    delete:
+      $ref: "./paths/userProfile.yaml#/deleteAccount"
+
+  /profile/change-password:
+    patch:
+      $ref: "./paths/userProfile.yaml#/changePassword"
   

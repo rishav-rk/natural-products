@@ -138,7 +138,7 @@ export const generateForgotPasswordToken = async (
   };
 };
 
-export const resendOtp = async (token, otp) => {
+export const resendOTP = async (token, otp) => {
 
   await Token.updateOne({ _id: token._id }, { otp, isVerified : false });
 };

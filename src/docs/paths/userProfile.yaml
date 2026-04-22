@@ -1,0 +1,131 @@
+getProfile:
+    summary: Get user profile
+    description: Retrieve the profile information of the authenticated user.
+    tags:
+      - Profile
+    security:
+      - bearerAuth: []
+    responses:
+      200:
+        description: Successful response with user profile data
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                statusCode:
+                  type: number
+                  example: 200
+                message:
+                  type: string
+                  example: "Success"
+                data:
+                  type: object
+                  properties:
+                    _id:
+                      type: string
+                      example: "507f1f77bcf86cd799439011"
+                    name:
+                      type: string
+                      example: "John Doe"
+                    email:
+                      type: string
+                      example: "john@example.com"
+                    image:
+                      type: string
+                      example: "https://example.com/image.jpg"
+
+updateProfile:
+    summary: Update user profile
+    description: Update the profile information of the authenticated user.
+    tags:
+      - Profile
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      description: Fields to update in user profile
+      content:
+        application/json:
+          schema:
+            $ref: '#components/schemas/updateProfileValidatorRequest'
+    responses:
+      200:
+        description: Profile updated successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                statusCode:
+                  type: number
+                  example: 200
+                message:
+                  type: string
+                  example: "Success"
+                data:
+                  type: object
+                  properties:
+                    _id:
+                      type: string
+                      example: "507f1f77bcf86cd799439011"
+                    name:
+                      type: string
+                      example: "John Doe"
+                    email:
+                      type: string
+                      example: "john@example.com"
+                    image:
+                      type: string
+                      example: "https://example.com/image.jpg"
+
+changePassword:
+    summary: Change user password
+    description: Change the password of the authenticated user.
+    tags:
+      - Profile
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      description: Current and new password
+      content:
+        application/json:
+          schema:
+            $ref: '#components/schemas/changePasswordValidatorRequest'
+    responses:
+      204:
+        description: Password changed successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                statusCode:
+                  type: number
+                  example: 204
+                message:
+                  type: string
+                  example: "Success"
+
+deleteAccount:
+    summary: Delete user account
+    description: Permanently delete the authenticated user account.
+    tags:
+      - Profile
+    security:
+      - bearerAuth: []
+    responses:
+      204:
+        description: Account deleted successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                statusCode:
+                  type: number
+                  example: 204
+                message:
+                  type: string
+                  example: "Success"

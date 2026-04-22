@@ -44,6 +44,13 @@ router.post(
 );
 
 router.post(
+  "/resend-otp",
+  auth(USER_TYPE.USER),
+  validate(authValidator.resendOtpValidator),
+  authController.resendOtp,
+);
+
+router.post(
   "/logout",
   auth(USER_TYPE.USER),
   validate(authValidator.logoutValidator),

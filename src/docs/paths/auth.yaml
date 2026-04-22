@@ -119,3 +119,21 @@ logout:
     responses:
       200:
         description: Logout successful
+
+resendOTP:
+  post:
+    summary: Resend OTP for forgot password
+    tags:
+      - Auth
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      description: resend OTP
+      content:
+        application/json:
+          schema:
+            $ref: '#components/schemas/resendOtpValidatorRequest'
+    responses:
+      200:
+        description: OTP resent successfully

@@ -66,3 +66,13 @@ export const logout = catchAsync(async (req, res) => {
     SUCCESS_MESSAGES.LOGOUT,
   );
 })
+
+export const resendOtp = catchAsync(async (req, res) => {
+  await authService.resendOTP(req.token);
+  return successResponse(
+    res,
+    res,
+    STATUS_CODES.SUCCESS,
+    'OTP resent successfully',
+  );
+})

@@ -50,3 +50,7 @@ export const logoutValidator = {
     deviceToken: Joi.string()
   }).required(),
 };
+
+export const resendOtpValidator = {
+  body: Joi.object({})
+};

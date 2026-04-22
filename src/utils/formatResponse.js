@@ -28,7 +28,7 @@ export const formatProducts = (products) => {
 
 export const formatUser = (user) => {
   delete user?.isDeleted;
-  delete user?.isBlocked;
+  delete user?.isActive;
   delete user?.isVerified;
   delete user?.password;
   delete user?.createdAt;
