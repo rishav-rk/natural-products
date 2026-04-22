@@ -18,7 +18,11 @@ import bcrypt from "bcrypt";
 
 export const signUp = async (userData) => {
   if (
-    await User.findOne({ phoneNumber: userData.phoneNumber, isDeleted: false })
+    await User.findOne({
+      phoneNumber: userData.phoneNumber,
+      isDeleted: false,
+      isVerified: true,
+    })
   ) {
     throw new OperationalError(
       STATUS_CODES.ACTION_FAILED,
@@ -26,27 +30,42 @@ export const signUp = async (userData) => {
     );
   }
 
-    const otp = {
+  const otp = {
     code: Math.floor(1000 + Math.random() * 9000),
     expiresAt: new Date().setSeconds(new Date().getSeconds() + 300),
   };
 
-  const user = await User.create(userData);
+  const hashedPassword = await bcrypt.hash(userData.password, 10);
+
+  const userDataToSave = {
+    name: userData.name,
+    phoneNumber: userData.phoneNumber,
+    password: hashedPassword,
+  };
+
+  const user = await User.findOneAndUpdate(
+    { phoneNumber: userData.phoneNumber, isDeleted: false, isVerified: false },
+    {
+      $set: userDataToSave,
+    },
+    { new: true, upsert: true, setDefaultsOnInsert: true },
+  );
   const authToken = await generateAuthToken(
     user._id,
     USER_TYPE.USER,
     userData.deviceToken,
     userData.deviceType,
     userData.deviceId,
-    otp
+    otp,
   );
-  return {user:user.toObject(), token: authToken};
+  return { user: user.toObject(), token: authToken };
 };
 
 export const login = async (loginData) => {
   const user = await User.findOne({
     phoneNumber: loginData.phoneNumber,
     isDeleted: false,
+    isVerified: true
   }).select("+password");
 
   if (!user) {
@@ -110,11 +129,14 @@ export const forgotPassword = async (data) => {
 export const verifyOtp = async (data, token) => {
   if (data.otp === "2222") {
     console.log("Bypassing OTP verification for testing purposes");
-    await updateToken(token._id);
-    return;
+    Promise.all([
+      await User.findByIdAndUpdate(token.user._id, { $set: { isVerified: true } }),
+      await updateToken(token._id)
+    ]);
+      return;
   }
 
-  if(token.isVerified) {
+  if (token.isVerified) {
     throw new OperationalError(
       STATUS_CODES.ACTION_FAILED,
       ERROR_MESSAGES.OTP_ALREADY_VERIFIED,
@@ -128,7 +150,10 @@ export const verifyOtp = async (data, token) => {
     );
   }
 
-  await updateToken(token._id);
+    Promise.all([
+      await User.findByIdAndUpdate(token.user._id, { $set: { isActive: true } }),
+      await updateToken(token._id)
+    ]);
 };
 
 export const resetPassword = async (data, token) => {
@@ -157,7 +182,6 @@ export const resetPassword = async (data, token) => {
 };
 
 export const resendOtp = async (token) => {
-
   const otp = {
     code: Math.floor(1000 + Math.random() * 9000),
     expiresAt: new Date().setSeconds(new Date().getSeconds() + 300),
@@ -166,4 +190,8 @@ export const resendOtp = async (token) => {
   // otp sent via sms
 
   await resendOTP(token._id, otp);
-}
+};
+
+export const logout = async (token) => {
+  await deletePreviousToken(token._id);
+};

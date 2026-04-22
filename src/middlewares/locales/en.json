@@ -118,5 +118,9 @@
 	"name is not allowed to be empty, image is not allowed to be empty": "name is not allowed to be empty, image is not allowed to be empty",
 	"name length must be at least 3 characters long, image is not allowed to be empty": "name length must be at least 3 characters long, image is not allowed to be empty",
 	"image is not allowed to be empty": "image is not allowed to be empty",
-	"name length must be at least 3 characters long": "name length must be at least 3 characters long"
+	"name length must be at least 3 characters long": "name length must be at least 3 characters long",
+	"Account does not exist": "Account does not exist",
+	"Your account has been deleted/blocked": {
+		" Please contact the admin": "Your account has been deleted/blocked. Please contact the admin"
+	}
 }

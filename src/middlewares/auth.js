@@ -10,7 +10,7 @@ const isUnauthorized = () =>
   new AuthFailedError(ERROR_MESSAGES.UNAUTHORIZED, STATUS_CODES.AUTH_FAILED);
 
 const verifyOtpRoute = (req) =>
-  [`/verify-otp`, `/resend-otp`].includes(req.url);
+  ['/verify-otp', '/resend-otp'].includes(req.url);
 
 const validateUserStatus = (user) => {
   if (user.isDeleted) {
@@ -59,19 +59,23 @@ const verifyCallback =
         req.token = token;
         return resolve();
       }
+     
+      // OTP route validation
+      if (verifyOtpRoute(req)) {
+        if(!token.otp){
+          throw new AuthFailedError(
+            ERROR_MESSAGES.INVALID_TOKEN,
+            STATUS_CODES.ACTION_FAILED
+          );
+        }
+        req.token = token;
+        resolve();
+      }
 
       const user = token.user;
       if (!user) throw new AuthFailedError();
 
       validateUserStatus(user);
-
-      // OTP route validation
-      if (verifyOtpRoute(req) && !token.otp) {
-        throw new AuthFailedError(
-          ERROR_MESSAGES.INVALID_TOKEN,
-          STATUS_CODES.ACTION_FAILED
-        );
-      }
 
       req.token = token;
       resolve();

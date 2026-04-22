@@ -58,7 +58,7 @@ export const resetPassword = catchAsync(async (req, res) => {
 })
 
 export const logout = catchAsync(async (req, res) => {
-  // await authService.logout(req.token);
+  await authService.logout(req.token);
   return successResponse(
     res,
     res,
