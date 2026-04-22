@@ -1,0 +1,74 @@
+getAllUsers:
+    summary: Get all users with pagination
+    tags:
+      - Admin User Operations
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: query
+        name: page
+        schema:
+          type: integer
+          default: 1
+        description: Page number for pagination
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          default: 10
+        description: Number of users per page
+    responses:
+      200:
+        description: List of users retrieved successfully
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+
+getUserById:
+    summary: Get user by ID
+    tags:
+      - Admin User Operations
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        description: User ID (MongoDB ObjectId)
+    responses:
+      200:
+        description: User retrieved successfully
+        content:
+          application/json:
+            schema:
+              type: object
+      404:
+        description: User not found
+
+enableDisableUser:
+    summary: Enable or disable user account
+    tags:
+      - Admin User Operations
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      description: User ID to enable/disable
+      content:
+        application/json:
+          schema:
+            $ref: '#components/schemas/enableDisableUserRequest'
+    responses:
+      200:
+        description: User status toggled successfully
+        content:
+          application/json:
+            schema:
+              type: object
+      404:
+        description: User not found

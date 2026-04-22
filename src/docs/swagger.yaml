@@ -26,6 +26,8 @@ components:
       description: Admin authentication endpoints for login, profile management
     - name: Admin Profile
       description: Admin profile management endpoints
+    - name: Admin User Operations
+      description: Admin user management endpoints
 
 paths:
   /auth/signup:
@@ -64,6 +66,18 @@ paths:
 
   /admin/logout:
     $ref: "./paths/adminAuth.yaml#/logout"
+
+  /admin/users:
+    get:
+      $ref: "./paths/adminUserOperations.yaml#/getAllUsers"
+
+  /admin/users/getUser/{id}:
+    get:
+      $ref: "./paths/adminUserOperations.yaml#/getUserById"
+
+  /admin/users/enable-disable:
+    put:
+      $ref: "./paths/adminUserOperations.yaml#/enableDisableUser"
 
   /profile:
     get:

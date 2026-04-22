@@ -21,7 +21,6 @@ try {
     ...(swaggerDocument.components.schemas || {}),
     ...joiSchemas
   } 
-  console.log(swaggerDocument.components.schemas)
 } catch (err) {
   console.error("Swagger error:", err)
 }
