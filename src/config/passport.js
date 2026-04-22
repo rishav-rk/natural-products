@@ -18,7 +18,7 @@ const jwtVerify = async (payload, done) => {
         .lean();
     } else {
       token = await Token.findOne({ _id: payload.id, isDeleted: false })
-        .populate("admin", "-password")
+        .populate("admin")
         .lean();
     }
     done(null, token);

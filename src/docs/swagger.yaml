@@ -5,10 +5,10 @@ info:
   description: API documentation for nature's lab
 
 servers:
-  - url: http://localhost:5000/api
-    description: Development server
   - url: https://api.bestpriceindia.net/api
     description: Production server
+  - url: http://localhost:5000/api
+    description: Development server
 
 components:
   securitySchemes:
@@ -57,6 +57,8 @@ paths:
   /admin/profile:
     get:
       $ref: "./paths/adminAuth.yaml#/getProfile"
+  
+  /admin/profile/update-profile:
     put:
       $ref: "./paths/adminAuth.yaml#/updateProfile"
 
@@ -64,7 +66,7 @@ paths:
     patch:
       $ref: "./paths/adminAuth.yaml#/changePassword"
 
-  /admin/logout:
+  /admin/auth/logout:
     $ref: "./paths/adminAuth.yaml#/logout"
 
   /admin/users:

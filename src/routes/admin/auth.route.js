@@ -20,20 +20,20 @@ router.get(
 );
 
 router.patch(
-  "/change-password",
+  "/profile/change-password",
   auth(USER_TYPE.ADMIN),
   validate(adminValidator.changeAdminPasswordValidator),
   adminController.changePassword,
 );
 
-router.put("/update-profile",
+router.put("/profile/update-profile",
   auth(USER_TYPE.ADMIN),
   validate(adminValidator.updateAdminProfileValidator),
   adminController.updateProfile,
 );
 
 router.post(
-  "/logout",
+  "/auth/logout",
   auth(USER_TYPE.ADMIN),
   adminController.logout,
 );
