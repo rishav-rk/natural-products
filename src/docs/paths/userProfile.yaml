@@ -129,3 +129,183 @@ deleteAccount:
                 message:
                   type: string
                   example: "Success"
+
+addAddress:
+    summary: Add a new address
+    description: Add a new address to the authenticated user's address list.
+    tags:
+      - User Profile
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      description: Address information with coordinates
+      content:
+        application/json:
+          schema:
+            $ref: '#components/schemas/addAddressValidatorRequest'
+    responses:
+      201:
+        description: Address added successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                statusCode:
+                  type: number
+                  example: 201
+                message:
+                  type: string
+                  example: "Success"
+                data:
+                  type: object
+                  properties:
+                    address:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                          example: "507f1f77bcf86cd799439011"
+                        houseNumberAndFloor:
+                          type: string
+                          example: "123/A"
+                        buildingAndBlock:
+                          type: string
+                          example: "Tower B"
+                        landMarkAndArea:
+                          type: string
+                          example: "Near Park"
+                        city:
+                          type: string
+                          example: "Mumbai"
+                        state:
+                          type: string
+                          example: "Maharashtra"
+                        country:
+                          type: string
+                          example: "India"
+                        type:
+                          type: string
+                          example: "home"
+                        location:
+                          type: object
+                          properties:
+                            type:
+                              type: string
+                              example: "Point"
+                            coordinates:
+                              type: array
+                              items:
+                                type: number
+                              example: [72.8479, 19.0760]
+
+updateAddress:
+    summary: Update an existing address
+    description: Update address details for a specific address ID of the authenticated user.
+    tags:
+      - User Profile
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: addressId
+        in: path
+        required: true
+        description: The ID of the address to update
+        schema:
+          type: string
+          example: "507f1f77bcf86cd799439011"
+    requestBody:
+      required: true
+      description: Updated address information with coordinates
+      content:
+        application/json:
+          schema:
+            $ref: '#components/schemas/updateAddressValidatorRequest'
+    responses:
+      200:
+        description: Address updated successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                statusCode:
+                  type: number
+                  example: 200
+                message:
+                  type: string
+                  example: "Success"
+                data:
+                  type: object
+                  properties:
+                    addresses:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          _id:
+                            type: string
+                            example: "507f1f77bcf86cd799439011"
+                          houseNumberAndFloor:
+                            type: string
+                            example: "123/A"
+                          buildingAndBlock:
+                            type: string
+                            example: "Tower B"
+                          landMarkAndArea:
+                            type: string
+                            example: "Near Park"
+                          city:
+                            type: string
+                            example: "Mumbai"
+                          state:
+                            type: string
+                            example: "Maharashtra"
+                          country:
+                            type: string
+                            example: "India"
+                          type:
+                            type: string
+                            example: "home"
+                          location:
+                            type: object
+                            properties:
+                              type:
+                                type: string
+                                example: "Point"
+                              coordinates:
+                                type: array
+                                items:
+                                  type: number
+                                example: [72.8479, 19.0760]
+
+deleteAddress:
+    summary: Delete an address
+    description: Delete a specific address from the authenticated user's address list.
+    tags:
+      - User Profile
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      description: Address ID to delete
+      content:
+        application/json:
+          schema:
+            $ref: '#components/schemas/deleteAddressValidatorRequest'
+    responses:
+      204:
+        description: Address deleted successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                statusCode:
+                  type: number
+                  example: 204
+                message:
+                  type: string
+                  example: "Success"
+

@@ -52,3 +52,63 @@ export const deleteAccount = async (token) => {
     await deletePreviousToken(token._id),
   ]);
 };
+
+export const updateAddress = async (addressData, addressId, token) => {
+
+  const user = await User.findOneAndUpdate(
+    { _id: token.user._id, "addresses._id": addressId },
+    {
+      $set: {
+        "addresses.$.houseNumberAndFloor": addressData.houseNumberAndFloor,
+        "addresses.$.buildingAndBlock": addressData.buildingAndBlock,
+        "addresses.$.landMarkAndArea": addressData.landMarkAndArea,
+        "addresses.$.city": addressData.city,
+        "addresses.$.state": addressData.state,
+        "addresses.$.country": addressData.country,
+        "addresses.$.type": addressData.type,
+        "addresses.$.location": [addressData.longitude, addressData.latitude],
+      },
+    },
+    { new: true },
+  ).lean();
+
+  if (!user) {
+    throw new OperationalError(
+      STATUS_CODES.ACTION_FAILED,
+      ERROR_MESSAGES.ADDRESS_NOT_FOUND,
+    );
+  }
+
+  return user.addresses;
+};
+
+export const addAddress = async (addressData, token) => {
+  const user = await User.findByIdAndUpdate(
+    token.user._id,
+    {
+      $push: { addresses: addressData },
+    },
+    { new: true },
+  ).lean();
+
+  return user.addresses;
+};
+
+export const deleteAddress = async (addressId, token) => {
+  const user = await User.findOneAndUpdate(
+    token.user._id,
+    {
+      $pull: { addresses: { _id: addressId } },
+    },
+    { new: true },
+  ).lean();
+
+  if (!user) {
+    throw new OperationalError(
+      STATUS_CODES.ACTION_FAILED,
+      ERROR_MESSAGES.ADDRESS_NOT_FOUND,
+    );
+  }
+
+  return user.addresses;
+};

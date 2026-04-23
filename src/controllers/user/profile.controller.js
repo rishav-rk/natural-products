@@ -10,9 +10,9 @@ export const getProfile = catchAsync(async (req, res) => {
     res,
     STATUS_CODES.SUCCESS,
     SUCCESS_MESSAGES.SUCCESS,
-    formatUser(req.token.user), 
+    formatUser(req.token.user),
   );
-})
+});
 
 export const updateProfile = catchAsync(async (req, res) => {
   const user = await profileService.updateProfile(req.body, req.token);
@@ -23,7 +23,7 @@ export const updateProfile = catchAsync(async (req, res) => {
     SUCCESS_MESSAGES.SUCCESS,
     formatUser(user),
   );
-})
+});
 
 export const changePassword = catchAsync(async (req, res) => {
   await profileService.changePassword(req.body, req.token);
@@ -33,7 +33,7 @@ export const changePassword = catchAsync(async (req, res) => {
     STATUS_CODES.ACTION_COMPLETE,
     SUCCESS_MESSAGES.SUCCESS,
   );
-})
+});
 
 export const deleteAccount = catchAsync(async (req, res) => {
   await profileService.deleteAccount(req.token);
@@ -43,4 +43,51 @@ export const deleteAccount = catchAsync(async (req, res) => {
     STATUS_CODES.ACTION_COMPLETE,
     SUCCESS_MESSAGES.SUCCESS,
   );
+});
+
+// implement this
+export const updateAddress = catchAsync(async (req, res) => {
+  const addresses = await profileService.updateAddress(
+    req.body,
+    req.params.addressId,
+    req.token,
+  );
+  return successResponse(
+    res,
+    res,
+    STATUS_CODES.SUCCESS,
+    SUCCESS_MESSAGES.SUCCESS,
+    { addresses },
+  );
+});
+
+export const addAddress = catchAsync(async (req, res) => {
+  const addressData = req.body;
+  addressData.location = {
+    type: "Point",
+    coordinates: [addressData.longitude, addressData.latitude],
+  };
+  delete addressData.latitude;
+  delete addressData.longitude;
+
+  const address = await profileService.addAddress(addressData, req.token);
+  return successResponse(
+    res,
+    res,
+    STATUS_CODES.CREATED,
+    SUCCESS_MESSAGES.SUCCESS,
+    { address },
+  );
+});
+
+export const deleteAddress = catchAsync(async (req, res) => {
+
+  await profileService.deleteAddress(req.body.addressId, req.token);
+  return successResponse(
+    res,
+    res,
+    STATUS_CODES.ACTION_COMPLETE,
+    SUCCESS_MESSAGES.SUCCESS,
+  );
+
 })

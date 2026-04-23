@@ -7,7 +7,7 @@ const Run = async () => {
    * -----------------------------------------------------------------------------*/
   let adminDetails = {
     name : "Primary Admin", 
-    email : "pr.admin.234@gmail.com",
+    email : "nature@admin.com",
     password : await bcrypt.hash("Nature@123", 10)
   };
 

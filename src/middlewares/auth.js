@@ -20,6 +20,13 @@ const validateUserStatus = (user) => {
     );
   }
 
+  if(!user.isVerified){
+    throw new OperationalError(
+      STATUS_CODES.AUTH_FAILED,
+      ERROR_MESSAGES.ACCOUNT_NOT_VERIFIED
+    );
+  }
+
   if (!user.isActive) {
     throw new OperationalError(
       STATUS_CODES.AUTH_FAILED,

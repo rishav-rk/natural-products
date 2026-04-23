@@ -34,15 +34,15 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    order: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Order",
-      },
-    ],
     addresses: [
       {
-        zipCode: {
+        houseNumberAndFloor: {
+          type: String,
+        },
+        builidingAndBlock:{
+          type: String,
+        },
+        landMarkAndArea:{
           type: String,
         },
         city: {
@@ -53,6 +53,7 @@ const userSchema = new mongoose.Schema(
         },
         country: {
           type: String,
+          default: "India",
         },
         type: {
           type: String,

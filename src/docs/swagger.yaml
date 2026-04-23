@@ -97,3 +97,15 @@ paths:
     patch:
       $ref: "./paths/userProfile.yaml#/changePassword"
   
+  /profile/add-address:
+    post:
+      $ref: "./paths/userProfile.yaml#/addAddress"
+  
+  /profile/update-address/{addressId}:
+    put:
+      $ref: "./paths/userProfile.yaml#/updateAddress"
+    
+  /profile/delete-address:
+    delete:
+      $ref: "./paths/userProfile.yaml#/deleteAddress"
+  

@@ -2,7 +2,10 @@ import { Router } from "express";
 import {
   getProfileValidator,
   updateProfileValidator,
-  changePasswordValidator
+  changePasswordValidator,
+  addAddressValidator,
+  updateAddressValidator,
+  deleteAddressValidator,
 } from "../../validators/user/profile.validator.js";
 import { validate } from "../../middlewares/validate.js";
 import { USER_TYPE } from "../../config/appConstants.js";
@@ -32,6 +35,27 @@ router.put(
   auth(USER_TYPE.USER),
   validate(updateProfileValidator),
   profileController.updateProfile,
+);
+
+router.post(
+  "/add-address",
+  auth(USER_TYPE.USER),
+  validate(addAddressValidator),
+  profileController.addAddress,
+);
+
+router.put(
+  "/update-address/:addressId",
+  auth(USER_TYPE.USER),
+  validate(updateAddressValidator),
+  profileController.updateAddress,
+);
+
+router.delete(
+  "/delete-address",
+  auth(USER_TYPE.USER),
+  validate(deleteAddressValidator),
+  profileController.deleteAddress,
 );
 
 export default router;

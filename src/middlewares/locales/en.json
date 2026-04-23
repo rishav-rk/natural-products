@@ -127,5 +127,13 @@
 	"userId is required, id is not allowed": "userId is required, id is not allowed",
 	"image must be a valid uri": "image must be a valid uri",
 	"search is required": "search is required",
-	"search is required, phone is not allowed": "search is required, phone is not allowed"
+	"search is required, phone is not allowed": "search is required, phone is not allowed",
+	"houseNumberAndFloor is required, type is required, latitude is required, longitude is required": "houseNumberAndFloor is required, type is required, latitude is required, longitude is required",
+	"addressId is required": "addressId is required",
+	"latitude must be a number, longitude must be a number": "latitude must be a number, longitude must be a number",
+	"latitude must be a number": "latitude must be a number",
+	"country must be a string": "country must be a string",
+	"country is not allowed to be empty": "country is not allowed to be empty",
+	"houseNumberAndFloor is not allowed to be empty": "houseNumberAndFloor is not allowed to be empty",
+	"type must be one of [home, work, other]": "type must be one of [home, work, other]"
 }

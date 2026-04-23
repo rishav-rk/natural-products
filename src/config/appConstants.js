@@ -92,6 +92,7 @@ export const SUCCESS_MESSAGES = {
 };
 
 export const ERROR_MESSAGES = {
+  ADDRESS_NOT_FOUND: "Address not found",
   PRODUCT_ALREADY_EXISTS: "Product already exists. Try updating it",
   INVALID_TOKEN: "Invalid token",
   NO_SUCH_PRODUCT: "No such product exists",
