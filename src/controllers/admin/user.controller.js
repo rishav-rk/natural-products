@@ -4,8 +4,8 @@ import { STATUS_CODES, SUCCESS_MESSAGES } from "../../config/appConstants.js";
 import { formatUser } from "../../utils/formatResponse.js";
 import { catchAsync } from "../../utils/universalFunctions.js";
 
-export const getAllUsers = catchAsync(async (req, res) => {
-  const users = await userService.getAllUsers(req.query);
+export const getUsers = catchAsync(async (req, res) => {
+  const users = await userService.getUsers(req.query);
   const formattedUsers = users.map((user) => {
     delete user.password
     delete user.__v
@@ -45,17 +45,5 @@ export const enableDisableUser = catchAsync(async (req, res) => {
     STATUS_CODES.SUCCESS,
     SUCCESS_MESSAGES.SUCCESS,
     updatedUser
-  );
-});
-
-export const getUserByPhoneOrName = catchAsync(async (req, res) => {
-  const { search, page, limit } = req.query;
-  const users = await userService.getUserByPhoneOrName(search, page, limit);
-  successResponse(
-    req,
-    res,
-    STATUS_CODES.SUCCESS,
-    SUCCESS_MESSAGES.SUCCESS,
-    {users, totalUsers: users.length},
   );
 });

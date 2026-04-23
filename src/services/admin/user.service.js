@@ -8,9 +8,17 @@ import { OperationalError } from "../../utils/error.js";
 import { Admin, User } from "../../models/index.js";
 import { paginationOptions } from "../../utils/universalFunctions.js";
 
-export const getAllUsers = async (query) => {
+export const getUsers = async (query) => {
+
+  const filter = (query.search) ? {
+    $or: [
+      { name: { $regex: query.search, $options: "i" } },
+      { phoneNumber: { $regex: query.search, $options: "i" } },
+    ],
+  } : {};
+
   const users = await User.find(
-    {},
+    filter,
     {},
     paginationOptions(query.page, query.limit),
   );
@@ -40,19 +48,4 @@ export const enableDisableUser = async (userId) => {
   delete user.password;
   delete user.__v;
   return user;
-};
-
-export const getUserByPhoneOrName = async (search, page, limit) => {
-  console.log(search)
-  const users = await User.find(
-    {
-      $or: [
-        {phoneNumber: {$regex : search, $options: 'i'}},
-        {name: {$regex : search, $options: 'i'}},
-      ],
-    },
-    {},
-    paginationOptions(page, limit),
-  ).lean();
-  return users;
 };

@@ -71,7 +71,7 @@ paths:
 
   /admin/users:
     get:
-      $ref: "./paths/adminUserOperations.yaml#/getAllUsers"
+      $ref: "./paths/adminUserOperations.yaml#/getUsers"
 
   /admin/users/getUser/{id}:
     get:
@@ -80,10 +80,6 @@ paths:
   /admin/users/enable-disable:
     put:
       $ref: "./paths/adminUserOperations.yaml#/enableDisableUser"
-  
-  /admin/users/getUserByPhoneOrName:
-    get:
-      $ref: "./paths/adminUserOperations.yaml#/getUserByPhoneOrName"
 
   /profile:
     get:

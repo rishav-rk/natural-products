@@ -11,13 +11,7 @@ router.get(
   "/",
   auth(USER_TYPE.ADMIN),
   validate(userValidator.getAllUsers),
-  userController.getAllUsers,
-);
-
-router.get("/getUserByPhoneOrName",
-  auth(USER_TYPE.ADMIN),
-  validate(userValidator.getUserByPhoneOrName),
-  userController.getUserByPhoneOrName,
+  userController.getUsers,
 );
 
 router.get(

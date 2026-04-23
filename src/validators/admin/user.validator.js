@@ -3,14 +3,7 @@ import Joi from "joi";
 
 export const getAllUsers = {
   query: Joi.object({
-    page: JOI.PAGE,
-    limit: JOI.LIMIT,
-  }),
-};
-
-export const getUserByPhoneOrName = {
-  query: Joi.object({
-    search: Joi.string().required(),
+    search: Joi.string().default(""),
     page: JOI.PAGE,
     limit: JOI.LIMIT,
   }),
