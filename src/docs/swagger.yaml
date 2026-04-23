@@ -48,7 +48,7 @@ paths:
   /auth/reset-password:
     $ref: "./paths/auth.yaml#/resetPassword"
   
-  /resend-otp:
+  /auth/resend-otp:
     $ref: "./paths/auth.yaml#/resendOTP"
 
   /admin/auth/login:

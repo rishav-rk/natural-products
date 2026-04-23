@@ -68,7 +68,7 @@ export const logout = catchAsync(async (req, res) => {
 })
 
 export const resendOtp = catchAsync(async (req, res) => {
-  await authService.resendOTP(req.token);
+  await authService.resendOtp(req.token);
   return successResponse(
     res,
     res,
