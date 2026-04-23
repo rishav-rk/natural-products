@@ -66,7 +66,10 @@ export const updateAddress = async (addressData, addressId, token) => {
         "addresses.$.state": addressData.state,
         "addresses.$.country": addressData.country,
         "addresses.$.type": addressData.type,
-        "addresses.$.location": [addressData.longitude, addressData.latitude],
+        "addresses.$.location": {
+          type: "Point",
+          coordinates: [addressData.longitude, addressData.latitude],
+        },
       },
     },
     { new: true },
@@ -96,7 +99,7 @@ export const addAddress = async (addressData, token) => {
 
 export const deleteAddress = async (addressId, token) => {
   const user = await User.findOneAndUpdate(
-    token.user._id,
+    { _id: token.user._id },
     {
       $pull: { addresses: { _id: addressId } },
     },

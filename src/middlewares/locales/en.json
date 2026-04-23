@@ -135,5 +135,6 @@
 	"country must be a string": "country must be a string",
 	"country is not allowed to be empty": "country is not allowed to be empty",
 	"houseNumberAndFloor is not allowed to be empty": "houseNumberAndFloor is not allowed to be empty",
-	"type must be one of [home, work, other]": "type must be one of [home, work, other]"
+	"type must be one of [home, work, other]": "type must be one of [home, work, other]",
+	"addressId must be a valid mongo id": "addressId must be a valid mongo id"
 }
