@@ -41,3 +41,18 @@ export const enableDisableUser = async (userId) => {
   delete user.__v;
   return user;
 };
+
+export const getUserByPhoneOrName = async (search, page, limit) => {
+  console.log(search)
+  const users = await User.find(
+    {
+      $or: [
+        {phoneNumber: {$regex : search, $options: 'i'}},
+        {name: {$regex : search, $options: 'i'}},
+      ],
+    },
+    {},
+    paginationOptions(page, limit),
+  ).lean();
+  return users;
+};

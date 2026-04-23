@@ -14,6 +14,12 @@ router.get(
   userController.getAllUsers,
 );
 
+router.get("/getUserByPhoneOrName",
+  auth(USER_TYPE.ADMIN),
+  validate(userValidator.getUserByPhoneOrName),
+  userController.getUserByPhoneOrName,
+);
+
 router.get(
   "/getUser/:id",
   auth(USER_TYPE.ADMIN),
@@ -27,5 +33,6 @@ router.put(
   validate(userValidator.enableDisableUser),
   userController.enableDisableUser,
 );
+
 
 export default router;

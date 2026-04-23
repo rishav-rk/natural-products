@@ -9,7 +9,7 @@ getAllUsers:
         name: page
         schema:
           type: integer
-          default: 1
+          default: 0
         description: Page number for pagination
       - in: query
         name: limit
@@ -72,3 +72,37 @@ enableDisableUser:
               type: object
       404:
         description: User not found
+
+getUserByPhoneOrName:
+    summary: Get user by phone number or name
+    tags:
+      - Admin User Operations
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: User's phone number or name to search for
+      - in: query
+        name: page
+        schema:
+          type: integer
+          default: 0
+        description: Page number for pagination
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          default: 10
+        description: Number of users per page
+    responses:
+      200:
+        description: User(s) retrieved successfully
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object

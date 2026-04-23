@@ -125,5 +125,7 @@
 	},
 	"id must be a valid mongo id": "id must be a valid mongo id",
 	"userId is required, id is not allowed": "userId is required, id is not allowed",
-	"image must be a valid uri": "image must be a valid uri"
+	"image must be a valid uri": "image must be a valid uri",
+	"search is required": "search is required",
+	"search is required, phone is not allowed": "search is required, phone is not allowed"
 }

@@ -15,7 +15,7 @@ export const getAllUsers = catchAsync(async (req, res) => {
     res,
     STATUS_CODES.SUCCESS,
     SUCCESS_MESSAGES.SUCCESS,
-    users,
+    {users, totalUsers: users.length},
   );
 });
 
@@ -45,5 +45,17 @@ export const enableDisableUser = catchAsync(async (req, res) => {
     STATUS_CODES.SUCCESS,
     SUCCESS_MESSAGES.SUCCESS,
     updatedUser
+  );
+});
+
+export const getUserByPhoneOrName = catchAsync(async (req, res) => {
+  const { search, page, limit } = req.query;
+  const users = await userService.getUserByPhoneOrName(search, page, limit);
+  successResponse(
+    req,
+    res,
+    STATUS_CODES.SUCCESS,
+    SUCCESS_MESSAGES.SUCCESS,
+    {users, totalUsers: users.length},
   );
 });
