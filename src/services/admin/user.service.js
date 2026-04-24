@@ -14,6 +14,7 @@ export const getUsers = async (query) => {
     $or: [
       { name: { $regex: query.search, $options: "i" } },
       { phoneNumber: { $regex: query.search, $options: "i" } },
+      { isVerified: true }
     ],
   } : {};
 

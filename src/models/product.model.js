@@ -12,6 +12,7 @@ const productSchema = new mongoose.Schema(
     },
     benefits: {
         type: String,
+        required: [true, "Please provide product benefits"]
     },
     price: {
       type: String,
@@ -22,9 +23,29 @@ const productSchema = new mongoose.Schema(
       required: [true, "Please provide product stock"],
     },
     category: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Category",
-      required: [true, "Please provide product category"],
+      type: [mongoose.Types.ObjectId], 
+      ref: "Category"
+    },
+    keywords: {
+      type: [String], 
+    },
+    details: {
+      manufacturer: {
+        type: String,
+        default: "Back to Nature's Lap, Plot No. 202, Industrial Focal Point, Phase - 9, Bengaluru, KA, India",
+      },
+      packer: {
+        type: String,
+        default: "Back to Nature's Lap, Plot No. 202, Industrial Focal Point, Phase - 9, Bengaluru, KA, India",
+      }, 
+      userBefore: {
+        type: String, 
+        required: [true, "Please provide product user before date"]
+      }, 
+      approvedName: {
+        type: String, 
+        required: [true, "Please provide product approved name"]
+      }
     },
     images: [
       {
