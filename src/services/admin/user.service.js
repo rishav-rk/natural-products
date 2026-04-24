@@ -11,12 +11,13 @@ import { paginationOptions } from "../../utils/universalFunctions.js";
 export const getUsers = async (query) => {
 
   const filter = (query.search) ? {
+    isVerified: true,
     $or: [
       { name: { $regex: query.search, $options: "i" } },
       { phoneNumber: { $regex: query.search, $options: "i" } },
-      { isVerified: true }
+      
     ],
-  } : {};
+  } : { isVerified: true };
 
   const users = await User.find(
     filter,
