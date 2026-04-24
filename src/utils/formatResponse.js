@@ -28,12 +28,10 @@ export const formatProducts = (products) => {
 
 export const formatUser = (user) => {
   delete user?.isDeleted;
-  delete user?.isActive;
   delete user?.isVerified;
   delete user?.password;
   delete user?.createdAt;
   delete user?.updatedAt;
-  delete user?.isCompleted;
   delete user?.__v;
   return user;
 };
