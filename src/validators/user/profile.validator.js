@@ -14,7 +14,7 @@ export const updateProfileValidator = {
 
 export const changePasswordValidator = {
   body: Joi.object({
-    currentPassword: JOI.string().required(),
+    currentPassword: Joi.string().required(),
     newPassword: JOI.PASSWORD,
   }).required(),
 };
