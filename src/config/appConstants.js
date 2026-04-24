@@ -104,7 +104,7 @@ export const ERROR_MESSAGES = {
   ACCOUNT_NOT_EXIST: "Account does not exist",
   WRONG_PASSWORD: "Password is Incorrect",
   ACCOUNT_DELETED: "Your account has been deleted",
-  ACCOUNT_BLOCKED: "Your account has been deleted/blocked. Please contact the admin",
+  ACCOUNT_BLOCKED: "Your account has been blocked. Please contact the admin",
   USER_NOT_FOUND: "User not found",
   PHONE_NUMBER_ALREADY_EXIST: "Account already exist with this phone number",
   ACCOUNT_NOT_VERIFIED: "Please verify your account first",

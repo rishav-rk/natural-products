@@ -65,7 +65,7 @@ export const login = async (loginData) => {
   const user = await User.findOne({
     phoneNumber: loginData.phoneNumber,
     isDeleted: false,
-    isVerified: true
+    isVerified: true,
   }).select("+password");
 
   if (!user) {
@@ -73,6 +73,13 @@ export const login = async (loginData) => {
       STATUS_CODES.ACTION_FAILED,
       ERROR_MESSAGES.ACCOUNT_NOT_EXIST,
     );
+  }
+
+  if(!user.isActive) {
+    throw new OperationalError(
+      STATUS_CODES.ACTION_FAILED, 
+      ERROR_MESSAGES.ACCOUNT_BLOCKED
+    )
   }
 
   if (!(await user.comparePassword(loginData.password))) {
@@ -98,7 +105,11 @@ export const login = async (loginData) => {
 };
 
 export const forgotPassword = async (data) => {
-  const user = await User.findOne({ phoneNumber: data.phoneNumber }).lean();
+  const user = await User.findOne({
+    phoneNumber: data.phoneNumber,
+    isVerified: true,
+    isActive: true,
+  }).lean();
 
   if (!user) {
     throw new OperationalError(
@@ -130,10 +141,12 @@ export const verifyOtp = async (data, token) => {
   if (data.otp === "2222") {
     console.log("Bypassing OTP verification for testing purposes");
     Promise.all([
-      await User.findByIdAndUpdate(token.user._id, { $set: { isVerified: true } }),
-      await updateToken(token._id)
+      await User.findByIdAndUpdate(token.user._id, {
+        $set: { isVerified: true },
+      }),
+      await updateToken(token._id),
     ]);
-      return;
+    return;
   }
 
   if (token.isVerified) {
@@ -150,10 +163,10 @@ export const verifyOtp = async (data, token) => {
     );
   }
 
-    Promise.all([
-      await User.findByIdAndUpdate(token.user._id, { $set: { isActive: true } }),
-      await updateToken(token._id)
-    ]);
+  Promise.all([
+    await User.findByIdAndUpdate(token.user._id, { $set: { isActive: true } }),
+    await updateToken(token._id),
+  ]);
 };
 
 export const resetPassword = async (data, token) => {
