@@ -1,0 +1,278 @@
+addProduct:
+  summary: Add a new product
+  tags:
+    - Admin Product Operations
+  security:
+    - bearerAuth: []
+  requestBody:
+    required: true
+    description: Product details to create a new product
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/addProductRequest'
+  responses:
+    201:
+      description: Product created successfully
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              product:
+                $ref: '#/components/schemas/productResponse'
+    400:
+      description: Validation failed or invalid input
+    401:
+      description: Unauthorized - Invalid or missing authentication token
+    403:
+      description: Forbidden - User does not have admin privileges
+
+updateProduct:
+  summary: Update an existing product
+  tags:
+    - Admin Product Operations
+  security:
+    - bearerAuth: []
+  parameters:
+    - in: path
+      name: productId
+      required: true
+      schema:
+        type: string
+      description: Product ID (MongoDB ObjectId)
+  requestBody:
+    required: true
+    description: Updated product details
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/updateProductRequest'
+  responses:
+    200:
+      description: Product updated successfully
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              updatedProduct:
+                $ref: '#/components/schemas/productResponse'
+    400:
+      description: Validation failed or invalid input
+    401:
+      description: Unauthorized - Invalid or missing authentication token
+    403:
+      description: Forbidden - User does not have admin privileges
+    404:
+      description: Product not found
+
+deleteProduct:
+  summary: Delete a product
+  tags:
+    - Admin Product Operations
+  security:
+    - bearerAuth: []
+  parameters:
+    - in: path
+      name: productId
+      required: true
+      schema:
+        type: string
+      description: Product ID (MongoDB ObjectId)
+  responses:
+    204:
+      description: Product deleted successfully
+    401:
+      description: Unauthorized - Invalid or missing authentication token
+    403:
+      description: Forbidden - User does not have admin privileges
+    404:
+      description: Product not found
+
+components:
+  schemas:
+    addProductRequest:
+      type: object
+      required:
+        - name
+        - description
+        - benefits
+        - price
+        - stock
+        - details
+        - images
+      properties:
+        name:
+          type: string
+          example: Aloe Vera Gel
+          description: Product name
+        description:
+          type: string
+          example: "Aloe Vera Gel is a natural product that is derived from the leaves of the Aloe Vera plant. It is known for its soothing and healing properties, making it a popular choice for skincare and medicinal purposes."
+          description: Detailed description of the product
+        benefits:
+          type: string
+          example: "1. Soothes sunburns: Aloe Vera Gel has cooling properties that can help to relieve pain. 2. Moisturizes the skin: Aloe Vera Gel is a natural moisturizer. 3. Heals wounds: Aloe Vera Gel has antibacterial properties."
+          description: List of product benefits
+        price:
+          type: string
+          example: "19.99"
+          description: Product price
+        stock:
+          type: integer
+          example: 100
+          description: Available stock quantity
+        keywords:
+          type: array
+          items:
+            type: string
+          example:
+            - aloe vera
+            - gel
+            - skincare
+          description: Search keywords for the product
+        details:
+          type: object
+          required:
+            - userBefore
+            - approvedName
+          properties:
+            userBefore:
+              type: string
+              example: "3 years from Mfg. date"
+              description: Validity period information
+            approvedName:
+              type: string
+              example: "Aloe Vera Gel / 46AQA-AP"
+              description: Approved product name
+        images:
+          type: array
+          items:
+            type: string
+            format: uri
+          minItems: 1
+          maxItems: 5
+          example:
+            - "https://example.com/image1.jpg"
+            - "https://example.com/image2.jpg"
+          description: Product image URLs (minimum 1, maximum 5)
+
+    updateProductRequest:
+      type: object
+      required:
+        - name
+        - description
+        - benefits
+        - price
+        - stock
+        - details
+        - images
+      properties:
+        name:
+          type: string
+          example: Aloe Vera Gel
+          description: Product name
+        description:
+          type: string
+          example: "Aloe Vera Gel is a natural product that is derived from the leaves of the Aloe Vera plant. It is known for its soothing and healing properties, making it a popular choice for skincare and medicinal purposes."
+          description: Detailed description of the product
+        benefits:
+          type: string
+          example: "1. Soothes sunburns: Aloe Vera Gel has cooling properties that can help to relieve pain. 2. Moisturizes the skin: Aloe Vera Gel is a natural moisturizer. 3. Heals wounds: Aloe Vera Gel has antibacterial properties."
+          description: List of product benefits
+        price:
+          type: string
+          example: "19.99"
+          description: Product price
+        stock:
+          type: integer
+          example: 100
+          description: Available stock quantity
+        keywords:
+          type: array
+          items:
+            type: string
+          example:
+            - aloe vera
+            - gel
+            - skincare
+          description: Search keywords for the product
+        details:
+          type: object
+          required:
+            - userBefore
+            - approvedName
+          properties:
+            userBefore:
+              type: string
+              example: "3 years from Mfg. date"
+              description: Validity period information
+            approvedName:
+              type: string
+              example: "Aloe Vera Gel / 46AQA-AP"
+              description: Approved product name
+        images:
+          type: array
+          items:
+            type: string
+            format: uri
+          minItems: 1
+          maxItems: 5
+          example:
+            - "https://example.com/image1.jpg"
+            - "https://example.com/image2.jpg"
+          description: Product image URLs (minimum 1, maximum 5)
+
+    productResponse:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 60c72b2f9b1d8e5a5c8f9b1a
+          description: Product unique identifier (MongoDB ObjectId)
+        name:
+          type: string
+          example: Aloe Vera Gel
+          description: Product name
+        description:
+          type: string
+          example: "Aloe Vera Gel is a natural product..."
+          description: Product description
+        benefits:
+          type: string
+          example: "1. Soothes sunburns..."
+          description: Product benefits
+        price:
+          type: string
+          example: "19.99"
+          description: Product price
+        stock:
+          type: integer
+          example: 100
+          description: Available stock quantity
+        keywords:
+          type: array
+          items:
+            type: string
+          example:
+            - aloe vera
+            - gel
+          description: Search keywords
+        details:
+          type: object
+          properties:
+            userBefore:
+              type: string
+              example: "3 years from Mfg. date"
+            approvedName:
+              type: string
+              example: "Aloe Vera Gel / 46AQA-AP"
+        images:
+          type: array
+          items:
+            type: string
+            format: uri
+          example:
+            - "https://example.com/image1.jpg"
+          description: Product image URLs

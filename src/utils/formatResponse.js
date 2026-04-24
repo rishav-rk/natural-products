@@ -16,14 +16,12 @@ export const convertStringToDate = (date) => {
   return moment(date + "Z", DATE_FORMAT + "Z").toDate();
 };
 
-export const formatProducts = (products) => {
-  products.forEach(product=>{
+export const formatProducts = (product) => {
     delete product.createdAt
     delete product.updatedAt
     delete product.isDeleted
     delete product.__v
-  })
-  return products
+  return product
 }
 
 export const formatUser = (user) => {

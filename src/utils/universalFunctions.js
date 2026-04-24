@@ -6,7 +6,7 @@ const catchAsync = (fn) => (req, res, next) => {
 };
 
 const paginationOptions = (page, limit) => {
-  return { sort: { _id: -1 }, skip: page * limit, limit, lean: true };
+  return { sort: { createdAt: -1 }, skip: page * limit, limit, lean: true };
 };
 
 const pick = (object, keys) => {

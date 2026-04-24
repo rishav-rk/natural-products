@@ -19,6 +19,7 @@ import {
   routeNotFoundHandler,
 } from "./middlewares/common.js";
 import i18n from "./middlewares/i18n.js";
+import config from "./config/config.js";
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
@@ -40,8 +41,10 @@ app.use(fileUpload());
 // parse json request body
 app.use(express.json());
 
-//swagger
+//swagger 
+if(config.environment !== 'production'){
 app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerSpec))
+}
 
 app.use(
   morgan("dev", {

@@ -1,0 +1,160 @@
+getProducts:
+  summary: Get all products with search and pagination
+  tags:
+    - Common
+  security:
+    - bearerAuth: []
+    - {}
+  parameters:
+    - in: query
+      name: search
+      schema:
+        type: string
+      description: Search term to filter products by name, description, benefits, or keywords
+      example: aloe vera
+    - in: query
+      name: page
+      schema:
+        type: integer
+        default: 0
+      description: Page number for pagination (0-indexed)
+    - in: query
+      name: limit
+      schema:
+        type: integer
+        default: 10
+      description: Number of products per page (minimum 10)
+  responses:
+    200:
+      description: List of products retrieved successfully
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              products:
+                type: array
+                items:
+                  $ref: '#/components/schemas/productResponse'
+              totalCount:
+                type: integer
+                example: 45
+                description: Total number of matching products
+    400:
+      description: Validation failed - invalid query parameters
+    500:
+      description: Server error
+
+getProductById:
+  summary: Get a specific product by ID
+  tags:
+    - Common
+  security:
+    - bearerAuth: []
+    - {}
+  parameters:
+    - in: path
+      name: productId
+      required: true
+      schema:
+        type: string
+      description: Product ID (MongoDB ObjectId)
+      example: 60c72b2f9b1d8e5a5c8f9b1a
+  responses:
+    200:
+      description: Product retrieved successfully
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              product:
+                $ref: '#/components/schemas/productResponse'
+    400:
+      description: Validation failed - invalid product ID format
+    404:
+      description: Product not found or has been deleted
+    500:
+      description: Server error
+
+components:
+  schemas:
+    productResponse:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 60c72b2f9b1d8e5a5c8f9b1a
+          description: Product unique identifier (MongoDB ObjectId)
+        name:
+          type: string
+          example: Aloe Vera Gel
+          description: Product name
+        description:
+          type: string
+          example: "Aloe Vera Gel is a natural product that is derived from the leaves of the Aloe Vera plant. It is known for its soothing and healing properties."
+          description: Detailed description of the product
+        benefits:
+          type: string
+          example: "1. Soothes sunburns 2. Moisturizes the skin 3. Heals wounds"
+          description: Product benefits and uses
+        price:
+          type: string
+          example: "19.99"
+          description: Product price
+        stock:
+          type: integer
+          example: 100
+          description: Available stock quantity
+        keywords:
+          type: array
+          items:
+            type: string
+          example:
+            - aloe vera
+            - gel
+            - skincare
+          description: Search keywords for the product
+        details:
+          type: object
+          properties:
+            manufacturer:
+              type: string
+              example: "Back to Nature's Lap, Plot No. 202, Industrial Focal Point, Phase - 9, Bengaluru, KA, India"
+              description: Manufacturer information
+            packer:
+              type: string
+              example: "Back to Nature's Lap, Plot No. 202, Industrial Focal Point, Phase - 9, Bengaluru, KA, India"
+              description: Packer information
+            userBefore:
+              type: string
+              example: "3 years from Mfg. date"
+              description: Validity period information (Use Before date)
+            approvedName:
+              type: string
+              example: "Aloe Vera Gel / 46AQA-AP"
+              description: Approved product name
+          description: Product details including manufacturer, packer, validity, and approval information
+        images:
+          type: array
+          items:
+            type: string
+            format: uri
+          example:
+            - "https://example.com/image1.jpg"
+            - "https://example.com/image2.jpg"
+          description: Product image URLs
+        isDeleted:
+          type: boolean
+          example: false
+          description: Product deletion status
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+          description: Product creation timestamp
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+          description: Product last update timestamp

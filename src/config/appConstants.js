@@ -84,6 +84,7 @@ export const JOI = {
 };
 
 export const SUCCESS_MESSAGES = {
+  
   SUCCESS: "Success",
   LOGOUT: "User successfully logged out",
   REQUEST_SENT: "Request has been sent to the admin",

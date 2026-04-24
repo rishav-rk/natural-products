@@ -22,10 +22,6 @@ const productSchema = new mongoose.Schema(
       type: Number,
       required: [true, "Please provide product stock"],
     },
-    category: {
-      type: [mongoose.Types.ObjectId], 
-      ref: "Category"
-    },
     keywords: {
       type: [String], 
     },

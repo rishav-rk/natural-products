@@ -16,7 +16,6 @@ export const addProduct = {
       ),
     price: Joi.string().required().example("19.99"),
     stock: Joi.number().required().example(100),
-    category: JOI.OBJECTID.required().example("60c72b2f9b1d8e5a5c8f9b1a"),
     keywords: Joi.array()
       .items(Joi.string())
       .example(["aloe vera", "gel", "skincare"]),
@@ -54,7 +53,6 @@ export const updateProduct = {
       ),
     price: Joi.string().required().example("19.99"),
     stock: Joi.number().required().example(100),
-    category: JOI.OBJECTID.required().example("60c72b2f9b1d8e5a5c8f9b1a"),
     keywords: Joi.array()
       .items(Joi.string())
       .example(["aloe vera", "gel", "skincare"]),
@@ -72,4 +70,24 @@ export const updateProduct = {
         "https://example.com/image2.jpg",
       ]),
   }).required()
+}
+
+export const deleteProduct = {
+  params : Joi.object({
+    productId : JOI.OBJECTID
+  })
+}
+
+export const getProducts = {
+    query : Joi.object({
+      page: JOI.PAGE, 
+      limit: JOI.LIMIT, 
+      search : Joi.string().example("aloe vera")
+    })
+}
+
+export const getProductById = {
+  params : Joi.object({
+    productId: JOI.OBJECTID
+  })
 }

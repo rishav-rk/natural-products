@@ -136,5 +136,8 @@
 	"country is not allowed to be empty": "country is not allowed to be empty",
 	"houseNumberAndFloor is not allowed to be empty": "houseNumberAndFloor is not allowed to be empty",
 	"type must be one of [home, work, other]": "type must be one of [home, work, other]",
-	"addressId must be a valid mongo id": "addressId must be a valid mongo id"
+	"addressId must be a valid mongo id": "addressId must be a valid mongo id",
+	"category must be a valid mongo id": "category must be a valid mongo id",
+	"category must be a string": "category must be a string",
+	"No such product exists": "No such product exists"
 }

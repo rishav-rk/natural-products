@@ -28,6 +28,11 @@ components:
       description: Admin profile management endpoints
     - name: Admin User Operations
       description: Admin user management endpoints
+    - name: Admin Product Operations
+      description: Admin product management endpoints
+    - name: Common
+      description: Common endpoints for users as well as admins
+
 
 paths:
   /auth/signup:
@@ -50,6 +55,30 @@ paths:
   
   /auth/resend-otp:
     $ref: "./paths/auth.yaml#/resendOTP"
+
+  /profile:
+    get:
+      $ref: "./paths/userProfile.yaml#/getProfile"
+    put:
+      $ref: "./paths/userProfile.yaml#/updateProfile"
+    delete:
+      $ref: "./paths/userProfile.yaml#/deleteAccount"
+
+  /profile/change-password:
+    patch:
+      $ref: "./paths/userProfile.yaml#/changePassword"
+  
+  /profile/add-address:
+    post:
+      $ref: "./paths/userProfile.yaml#/addAddress"
+  
+  /profile/update-address/{addressId}:
+    put:
+      $ref: "./paths/userProfile.yaml#/updateAddress"
+    
+  /profile/delete-address:
+    delete:
+      $ref: "./paths/userProfile.yaml#/deleteAddress"
 
   /admin/auth/login:
     $ref: "./paths/adminAuth.yaml#/login"
@@ -81,27 +110,22 @@ paths:
     put:
       $ref: "./paths/adminUserOperations.yaml#/enableDisableUser"
 
-  /profile:
-    get:
-      $ref: "./paths/userProfile.yaml#/getProfile"
-    put:
-      $ref: "./paths/userProfile.yaml#/updateProfile"
-    delete:
-      $ref: "./paths/userProfile.yaml#/deleteAccount"
-
-  /profile/change-password:
-    patch:
-      $ref: "./paths/userProfile.yaml#/changePassword"
-  
-  /profile/add-address:
+  /admin/products/add-product:
     post:
-      $ref: "./paths/userProfile.yaml#/addAddress"
+      $ref: "./paths/adminProductOperations.yaml#/addProduct"
   
-  /profile/update-address/{addressId}:
+  /admin/products/update-product/{productId}:
     put:
-      $ref: "./paths/userProfile.yaml#/updateAddress"
-    
-  /profile/delete-address:
-    delete:
-      $ref: "./paths/userProfile.yaml#/deleteAddress"
+      $ref: "./paths/adminProductOperations.yaml#/updateProduct"  
   
+  /admin/products/delete-product/{productId}:
+    delete:
+      $ref: "./paths/adminProductOperations.yaml#/deleteProduct"
+
+  /products/get-products:
+    get: 
+      $ref: "./paths/common.yaml#/getProducts"
+  
+  /products/get-product/{productId}:
+    get:
+      $ref: "./paths/common.yaml#/getProductById"
