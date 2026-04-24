@@ -14,7 +14,7 @@ export const loginValidator = {
   body: Joi.object({
     countryCode: JOI.COUNTRY_CODE,
     phoneNumber: JOI.PHONENUMBER,
-    password: JOI.string().required(),
+    password: Joi.string().required(),
     deviceId: JOI.DEVICE_ID,
     deviceType: JOI.DEVICE_TYPE,
     deviceToken: Joi.string(),
