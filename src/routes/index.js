@@ -5,6 +5,7 @@ import adminAuthRoute from "./admin/auth.route.js"
 import userRoute from "./admin/user.route.js";
 import adminProductRoute from "./admin/product.route.js"
 import commonProductRoute from "./product.route.js"
+import cartRoute from "./user/cart.route.js"
 
 const router = Router();
 
@@ -32,6 +33,10 @@ const defaultRoutes = [
   {
     path: "/products", 
     route: commonProductRoute
+  }, 
+  {
+    path: "/cart", 
+    route: cartRoute 
   }
 ];
 

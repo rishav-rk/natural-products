@@ -14,7 +14,7 @@ const jwtVerify = async (payload, done) => {
     let token = {};
     if (payload.role === USER_TYPE.USER) {
       token = await Token.findOne({ _id: payload.id, isDeleted: false })
-        .populate("user")
+        .populate("user", "-cart -addresses")
         .lean();
     } else {
       token = await Token.findOne({ _id: payload.id, isDeleted: false })

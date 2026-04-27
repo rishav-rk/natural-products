@@ -22,9 +22,9 @@ const productSchema = new mongoose.Schema(
       type: Number,
       required: [true, "Please provide product stock"],
     },
-    keywords: {
-      type: [String], 
-    },
+    keywords:[ {
+      type: String, 
+    }],
     details: {
       manufacturer: {
         type: String,
@@ -34,7 +34,7 @@ const productSchema = new mongoose.Schema(
         type: String,
         default: "Back to Nature's Lap, Plot No. 202, Industrial Focal Point, Phase - 9, Bengaluru, KA, India",
       }, 
-      userBefore: {
+      useBefore: {
         type: String, 
         required: [true, "Please provide product user before date"]
       }, 

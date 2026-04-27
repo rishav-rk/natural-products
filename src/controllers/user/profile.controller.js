@@ -81,7 +81,6 @@ export const addAddress = catchAsync(async (req, res) => {
 });
 
 export const deleteAddress = catchAsync(async (req, res) => {
-
   await profileService.deleteAddress(req.body.addressId, req.token);
   return successResponse(
     res,
@@ -89,5 +88,63 @@ export const deleteAddress = catchAsync(async (req, res) => {
     STATUS_CODES.ACTION_COMPLETE,
     SUCCESS_MESSAGES.SUCCESS,
   );
+});
 
-})
+
+export const addToCart = catchAsync(async (req, res) => {
+  const cart = await profileService.addToCart(req.body, req.token);
+  return successResponse(
+    req,
+    res,
+    STATUS_CODES.SUCCESS,
+    SUCCESS_MESSAGES.SUCCESS,
+    cart,
+  );
+});
+
+export const getCart = catchAsync(async (req, res) => {
+  const cart = await profileService.getCart(req.token);
+  return successResponse(
+    req,
+    res,
+    STATUS_CODES.SUCCESS,
+    SUCCESS_MESSAGES.SUCCESS,
+    cart,
+  );
+});
+
+export const updateCart = catchAsync(async (req, res) => {
+  const cart = await profileService.updateCart(req.body, req.token);
+  return successResponse(
+    req,
+    res,
+    STATUS_CODES.SUCCESS,
+    SUCCESS_MESSAGES.SUCCESS,
+    cart,
+  );
+});
+
+export const deleteFromCart = catchAsync(async (req, res) => {
+  const cart = await profileService.deleteFromCart(
+    req.params.productId,
+    req.token,
+  );
+  return successResponse(
+    req,
+    res,
+    STATUS_CODES.SUCCESS,
+    SUCCESS_MESSAGES.SUCCESS,
+    cart,
+  );
+});
+
+export const  clearCart = catchAsync(async (req, res) => {
+  const result = await profileService.clearCart(req.token);
+  return successResponse(
+    req,
+    res,
+    STATUS_CODES.SUCCESS,
+    SUCCESS_MESSAGES.SUCCESS,
+    result,
+  );
+});

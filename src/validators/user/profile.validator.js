@@ -24,10 +24,10 @@ export const addAddressValidator = {
     houseNumberAndFloor: Joi.string().required(),
     builidingAndBlock: Joi.string().example("Block A, Building 5"),
     landMarkAndArea: Joi.string().example("Near Central Park"),
-    city: Joi.string().example('Hyderabad'),
-    state: Joi.string().example('Telangana'),
-    country: Joi.string().example('India'),
-    type: Joi.string().required().valid('home', 'work', 'other'),
+    city: Joi.string().example("Hyderabad"),
+    state: Joi.string().example("Telangana"),
+    country: Joi.string().example("India"),
+    type: Joi.string().required().valid("home", "work", "other"),
     latitude: Joi.number().required().min(-90).max(90),
     longitude: Joi.number().required().min(-180).max(180),
   }).required(),
@@ -38,14 +38,14 @@ export const updateAddressValidator = {
     houseNumberAndFloor: Joi.string().required(),
     builidingAndBlock: Joi.string().example("Block A, Building 5"),
     landMarkAndArea: Joi.string().example("Near Central Park"),
-    city: Joi.string().example('Hyderabad'),
-    state: Joi.string().example('Telangana'),
-    country: Joi.string().example('India'),
-    type: Joi.string().required().valid('home', 'work', 'other'),
+    city: Joi.string().example("Hyderabad"),
+    state: Joi.string().example("Telangana"),
+    country: Joi.string().example("India"),
+    type: Joi.string().required().valid("home", "work", "other"),
     latitude: Joi.number().required().min(-90).max(90),
     longitude: Joi.number().required().min(-180).max(180),
   }).required(),
-  
+
   params: Joi.object({
     addressId: JOI.OBJECTID,
   }).required(),
@@ -55,4 +55,38 @@ export const deleteAddressValidator = {
   body: Joi.object({
     addressId: JOI.OBJECTID,
   }).required(),
+};
+
+export const addToCart = {
+  body: Joi.object({
+    products: Joi.array()
+      .items(
+        Joi.object({
+          productId: JOI.OBJECTID,
+          quantity: Joi.number().integer().min(1).required(),
+        }),
+      )
+      .min(1)
+      .required(),
+  }).required(),
+};
+
+export const getCart = {};
+
+export const updateCart = {
+  body: Joi.object({
+    products: Joi.array().items(
+      Joi.object({
+        productId: JOI.OBJECTID,
+        quantity: Joi.number().integer().min(0).required(), // 0 = remove item
+      }),
+    ).required(),
+    addressId: JOI.OBJECTID,
+  }).required(),
+};
+
+export const deleteFromCart = {
+  params: Joi.object({
+    productId: JOI.OBJECTID.required(),
+  }),
 };

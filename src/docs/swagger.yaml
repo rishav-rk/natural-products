@@ -32,6 +32,9 @@ components:
       description: Admin product management endpoints
     - name: Common
       description: Common endpoints for users as well as admins
+    - name: Cart
+      description: Cart endpoints for user adding products to cart , updating them, deleting products and clearing cart
+
 
 
 paths:
@@ -79,6 +82,23 @@ paths:
   /profile/delete-address:
     delete:
       $ref: "./paths/userProfile.yaml#/deleteAddress"
+
+  /cart/add:
+    post:
+      $ref: "./paths/cartOperations.yaml#/addToCart"
+  /cart:
+    put:
+      $ref: "./paths/cartOperations.yaml#/updateCart"
+    get:
+      $ref: "./paths/cartOperations.yaml#/getCart"
+  
+  /cart/remove-product/{productId}:
+    delete:
+      $ref: "./paths/cartOperations.yaml#/removeProduct"
+  
+  /cart/clear:
+    delete:
+      $ref: "./paths/cartOperations.yaml#/clearCart"
 
   /admin/auth/login:
     $ref: "./paths/adminAuth.yaml#/login"
@@ -129,3 +149,4 @@ paths:
   /products/get-product/{productId}:
     get:
       $ref: "./paths/common.yaml#/getProductById"
+

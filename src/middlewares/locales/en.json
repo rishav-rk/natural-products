@@ -140,5 +140,18 @@
 	"category must be a valid mongo id": "category must be a valid mongo id",
 	"category must be a string": "category must be a string",
 	"No such product exists": "No such product exists",
-	"OTP resent successfully": "OTP resent successfully"
+	"OTP resent successfully": "OTP resent successfully",
+	"phoneNumber is required, password is required, deviceId is required, deviceType is required": "phoneNumber is required, password is required, deviceId is required, deviceType is required",
+	"Cart is empty": "Cart is empty",
+	"products is required": "products is required",
+	"products must contain at least 1 items": "products must contain at least 1 items",
+	"productId is required, quantity is required": "productId is required, quantity is required",
+	"Only 10 unit(s) available for \"Vitamin C Face Serum\", you already have 10 in your cart": "Only 10 unit(s) available for \"Vitamin C Face Serum\", you already have 10 in your cart",
+	"userId is required, addressId is required": "userId is required, addressId is required",
+	"cartId is required, productId must be a valid mongo id": "cartId is required, productId must be a valid mongo id",
+	"cartId is required": "cartId is required",
+	"Product not in cart": "Product not in cart",
+	"Only 10 unit(s) available for \"Vitamin C Face Serum\", you already have 0 in your cart": "Only 10 unit(s) available for \"Vitamin C Face Serum\", you already have 0 in your cart",
+	"products must be an array": "products must be an array",
+	"Only 100 unit(s) available for \"Aloe Vera Gel\", you already have 0 in your cart": "Only 100 unit(s) available for \"Aloe Vera Gel\", you already have 0 in your cart"
 }

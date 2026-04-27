@@ -39,10 +39,10 @@ const userSchema = new mongoose.Schema(
         houseNumberAndFloor: {
           type: String,
         },
-        builidingAndBlock:{
+        builidingAndBlock: {
           type: String,
         },
-        landMarkAndArea:{
+        landMarkAndArea: {
           type: String,
         },
         city: {
@@ -67,11 +67,43 @@ const userSchema = new mongoose.Schema(
           },
           coordinates: {
             type: [Number],
-            default: [0, 0],  // [longitude, latitude]
-          }
-        }
-      }
+            default: [0, 0], // [longitude, latitude]
+          },
+        },
+      },
+    ],
+    cart: {
+      products: [
+        {
+          product: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Product",
+            required: true,
+          },
+          quantity: {
+            type: Number,
+            required: [true, "Please provide product quantity"],
+            min: [1, "Quantity must be at least 1"],
+          },
+          price: {
+            type: String,
+            required: [true, "Please provide product price"],
+          },
+        },
       ],
+
+      deliveryAddress: {
+        type: mongoose.Schema.Types.ObjectId,
+        default: null,
+      },
+
+      handlingCharge: { type: String, default: 0 },
+      shippingFee: { type: String, default: 0 },
+      tax: { type: String, default: 0 },
+
+      //   couponCode:      { type: String },
+      //   discountAmount:  { type: Number, default: 0 },
+    },
   },
   {
     timestamps: true,
@@ -85,15 +117,15 @@ const userSchema = new mongoose.Schema(
         delete ret.updatedAt;
         delete ret._id;
         return ret;
-      }
-    }, 
+      },
+    },
     toJSON: {
       transform: function (doc, ret) {
         delete ret.password;
         delete ret.__v;
         return ret;
-      }
-    }
+      },
+    },
   },
 );
 
