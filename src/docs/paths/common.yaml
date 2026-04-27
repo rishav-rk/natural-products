@@ -4,7 +4,6 @@ getProducts:
     - Common
   security:
     - bearerAuth: []
-    - {}
   parameters:
     - in: query
       name: search
@@ -51,7 +50,6 @@ getProductById:
     - Common
   security:
     - bearerAuth: []
-    - {}
   parameters:
     - in: path
       name: productId

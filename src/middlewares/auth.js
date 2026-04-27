@@ -3,6 +3,7 @@ import {
   USER_TYPE,
   ERROR_MESSAGES,
   STATUS_CODES,
+  TOKEN_TYPE,
 } from "../config/appConstants.js";
 import { AuthFailedError, OperationalError } from "../utils/error.js";
 
@@ -46,7 +47,14 @@ const verifyCallback =
 
       if (err || info) throw new AuthFailedError();
 
-      // Restrict admin if userOnly is true
+      
+      if(token.type === TOKEN_TYPE.FORGOTPASSWORD && !verifyOtpRoute(req) && !['/forgot-password', '/reset-password'].includes(req.url)){
+        throw new AuthFailedError(
+          ERROR_MESSAGES.INVALID_TOKEN,
+          STATUS_CODES.ACTION_FAILED
+        );
+      }
+        // Restrict admin if userOnly is true
       if (
         role === USER_TYPE.NONE &&
         options.userOnly &&
@@ -83,6 +91,8 @@ const verifyCallback =
       if (!user) throw new AuthFailedError();
 
       validateUserStatus(user);
+
+      
 
       req.token = token;
       resolve();

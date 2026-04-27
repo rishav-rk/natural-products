@@ -9,14 +9,14 @@ const router = Router()
 
 router.get(
     "/get-products", 
-    auth(USER_TYPE.NONE, { userOnly: false}),
+    auth([USER_TYPE.ADMIN, USER_TYPE.USER]),
     validate(productValidator.getProducts), 
     productController.getProducts
 )
 
 router.get(
     "/get-product/:productId", 
-    auth(USER_TYPE.NONE, { userOnly: false}), 
+    auth([USER_TYPE.ADMIN, USER_TYPE.USER]), 
     validate(productValidator.getProductById), 
     productController.getProductById
 )

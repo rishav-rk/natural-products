@@ -139,5 +139,6 @@
 	"addressId must be a valid mongo id": "addressId must be a valid mongo id",
 	"category must be a valid mongo id": "category must be a valid mongo id",
 	"category must be a string": "category must be a string",
-	"No such product exists": "No such product exists"
+	"No such product exists": "No such product exists",
+	"OTP resent successfully": "OTP resent successfully"
 }
