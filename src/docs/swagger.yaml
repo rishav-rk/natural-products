@@ -34,6 +34,8 @@ components:
       description: Common endpoints for users as well as admins
     - name: Cart
       description: Cart endpoints for user adding products to cart , updating them, deleting products and clearing cart
+    - name: Admin Constants
+      description: Admin endpoints for managing app constants like charges, taxes, and promotional content
 
 
 
@@ -142,6 +144,12 @@ paths:
     delete:
       $ref: "./paths/adminProductOperations.yaml#/deleteProduct"
 
+  /admin/constants:
+    get:
+      $ref: "./paths/appConstants.yaml#/getConstants"
+    put:
+      $ref: "./paths/appConstants.yaml#/updateConstants"
+  
   /products/get-products:
     get: 
       $ref: "./paths/common.yaml#/getProducts"
@@ -149,4 +157,5 @@ paths:
   /products/get-product/{productId}:
     get:
       $ref: "./paths/common.yaml#/getProductById"
+
 

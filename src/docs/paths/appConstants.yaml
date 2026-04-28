@@ -1,0 +1,152 @@
+getConstants:
+  summary: Get app constants
+  description: Retrieve current application constants including handling charge, tax, shipping fee, and promotional video URL
+  tags:
+    - Admin Constants
+  security:
+    - bearerAuth: []
+  responses:
+    200:
+      description: Constants retrieved successfully
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              statusCode:
+                type: integer
+                example: 200
+              message:
+                type: string
+                example: "Success"
+              data:
+                $ref: '#/components/schemas/constantsResponse'
+    401:
+      description: Unauthorized - Invalid or missing authentication token
+    403:
+      description: Forbidden - User does not have admin privileges
+    500:
+      description: Internal server error
+
+updateConstants:
+  summary: Update app constants
+  description: Update application constants like handling charge, tax, shipping fee, and promotional video URL. Admin only operation.
+  tags:
+    - Admin Constants
+  security:
+    - bearerAuth: []
+  requestBody:
+    required: true
+    description: Constants to update
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/updateConstantsRequest'
+  responses:
+    200:
+      description: Constants updated successfully
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              statusCode:
+                type: integer
+                example: 200
+              message:
+                type: string
+                example: "Success"
+              data:
+                $ref: '#/components/schemas/constantsResponse'
+    400:
+      description: Validation failed or invalid input
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              statusCode:
+                type: integer
+                example: 400
+              message:
+                type: string
+                example: "Validation failed"
+              errors:
+                type: array
+                items:
+                  type: string
+    401:
+      description: Unauthorized - Invalid or missing authentication token
+    403:
+      description: Forbidden - User does not have admin privileges
+    500:
+      description: Internal server error
+
+components:
+  schemas:
+    updateConstantsRequest:
+      type: object
+      description: Request body for updating application constants
+      properties:
+        handlingCharge:
+          type: string
+          example: "9.6"
+          description: Handling charge percentage or amount
+        tax:
+          type: string
+          example: "4.2"
+          description: Tax percentage or amount
+        shippingFee:
+          type: string
+          example: "5.0"
+          description: Standard shipping fee amount
+        video:
+          type: string
+          format: uri
+          example: "https://youtu.be/dQw4w9WgXcQ?si=Ra2nYfm9iKK2c5j-"
+          description: Promotional video URL for app display
+
+    constantsResponse:
+      type: object
+      description: Application constants response
+      properties:
+        _id:
+          type: string
+          example: 60c72b2f9b1d8e5a5c8f9b1a
+          description: Unique identifier for the constants document (MongoDB ObjectId)
+        handlingCharge:
+          type: string
+          example: "9.6"
+          description: Handling charge percentage or amount
+        tax:
+          type: string
+          example: "4.2"
+          description: Tax percentage or amount
+        shippingFee:
+          type: string
+          example: "5.0"
+          description: Standard shipping fee amount
+        video:
+          type: string
+          format: uri
+          example: "https://youtu.be/dQw4w9WgXcQ?si=Ra2nYfm9iKK2c5j-"
+          description: Promotional video URL for app display
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+          description: Timestamp when the document was created
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2024-04-28T14:20:30Z"
+          description: Timestamp when the document was last updated

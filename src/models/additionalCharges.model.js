@@ -1,7 +1,7 @@
 import mongoose from "mongoose"
 
 const additionalChargesSchema = new mongoose.Schema({
-    "handlingCharge": {
+    handlingCharge: {
         type: String, 
         default: "9.6"
     }, 
@@ -12,6 +12,10 @@ const additionalChargesSchema = new mongoose.Schema({
     shippingFee: {
         type: String, 
         default: "5.0"
+    }, 
+    video: {
+        type: String, 
+        default: "https://youtu.be/dQw4w9WgXcQ?si=Ra2nYfm9iKK2c5j-"
     }
 }, {timestamps : true})
 
