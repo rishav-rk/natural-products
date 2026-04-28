@@ -7,6 +7,7 @@ import adminProductRoute from "./admin/product.route.js"
 import constantsRoute from "./admin/aCAndVideo.route.js"
 import commonProductRoute from "./product.route.js"
 import cartRoute from "./user/cart.route.js"
+import staticRoutes from "./user/static.route.js"
 
 const router = Router();
 
@@ -42,6 +43,10 @@ const defaultRoutes = [
   {
     path: "/cart", 
     route: cartRoute 
+  }, 
+  {
+    path: "/", 
+    route: staticRoutes
   }
 ];
 

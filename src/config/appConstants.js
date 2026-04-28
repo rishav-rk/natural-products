@@ -6,6 +6,15 @@ export const TOKEN_TYPE = {
   FORGOTPASSWORD: "forgotPassword",
 };
 
+export const ORDER_STATUS = {
+  // ["pending", "confirmed", "processing", "shipped", "delivered"]
+  PENDING: "pending", 
+  CONFIRMED: "confirmed", 
+  PROCESSING: "processing", 
+  SHIPPED: "shipping", 
+  DELIVERED: "delivered"
+}
+
 export const USER_TYPE = {
   ADMIN: "admin",
   NONE: "none",
