@@ -8,17 +8,23 @@ import * as productController from "../controllers/product.controller.js"
 const router = Router()
 
 router.get(
-    "/get-products", 
+    "/products/get-products", 
     auth([USER_TYPE.ADMIN, USER_TYPE.USER]),
     validate(productValidator.getProducts), 
     productController.getProducts
 )
 
 router.get(
-    "/get-product/:productId", 
+    "/products/get-product/:productId", 
     auth([USER_TYPE.ADMIN, USER_TYPE.USER]), 
     validate(productValidator.getProductById), 
     productController.getProductById
 )
+
+import { getConstants } from "../validators/admin/aCAndVideo.validator.js"
+import { getConstants as getConstantsController } from "../controllers/admin/aCAndVideo.controller.js"
+
+router.get('/constants', auth([USER_TYPE.USER,USER_TYPE.ADMIN]), validate(getConstants), getConstantsController)
+
 
 export default router

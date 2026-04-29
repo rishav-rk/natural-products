@@ -1,17 +1,16 @@
 import razorpay from "../../config/razorpay.js";
 import { ORDER_STATUS, STATUS_CODES } from "../../config/appConstants.js";
 import crypto from "crypto";
-import Order from "../../models/index.js";
-import { ADC, Product } from "../../models/index.js";
+import { ADC, Product, Order, User } from "../../models/index.js";
 import { OperationalError } from "../../utils/error.js";
 
 export const createOrder = async (orderData, token) => {
   try {
-  const userId = token.user._id; // from auth middleware
+  const user = await User.findById(token.user._id, {cart : 1}, {lean : true})
 
-  const cart = user
+  const cart = user.cart
 
- const productIds = products.map((p) => p.productId);
+ const productIds = cart.products.map((p) => p.productId);
   const dbProducts = await Product.find({
     _id: { $in: productIds },
     isDeleted: false,

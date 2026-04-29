@@ -27,7 +27,7 @@ const orderSchema = new mongoose.Schema(
         product: {
           type: mongoose.Types.ObjectId,
           ref: "Product",
-          required: [true],
+          required: [true, 'Product id is required'],
         },
         name: {
           type: String,
@@ -43,16 +43,11 @@ const orderSchema = new mongoose.Schema(
         },
       },
     ],
-    handlingCharge: {
-      type: String,
-    },
+
     tax: {
       type: String,
     },
-    shippingFee: {
-      type: String,
 
-    },
     totalAmount: {
       type: String,
       required: [true, "Please provide total amount"],

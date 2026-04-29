@@ -7,7 +7,6 @@ import * as constantsController from "../../controllers/admin/aCAndVideo.control
 
 const router = Router()
 
-router.get('/', auth([USER_TYPE.USER,USER_TYPE.ADMIN]), validate(getConstants), constantsController.getConstants)
 router.put('/', auth(USER_TYPE.ADMIN), validate(updateConstants), constantsController.updateConstants)
 
 export default router

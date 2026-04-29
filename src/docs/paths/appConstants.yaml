@@ -2,7 +2,7 @@ getConstants:
   summary: Get app constants
   description: Retrieve current application constants including handling charge, tax, shipping fee, and promotional video URL
   tags:
-    - Admin Constants
+    - Common
   security:
     - bearerAuth: []
   responses:
@@ -97,18 +97,10 @@ components:
       type: object
       description: Request body for updating application constants
       properties:
-        handlingCharge:
-          type: string
-          example: "9.6"
-          description: Handling charge percentage or amount
         tax:
           type: string
           example: "4.2"
           description: Tax percentage or amount
-        shippingFee:
-          type: string
-          example: "5.0"
-          description: Standard shipping fee amount
         video:
           type: string
           format: uri

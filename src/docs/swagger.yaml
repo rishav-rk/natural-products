@@ -145,10 +145,12 @@ paths:
       $ref: "./paths/adminProductOperations.yaml#/deleteProduct"
 
   /admin/constants:
-    get:
-      $ref: "./paths/appConstants.yaml#/getConstants"
     put:
       $ref: "./paths/appConstants.yaml#/updateConstants"
+
+  /constants:
+    get:
+      $ref: "./paths/appConstants.yaml#/getConstants"
   
   /products/get-products:
     get: 

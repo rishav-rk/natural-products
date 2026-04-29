@@ -6,6 +6,7 @@ const userSchema = new mongoose.Schema(
   {
     image: {
       type: String,
+      default: ""
     },
     name: {
       type: String,
@@ -98,16 +99,12 @@ const userSchema = new mongoose.Schema(
           },
         },
       ],
-
+      
       deliveryAddress: {
         type: mongoose.Schema.Types.ObjectId,
         default: null,
       },
-
-      handlingCharge: { type: String, default: 0 },
-      shippingFee: { type: String, default: 0 },
       tax: { type: String, default: 0 },
-
       //   couponCode:      { type: String },
       //   discountAmount:  { type: Number, default: 0 },
     },
