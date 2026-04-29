@@ -40,7 +40,7 @@ const userSchema = new mongoose.Schema(
         houseNumberAndFloor: {
           type: String,
         },
-        builidingAndBlock: {
+        buildingAndBlock: {
           type: String,
         },
         landMarkAndArea: {
