@@ -1,5 +1,5 @@
 import Joi from "joi";
-import { objectId, password } from "../validators/custom.validator.js" // Adjust path as needed
+import { objectId, password } from "../validators/custom.validator.js"; // Adjust path as needed
 
 export const TOKEN_TYPE = {
   ACCESS: "access",
@@ -7,25 +7,34 @@ export const TOKEN_TYPE = {
 };
 
 export const ADDRESS_TYPE = {
-  HOME: "home", 
-  WORK: "work", 
-  OTHER: "other"
-}
+  HOME: "home",
+  WORK: "work",
+  OTHER: "other",
+};
+
+export const PAYMENT_METHOD = {
+  // ! update accordingly
+  CREDIT: "creditCard",
+  DEBIT: "debitCard",
+  UPI: "upi",
+  NETBANKING: "netBanking",
+  WALLET: "wallet",
+};
 
 export const PAYMENT_STATUS = {
-  PENDING: "pending", 
+  PENDING: "pending",
   FAILED: "failed",
-  CANCELLED: "cancelled", 
-  SUCCESSFUL: "successful"
-}
+  CANCELLED: "cancelled",
+  COMPLETED: "completed",
+};
 
 export const ORDER_STATUS = {
-  PENDING: "pending", 
-  CONFIRMED: "confirmed", 
-  PROCESSING: "processing", 
-  SHIPPING: "shipping", 
-  DELIVERED: "delivered"
-}
+  PENDING: "pending",
+  CONFIRMED: "confirmed",
+  PROCESSING: "processing",
+  SHIPPING: "shipping",
+  DELIVERED: "delivered",
+};
 
 export const USER_TYPE = {
   ADMIN: "admin",
@@ -105,7 +114,6 @@ export const JOI = {
 };
 
 export const SUCCESS_MESSAGES = {
-  
   SUCCESS: "Success",
   LOGOUT: "User successfully logged out",
   REQUEST_SENT: "Request has been sent to the admin",

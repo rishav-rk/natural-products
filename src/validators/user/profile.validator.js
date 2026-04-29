@@ -22,7 +22,7 @@ export const changePasswordValidator = {
 export const addAddressValidator = {
   body: Joi.object({
     houseNumberAndFloor: Joi.string().required().example('H.No. 123, Sector - 23'),
-    builidingAndBlock: Joi.string().example("Block A, Building 5"),
+    buildingAndBlock: Joi.string().example("Block A, Building 5"),
     landMarkAndArea: Joi.string().example("Near Central Park"),
     pincode: Joi.string().required().example('560091'),
     city: Joi.string().example("Banglore"),
@@ -38,7 +38,7 @@ export const addAddressValidator = {
 export const updateAddressValidator = {
   body: Joi.object({
     houseNumberAndFloor: Joi.string().required(),
-    builidingAndBlock: Joi.string().example("Block A, Building 5"),
+    buildingAndBlock: Joi.string().example("Block A, Building 5"),
     landMarkAndArea: Joi.string().example("Near Central Park"),
     pincode: Joi.string().required().example('560091'),
     city: Joi.string().example("Banglore"),

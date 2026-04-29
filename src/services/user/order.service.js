@@ -2,18 +2,27 @@ import razorpay from "../../config/razorpay.js";
 import { ORDER_STATUS, STATUS_CODES } from "../../config/appConstants.js";
 import crypto from "crypto";
 import Order from "../../models/index.js";
+import { ADC, Product } from "../../models/index.js";
 import { OperationalError } from "../../utils/error.js";
 
-export const createOrder = async (req, res) => {
+export const createOrder = async (orderData, token) => {
   try {
-    const { products, shippingAddress, paymentMethod } = req.body;
-    const userId = req.user._id; // from auth middleware
+  const userId = token.user._id; // from auth middleware
 
-    // Calculate total
-    const totalAmount = products.reduce(
-      (sum, item) => sum + item.price * item.quantity,
-      0,
+  const cart = user
+
+ const productIds = products.map((p) => p.productId);
+  const dbProducts = await Product.find({
+    _id: { $in: productIds },
+    isDeleted: false,
+  }).lean();
+
+  if (dbProducts.length !== productIds.length) {
+    throw new OperationalError(
+      STATUS_CODES.ACTION_FAILED,
+      ERROR_MESSAGES.NO_SUCH_PRODUCT,
     );
+  }
 
     let razorpayOrder = null;
     if (paymentMethod !== "cod") {

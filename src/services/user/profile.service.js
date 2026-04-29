@@ -174,6 +174,7 @@ export const addToCart = async (cartData, token) => {
     _id: { $in: productIds },
     isDeleted: false,
   }).lean();
+  
 
   if (dbProducts.length !== productIds.length) {
     throw new OperationalError(
