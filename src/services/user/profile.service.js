@@ -1,8 +1,8 @@
-import { ERROR_MESSAGES, STATUS_CODES } from "../../config/appConstants.js";
+import { ADDRESS_TYPE, ERROR_MESSAGES, STATUS_CODES } from "../../config/appConstants.js";
 import { OperationalError } from "../../utils/error.js";
 import { User, Product, ADC } from "../../models/index.js";
 
-// profile 
+// profile
 import { deletePreviousToken } from "../token.service.js";
 import { successResponse } from "../../utils/response.js";
 import bcrypt from "bcrypt";
@@ -52,26 +52,48 @@ export const deleteAccount = async (token) => {
 };
 
 export const updateAddress = async (addressData, addressId, token) => {
+  const addressFields = [
+    "houseNumberAndFloor",
+    "buildingAndBlock",
+    "landMarkAndArea",
+    "pincode",
+    "addressLabel",
+    "city",
+    "state",
+    "country",
+    "type",
+  ];
+
+  const setData = {};
+
+  // Build setData only with provided fields
+  addressFields.forEach((field) => {
+    if (addressData[field] !== undefined) {
+      setData[`addresses.$.${field}`] = addressData[field];
+    }
+  });
+
+  if(setData['addresses.$.type'] !== ADDRESS_TYPE.OTHER){
+    delete setData[['addresses.$.addressLabel']]
+  }
+
+  // Handle location separately
+  if (addressData.longitude !== undefined && addressData.latitude !== undefined) {
+    setData["addresses.$.location"] = {
+      type: "Point",
+      coordinates: [addressData.longitude, addressData.latitude],
+    };
+  }
+
+  console.log(setData)
 
   const user = await User.findOneAndUpdate(
     { _id: token.user._id, "addresses._id": addressId },
     {
-      $set: {
-        "addresses.$.houseNumberAndFloor": addressData.houseNumberAndFloor,
-        "addresses.$.buildingAndBlock": addressData.buildingAndBlock,
-        "addresses.$.landMarkAndArea": addressData.landMarkAndArea,
-        "addresses.$.city": addressData.city,
-        "addresses.$.state": addressData.state,
-        "addresses.$.country": addressData.country,
-        "addresses.$.type": addressData.type,
-        "addresses.$.location": {
-          type: "Point",
-          coordinates: [addressData.longitude, addressData.latitude],
-        },
-      },
+      $set: setData,
     },
-    { new: true },
-  ).lean();
+    { new: true, lean: true },
+  )
 
   if (!user) {
     throw new OperationalError(
@@ -84,6 +106,10 @@ export const updateAddress = async (addressData, addressId, token) => {
 };
 
 export const addAddress = async (addressData, token) => {
+  if(addressData.type !== ADDRESS_TYPE.OTHER){
+    delete addressData.addressLabel
+  }
+  console.log(addressData)
   const user = await User.findByIdAndUpdate(
     token.user._id,
     {
@@ -116,16 +142,18 @@ export const deleteAddress = async (addressId, token) => {
 
 // cart
 
-
 const recalculateCharges = async (cart) => {
   const { handlingCharge, shippingFee, tax } = await ADC.findOne({}).lean();
 
-  const itemTotal = cart.products.reduce((sum, p) => sum + p.price * p.quantity, 0);
+  const itemTotal = cart.products.reduce(
+    (sum, p) => sum + p.price * p.quantity,
+    0,
+  );
 
   // ✅ parseFloat wrapping toFixed so values stay Numbers, not Strings
   cart.handlingCharge = parseFloat(parseFloat(handlingCharge).toFixed(2));
-  cart.shippingFee    = parseFloat(parseFloat(shippingFee).toFixed(2));
-  cart.tax            = parseFloat(parseFloat(tax).toFixed(2));
+  cart.shippingFee = parseFloat(parseFloat(shippingFee).toFixed(2));
+  cart.tax = parseFloat(parseFloat(tax).toFixed(2));
 };
 
 const validateStock = (dbProduct, requestedQty, currentCartQty = 0) => {
@@ -133,7 +161,7 @@ const validateStock = (dbProduct, requestedQty, currentCartQty = 0) => {
   if (totalRequested > dbProduct.stock) {
     throw new OperationalError(
       STATUS_CODES.ACTION_FAILED,
-      `Only ${dbProduct.stock} unit(s) available for "${dbProduct.name}", you already have ${currentCartQty} in your cart`
+      `Only ${dbProduct.stock} unit(s) available for "${dbProduct.name}", you already have ${currentCartQty} in your cart`,
     );
   }
 };
@@ -142,26 +170,36 @@ export const addToCart = async (cartData, token) => {
   const { products } = cartData;
 
   const productIds = products.map((p) => p.productId);
-  const dbProducts = await Product.find({ _id: { $in: productIds } , isDeleted : false}).lean();
+  const dbProducts = await Product.find({
+    _id: { $in: productIds },
+    isDeleted: false,
+  }).lean();
 
   if (dbProducts.length !== productIds.length) {
-    throw new OperationalError(STATUS_CODES.ACTION_FAILED, ERROR_MESSAGES.NO_SUCH_PRODUCT);
+    throw new OperationalError(
+      STATUS_CODES.ACTION_FAILED,
+      ERROR_MESSAGES.NO_SUCH_PRODUCT,
+    );
   }
 
-  const priceMap   = {};
+  const priceMap = {};
   const productMap = {};
   dbProducts.forEach((p) => {
-    priceMap[p._id.toString()]   = p.price;
+    priceMap[p._id.toString()] = p.price;
     productMap[p._id.toString()] = p;
   });
 
   const user = await User.findById(token.user._id);
-  if (!user) throw new OperationalError(STATUS_CODES.ACTION_FAILED, ERROR_MESSAGES.USER_NOT_FOUND);
+  if (!user)
+    throw new OperationalError(
+      STATUS_CODES.ACTION_FAILED,
+      ERROR_MESSAGES.USER_NOT_FOUND,
+    );
 
   for (const incoming of products) {
     const dbProduct = productMap[incoming.productId];
-    const existing  = user.cart.products.find(
-      (p) => p.product.toString() === incoming.productId
+    const existing = user.cart.products.find(
+      (p) => p.product.toString() === incoming.productId,
     );
 
     validateStock(dbProduct, incoming.quantity, existing?.quantity ?? 0);
@@ -170,9 +208,9 @@ export const addToCart = async (cartData, token) => {
       existing.quantity += incoming.quantity;
     } else {
       user.cart.products.push({
-        product:  incoming.productId,
+        product: incoming.productId,
         quantity: incoming.quantity,
-        price:    priceMap[incoming.productId],
+        price: priceMap[incoming.productId],
       });
     }
   }
@@ -181,7 +219,9 @@ export const addToCart = async (cartData, token) => {
 
   // ✅ Bug 3 fixed — store _id not full object
   if (!user.cart?.deliveryAddress) {
-    user.cart.deliveryAddress = user.addresses.length ? user.addresses[0]._id : null;
+    user.cart.deliveryAddress = user.addresses.length
+      ? user.addresses[0]._id
+      : null;
   }
 
   await user.save();
@@ -193,24 +233,31 @@ export const getCart = async (token) => {
     .populate("cart.products.product")
     .lean();
 
-  if (!user) throw new OperationalError(STATUS_CODES.ACTION_FAILED, ERROR_MESSAGES.USER_NOT_FOUND);
+  if (!user)
+    throw new OperationalError(
+      STATUS_CODES.ACTION_FAILED,
+      ERROR_MESSAGES.USER_NOT_FOUND,
+    );
 
   const cart = user.cart;
-  if (!cart) throw new OperationalError(STATUS_CODES.ACTION_FAILED, "Cart is empty");
+  if (!cart) {
+    throw new OperationalError(STATUS_CODES.ACTION_FAILED, "Cart is empty");
+  }
 
   if (cart?.deliveryAddress) {
     cart.selectedAddress = user.addresses.find(
-      (a) => a._id.toString() === cart.deliveryAddress.toString()
+      (a) => a._id.toString() === cart.deliveryAddress.toString(),
     );
   }
 
-  // ✅ Bug 4 fixed — parse charges back to Number before adding
-  cart.grandTotal = parseFloat((
-    cart.products.reduce((sum, p) => sum + p.price * p.quantity, 0) +
-    parseFloat(cart.handlingCharge) +
-    parseFloat(cart.shippingFee) +
-    parseFloat(cart.tax)
-  ).toFixed(2));
+  cart.grandTotal = parseFloat(
+    (
+      cart.products.reduce((sum, p) => sum + p.price * p.quantity, 0) +
+      parseFloat(cart.handlingCharge) +
+      parseFloat(cart.shippingFee) +
+      parseFloat(cart.tax)
+    ).toFixed(2),
+  );
 
   return cart;
 };
@@ -219,17 +266,24 @@ export const updateCart = async (cartData, token) => {
   const { products, addressId } = cartData;
 
   const user = await User.findById(token.user._id);
-  if (!user) throw new OperationalError(STATUS_CODES.ACTION_FAILED, ERROR_MESSAGES.USER_NOT_FOUND);
+  if (!user)
+    throw new OperationalError(
+      STATUS_CODES.ACTION_FAILED,
+      ERROR_MESSAGES.USER_NOT_FOUND,
+    );
 
   if (products) {
     const productIds = products.map((p) => p.productId);
-    const dbProducts = await Product.find({ _id: { $in: productIds } , isDeleted: false}).lean();
+    const dbProducts = await Product.find({
+      _id: { $in: productIds },
+      isDeleted: false,
+    }).lean();
     const productMap = {};
     dbProducts.forEach((p) => (productMap[p._id.toString()] = p));
 
     for (const incoming of products) {
       const idx = user.cart.products.findIndex(
-        (p) => p.product.toString() === incoming.productId
+        (p) => p.product.toString() === incoming.productId,
       );
 
       if (idx === -1) continue;
@@ -245,12 +299,18 @@ export const updateCart = async (cartData, token) => {
   }
 
   if (addressId) {
+    // ! add check for courier availability for shiprocket
     const addressExists = user.addresses.id(addressId);
     if (!addressExists) {
-      throw new OperationalError(STATUS_CODES.ACTION_FAILED, "Address not found");
+      throw new OperationalError(
+        STATUS_CODES.ACTION_FAILED,
+        "Address not found",
+      );
     }
-    // ✅ Bug 2 fixed — store _id not full object
     user.cart.deliveryAddress = addressExists._id;
+    cart.selectedAddress = user.addresses.find(
+      (a) => a._id.toString() === cart.deliveryAddress.toString(),
+    );
   }
 
   await recalculateCharges(user.cart);
@@ -260,15 +320,22 @@ export const updateCart = async (cartData, token) => {
 
 export const deleteFromCart = async (productId, token) => {
   const user = await User.findById(token.user._id);
-  if (!user) throw new OperationalError(STATUS_CODES.ACTION_FAILED, ERROR_MESSAGES.USER_NOT_FOUND);
+  if (!user)
+    throw new OperationalError(
+      STATUS_CODES.ACTION_FAILED,
+      ERROR_MESSAGES.USER_NOT_FOUND,
+    );
 
   const before = user.cart.products.length;
   user.cart.products = user.cart.products.filter(
-    (p) => p.product.toString() !== productId
+    (p) => p.product.toString() !== productId,
   );
 
   if (user.cart.products.length === before) {
-    throw new OperationalError(STATUS_CODES.ACTION_FAILED, "Product not in cart");
+    throw new OperationalError(
+      STATUS_CODES.ACTION_FAILED,
+      "Product not in cart",
+    );
   }
 
   await recalculateCharges(user.cart);
@@ -278,13 +345,17 @@ export const deleteFromCart = async (productId, token) => {
 
 export const clearCart = async (token) => {
   const user = await User.findById(token.user._id);
-  if (!user) throw new OperationalError(STATUS_CODES.ACTION_FAILED, ERROR_MESSAGES.USER_NOT_FOUND);
+  if (!user)
+    throw new OperationalError(
+      STATUS_CODES.ACTION_FAILED,
+      ERROR_MESSAGES.USER_NOT_FOUND,
+    );
 
-  user.cart.products        = [];
+  user.cart.products = [];
   user.cart.deliveryAddress = null;
-  user.cart.handlingCharge  = 0;
-  user.cart.shippingFee     = 0;
-  user.cart.tax             = 0;
+  user.cart.handlingCharge = 0;
+  user.cart.shippingFee = 0;
+  user.cart.tax = 0;
 
   await user.save();
   return { message: "Cart cleared" };

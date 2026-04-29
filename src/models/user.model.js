@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
+import {ADDRESS_TYPE} from "../config/appConstants.js"
 
 const userSchema = new mongoose.Schema(
   {
@@ -57,7 +58,13 @@ const userSchema = new mongoose.Schema(
         },
         type: {
           type: String,
-          enum: ["home", "work", "other"],
+          enum: [...Object.values(ADDRESS_TYPE)],
+        },
+        addressLabel: {
+          type: String, 
+        }, 
+        pincode: {
+          type: String,
         },
         location: {
           type: {

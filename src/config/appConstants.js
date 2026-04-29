@@ -6,12 +6,24 @@ export const TOKEN_TYPE = {
   FORGOTPASSWORD: "forgotPassword",
 };
 
+export const ADDRESS_TYPE = {
+  HOME: "home", 
+  WORK: "work", 
+  OTHER: "other"
+}
+
+export const PAYMENT_STATUS = {
+  PENDING: "pending", 
+  FAILED: "failed",
+  CANCELLED: "cancelled", 
+  SUCCESSFUL: "successful"
+}
+
 export const ORDER_STATUS = {
-  // ["pending", "confirmed", "processing", "shipped", "delivered"]
   PENDING: "pending", 
   CONFIRMED: "confirmed", 
   PROCESSING: "processing", 
-  SHIPPED: "shipping", 
+  SHIPPING: "shipping", 
   DELIVERED: "delivered"
 }
 

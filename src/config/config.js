@@ -21,6 +21,13 @@ const envVarsSchema = Joi.object()
     ENVIRONMENT: Joi.string()
       .required()
       .valid(...Object.values(ENVIRONMENT)),
+
+    RAZORPAY_KEY_ID: Joi.string()
+      .required()
+      .description("Razorpay key id required"),
+    RAZORPAY_KEY_SECRET: Joi.string()
+      .required()
+      .description("Razorpay secret key required"),
   })
   .unknown();
 
@@ -48,4 +55,8 @@ export default {
   baseurl: envVars.HOST_URL,
   projectName: envVars.PROJECT_NAME,
   environment: envVars.ENVIRONMENT,
+  razorypay:{
+    id: envVars.RAZORPAY_KEY_ID, 
+    secret: envVars.RAZORPAY_KEY_SECRET
+  }
 };
