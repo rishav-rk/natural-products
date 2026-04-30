@@ -2,6 +2,8 @@ import { Router } from "express";
 import { USER_TYPE } from "../../config/appConstants.js";
 import { createOrderValidator } from "../../validators/user/order.validator.js";
 import { createOrder } from "../../controllers/user/order.controller.js";
+import auth from "../../middlewares/auth.js"
+import { validate } from "../../middlewares/validate.js";
 
 const router = Router();
 
@@ -11,3 +13,9 @@ router.post(
   validate(createOrderValidator),
   createOrder,
 );
+
+router.post('/test', (req, res)=>{
+  console.log(req.url)
+}
+)
+export default router

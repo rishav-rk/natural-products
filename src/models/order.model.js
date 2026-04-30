@@ -1,5 +1,9 @@
 import mongoose from "mongoose";
-import { ORDER_STATUS, PAYMENT_STATUS, PAYMENT_METHOD } from "../config/appConstants.js";
+import {
+  ORDER_STATUS,
+  PAYMENT_STATUS,
+  PAYMENT_METHOD,
+} from "../config/appConstants.js";
 
 const orderSchema = new mongoose.Schema(
   {
@@ -9,8 +13,8 @@ const orderSchema = new mongoose.Schema(
       required: [true, "Please provide order ID"],
     },
     placedOn: {
-        type: Date, 
-        default: Date.now
+      type: Date,
+      default: Date.now,
     },
     user: {
       type: mongoose.Types.ObjectId,
@@ -27,7 +31,7 @@ const orderSchema = new mongoose.Schema(
         product: {
           type: mongoose.Types.ObjectId,
           ref: "Product",
-          required: [true, 'Product id is required'],
+          required: [true, "Product id is required"],
         },
         name: {
           type: String,
@@ -48,7 +52,7 @@ const orderSchema = new mongoose.Schema(
       type: String,
     },
 
-    totalAmount: {
+    grandTotalAmount: {
       type: String,
       required: [true, "Please provide total amount"],
     },
@@ -100,4 +104,5 @@ const orderSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-export default mongoose.model("Order", orderSchema);
+const Order = mongoose.model("Order", orderSchema);
+export default Order;

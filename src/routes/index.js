@@ -8,6 +8,7 @@ import constantsRoute from "./admin/aCAndVideo.route.js"
 import commonRoutes from "./common.route.js"
 import cartRoute from "./user/cart.route.js"
 import staticRoutes from "./user/static.route.js"
+import orderRoute from "./user/order.route.js"
 
 const router = Router();
 
@@ -35,19 +36,24 @@ const defaultRoutes = [
   {
     path: "/admin/constants",
     route: constantsRoute
-  },
-  {
-    path: "/", 
-    route: commonRoutes
   }, 
   {
     path: "/cart", 
     route: cartRoute 
   }, 
   {
+    path: "/order", 
+    route: orderRoute
+  },
+  ,
+  {
+    path: "/", 
+    route: commonRoutes
+  },
+  {
     path: "/", 
     route: staticRoutes
-  }
+  }, 
 ];
 
 defaultRoutes.forEach((route) => {

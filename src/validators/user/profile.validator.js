@@ -85,7 +85,9 @@ export const updateCart = {
         quantity: Joi.number().integer().min(0).required(), // 0 = remove item
       }),
     ).required(),
-    addressId: JOI.OBJECTID,
+    addressId: JOI.OBJECTID.alter({
+        request: (schema) => schema.optional(),
+      }),
   }).required(),
 };
 

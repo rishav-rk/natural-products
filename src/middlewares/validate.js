@@ -9,6 +9,7 @@ const validate = (schema) => (req, res, next) => {
   const object = pick(req, Object.keys(validSchema));
 
   const { value, error } = Joi.compile(validSchema)
+    .tailor("request")
     .prefs({ errors: { label: "key" }, abortEarly: false })
     .validate(object);
 
@@ -25,8 +26,8 @@ const validate = (schema) => (req, res, next) => {
         error.details
           .map((details) => details.message)
           .join(", ")
-          .replace(/"/g, "")
-      )
+          .replace(/"/g, ""),
+      ),
     );
   }
 
