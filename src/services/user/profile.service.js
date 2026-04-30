@@ -242,7 +242,6 @@ export const getCart = async (token) => {
     cart.selectedAddress = user.addresses.find(
       (a) => a._id.toString() === cart.deliveryAddress.toString(),
     );
-    cart.deliveryAddress = null;
   }
 
   cart.itemTotal = parseFloat(
@@ -294,6 +293,7 @@ export const updateCart = async (cartData, token) => {
   if (addressId) {
     // ! add check for courier availability for shiprocket
     const addressExists = user.addresses.id(addressId);
+
     if (!addressExists) {
       throw new OperationalError(
         STATUS_CODES.ACTION_FAILED,
