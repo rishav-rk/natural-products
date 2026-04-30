@@ -156,5 +156,10 @@
 	"Only 100 unit(s) available for \"Aloe Vera Gel\", you already have 0 in your cart": "Only 100 unit(s) available for \"Aloe Vera Gel\", you already have 0 in your cart",
 	"Only 10 unit(s) of \"Vitamin C Face Serum\" are available. You already have 0 in your cart. You can add 10 more.": "Only 10 unit(s) of \"Vitamin C Face Serum\" are available. You already have 0 in your cart. You can add 10 more.",
 	"Only 10 unit(s) of \"Vitamin C Face Serum\" are available. You already have 5 in your cart. You can add 5 more.": "Only 10 unit(s) of \"Vitamin C Face Serum\" are available. You already have 5 in your cart. You can add 5 more.",
-	"quantity is required, quanity is not allowed": "quantity is required, quanity is not allowed"
+	"quantity is required, quanity is not allowed": "quantity is required, quanity is not allowed",
+	"Order created successfully, Please proceed to payment": "Order created successfully, Please proceed to payment",
+	"products is not defined": "products is not defined",
+	"amount is not defined": "amount is not defined",
+	"paymentMethod is not defined": "paymentMethod is not defined",
+	"order is not defined": "order is not defined"
 }

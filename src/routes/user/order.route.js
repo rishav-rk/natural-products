@@ -7,15 +7,11 @@ import { validate } from "../../middlewares/validate.js";
 
 const router = Router();
 
+
 router.post(
   "/create-order",
   auth(USER_TYPE.USER),
   validate(createOrderValidator),
   createOrder,
 );
-
-router.post('/test', (req, res)=>{
-  console.log(req.url)
-}
-)
 export default router

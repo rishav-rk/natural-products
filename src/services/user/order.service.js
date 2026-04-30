@@ -43,7 +43,7 @@ export const createOrder = async (orderData, token) => {
       );
     }
 
-    const productIds = cart.products.map((p) => p.productId);
+    const productIds = cart.products.map((p) => p.product);
     const dbProducts = await Product.find({
       _id: { $in: productIds },
       isDeleted: false,
@@ -56,31 +56,32 @@ export const createOrder = async (orderData, token) => {
       );
     }
 
-    // calculating final amount
-    const amount = calculateGrandTotal(dbProducts);
-    console.log("Amount to be paid: ", amount);
+    const productPriceMap = {};
+    dbProducts.forEach((product) => {
+      productPriceMap[product._id] = product.price;
+    });
 
-    return {};
+    const updatedProducts = cart.products.map((cartItem) => ({
+      ...cartItem,
+      price: productPriceMap[cartItem.product],
+    }));
+
+    const amount = await calculateGrandTotal(updatedProducts);
+
+    console.log("Amount to be paid: ", amount);
 
     // ? check for shiprocket service availability
 
+
     let razorpayOrder = null;
-    if (paymentMethod !== "cod") {
-      razorpayOrder = await razorpayInstance.orders.create({
-        amount: amount, // paise
+      razorpayOrder = await razorpay.orders.create({
+        amount: amount * 100, // paise
         currency: "INR",
         receipt: `receipt_${Date.now()}`,
       });
-    } else {
-      throw new OperationalError(
-        STATUS_CODES.ACTION_FAILED,
-        "COD Not accepted",
-      );
-    }
 
     return {
       success: true,
-      order,
       razorpayOrder: razorpayOrder
         ? {
             id: razorpayOrder.id,

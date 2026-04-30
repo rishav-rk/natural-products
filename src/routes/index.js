@@ -45,7 +45,6 @@ const defaultRoutes = [
     path: "/order", 
     route: orderRoute
   },
-  ,
   {
     path: "/", 
     route: commonRoutes

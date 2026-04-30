@@ -247,9 +247,6 @@ export const getCart = async (token) => {
   cart.itemTotal = parseFloat(
     cart.products.reduce((sum, p) => sum + p.price * p.quantity, 0),
   ).toFixed(2);
-
-  console.log(cart)
-
   return cart;
 };
 
