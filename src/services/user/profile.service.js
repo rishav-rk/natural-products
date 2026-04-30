@@ -242,11 +242,14 @@ export const getCart = async (token) => {
     cart.selectedAddress = user.addresses.find(
       (a) => a._id.toString() === cart.deliveryAddress.toString(),
     );
+    cart.deliveryAddress = null;
   }
 
   cart.itemTotal = parseFloat(
     cart.products.reduce((sum, p) => sum + p.price * p.quantity, 0),
   ).toFixed(2);
+
+  console.log(cart)
 
   return cart;
 };
@@ -260,6 +263,7 @@ export const updateCart = async (cartData, token) => {
       STATUS_CODES.ACTION_FAILED,
       ERROR_MESSAGES.USER_NOT_FOUND,
     );
+    
 
   if (products) {
     const productIds = products.map((p) => p.productId);

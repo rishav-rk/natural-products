@@ -1,34 +1,25 @@
-import Joi from "joi"; // Importing Joi for validation
-import { pick } from "../utils/universalFunctions.js"; // Destructuring 'pick' from a utility function file
-import config from "../config/config.js"; // Importing configuration settings
-import { ValidationError } from "../utils/error.js"; // Destructuring 'ValidationError' from custom errors
+import Joi from "joi";
+import { pick } from "../utils/universalFunctions.js";
+import { ValidationError } from "../utils/error.js";
 
 const validate = (schema) => (req, res, next) => {
   const validSchema = pick(schema, ["params", "query", "body"]);
-
   const object = pick(req, Object.keys(validSchema));
 
   const { value, error } = Joi.compile(validSchema)
     .tailor("request")
-    .prefs({ errors: { label: "key" }, abortEarly: false })
+    .prefs({ errors: { label: "key" }, abortEarly: false, allowUnknown: false })
     .validate(object);
 
   if (error) {
-    console.log("validation errorrrrrr", req.body, error);
     const errorMessages = error.details.map((detail) => ({
       field: detail.path.join("."),
       message: detail.message.replace(/"/g, ""),
     }));
 
-    return next(
-      new ValidationError(
-        errorMessages,
-        error.details
-          .map((details) => details.message)
-          .join(", ")
-          .replace(/"/g, ""),
-      ),
-    );
+    const combinedMessage = errorMessages.map((e) => e.message).join(", ");
+
+    return next(new ValidationError(errorMessages, combinedMessage));
   }
 
   Object.assign(req, value);

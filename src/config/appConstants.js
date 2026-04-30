@@ -119,10 +119,11 @@ export const SUCCESS_MESSAGES = {
   REQUEST_SENT: "Request has been sent to the admin",
   USER_CREATED: "User created successfully",
   COMPANY_CREATED: "Account for company created successfully",
-  ORDER_CREATED: "Order created successfully, Please proceed to payment"
+  ORDER_CREATED: "Order created successfully, Please proceed to payment",
 };
 
 export const ERROR_MESSAGES = {
+  ADDRESS_REQUIRED: "Address is required",
   ADDRESS_NOT_FOUND: "Address not found",
   PRODUCT_ALREADY_EXISTS: "Product already exists. Try updating it",
   INVALID_TOKEN: "Invalid token",

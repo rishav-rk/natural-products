@@ -155,5 +155,6 @@
 	"products must be an array": "products must be an array",
 	"Only 100 unit(s) available for \"Aloe Vera Gel\", you already have 0 in your cart": "Only 100 unit(s) available for \"Aloe Vera Gel\", you already have 0 in your cart",
 	"Only 10 unit(s) of \"Vitamin C Face Serum\" are available. You already have 0 in your cart. You can add 10 more.": "Only 10 unit(s) of \"Vitamin C Face Serum\" are available. You already have 0 in your cart. You can add 10 more.",
-	"Only 10 unit(s) of \"Vitamin C Face Serum\" are available. You already have 5 in your cart. You can add 5 more.": "Only 10 unit(s) of \"Vitamin C Face Serum\" are available. You already have 5 in your cart. You can add 5 more."
+	"Only 10 unit(s) of \"Vitamin C Face Serum\" are available. You already have 5 in your cart. You can add 5 more.": "Only 10 unit(s) of \"Vitamin C Face Serum\" are available. You already have 5 in your cart. You can add 5 more.",
+	"quantity is required, quanity is not allowed": "quantity is required, quanity is not allowed"
 }

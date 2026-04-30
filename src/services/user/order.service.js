@@ -36,6 +36,13 @@ export const createOrder = async (orderData, token) => {
       );
     }
 
+    if (!cart?.deliveryAddress) {
+      throw new OperationalError(
+        STATUS_CODES.ACTION_FAILED,
+        ERROR_MESSAGES.ADDRESS_REQUIRED,
+      );
+    }
+
     const productIds = cart.products.map((p) => p.productId);
     const dbProducts = await Product.find({
       _id: { $in: productIds },
@@ -70,7 +77,7 @@ export const createOrder = async (orderData, token) => {
         "COD Not accepted",
       );
     }
-    
+
     return {
       success: true,
       order,
