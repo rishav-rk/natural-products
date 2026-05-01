@@ -168,5 +168,6 @@
 	"Invalid payment signature": "Invalid payment signature",
 	"Order validation failed": " payment.amount: Payment amount is required, payment.razorpayOrderId: Razorpay order ID is required, grandTotalAmount: Please provide total amount, user: Please provide user reference, orderId: Please provide order ID, payment.method: `null` is not a valid enum value for path `payment.method`.",
 	"Cannot read properties of undefined (reading 'substring')": "Cannot read properties of undefined (reading 'substring')",
-	"Cannot read properties of undefined (reading 'slice')": "Cannot read properties of undefined (reading 'slice')"
+	"Cannot read properties of undefined (reading 'slice')": "Cannot read properties of undefined (reading 'slice')",
+	"Cannot place order, Cart is empty": "Cannot place order, Cart is empty"
 }

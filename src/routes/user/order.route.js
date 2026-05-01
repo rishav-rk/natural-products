@@ -3,10 +3,12 @@ import { USER_TYPE } from "../../config/appConstants.js";
 import {
   createOrderValidator,
   verifyPaymentValidator,
+  getMyOrderValidator,
 } from "../../validators/user/order.validator.js";
 import {
   createOrder,
   verifyPayment,
+  getMyOrders,
 } from "../../controllers/user/order.controller.js";
 import auth from "../../middlewares/auth.js";
 import { validate } from "../../middlewares/validate.js";
@@ -47,4 +49,12 @@ router.post(
   validate(verifyPaymentValidator),
   verifyPayment,
 );
+
+router.get(
+  "/my-orders",
+  auth(USER_TYPE.USER),
+  validate(getMyOrderValidator),
+  getMyOrders,
+);
+
 export default router;

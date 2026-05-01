@@ -5,6 +5,7 @@ import {
   PAYMENT_METHOD,
 } from "../config/appConstants.js";
 
+
 const orderSchema = new mongoose.Schema(
   {
     orderId: {
@@ -46,7 +47,10 @@ const orderSchema = new mongoose.Schema(
         },
       },
     ],
-
+    itemTotal: {
+      type: String, 
+      required: [true, 'Please provide item total']
+    },
     tax: {
       type: String,
     },
@@ -81,7 +85,7 @@ const orderSchema = new mongoose.Schema(
         default: PAYMENT_STATUS.PENDING,
       },
       amount: {
-        type: Number,
+        type: String,
         required: [true, "Payment amount is required"],
       },
       currency: {

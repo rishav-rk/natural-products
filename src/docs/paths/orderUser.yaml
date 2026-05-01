@@ -1,0 +1,274 @@
+createOrder:
+  summary: Create a new order
+  tags:
+    - Order
+  security:
+    - bearerAuth: []
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties: {}
+          description: Empty body - uses user's cart and delivery address
+          example: {}
+  responses:
+    201:
+      description: Order created successfully
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Order created successfully"
+              data:
+                type: object
+                properties:
+                  orderDetails:
+                    type: object
+                    properties:
+                      razorpayOrder:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            example: "order_1A2B3C4D5E6F7G8H"
+                          entity:
+                            type: string
+                            example: "order"
+                          amount:
+                            type: integer
+                            example: 50000
+                            description: Amount in paise (50000 = 500 INR)
+                          amount_paid:
+                            type: integer
+                            example: 0
+                          amount_due:
+                            type: integer
+                            example: 50000
+                          currency:
+                            type: string
+                            example: "INR"
+                          receipt:
+                            type: string
+                            example: "receipt_1683000000000"
+                          status:
+                            type: string
+                            example: "created"
+                          attempts:
+                            type: integer
+                            example: 0
+                          notes:
+                            type: object
+                          created_at:
+                            type: integer
+                            example: 1683000000
+    400:
+      description: Validation failed or cart is empty/no delivery address
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Cannot place order, Cart is empty"
+    401:
+      description: Unauthorized - user authentication required
+    500:
+      description: Server error
+
+verifyPayment:
+  summary: Verify Razorpay payment signature
+  tags:
+    - Order
+  security:
+    - bearerAuth: []
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - razorpayOrderId
+            - razorpayPaymentId
+            - razorpaySignature
+          properties:
+            razorpayOrderId:
+              type: string
+              description: Razorpay order ID from checkout response
+              example: "order_1A2B3C4D5E6F7G8H"
+            razorpayPaymentId:
+              type: string
+              description: Razorpay payment ID from checkout response
+              example: "pay_1X2Y3Z4A5B6C7D8E"
+            razorpaySignature:
+              type: string
+              description: Razorpay signature for verification
+              example: "8b537919ebaac93fb23iu234nse60da015d872032da31034f0abba7f573ddad67"
+  responses:
+    200:
+      description: Payment verified successfully
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Success"
+              data:
+                type: object
+                properties:
+                  payment:
+                    type: object
+    400:
+      description: Validation failed or invalid signature
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Invalid signature"
+    401:
+      description: Unauthorized - user authentication required
+    500:
+      description: Server error
+
+getMyOrders:
+  summary: Get user's orders with pagination
+  tags:
+    - Order
+  security:
+    - bearerAuth: []
+  parameters:
+    - in: query
+      name: page
+      schema:
+        type: integer
+        default: 0
+      description: Page number for pagination (0-indexed)
+    - in: query
+      name: limit
+      schema:
+        type: integer
+        default: 10
+      description: Number of orders per page
+  responses:
+    200:
+      description: Orders retrieved successfully
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Success"
+              data:
+                type: object
+                properties:
+                  orders:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                          example: "60c72b2f9b1d8e5a5c8f9b1a"
+                        orderId:
+                          type: string
+                          example: "USER-123456"
+                        placedOn:
+                          type: string
+                          format: date-time
+                          example: "2024-01-15T10:30:00Z"
+                        user:
+                          type: string
+                          example: "69f2e65e694e1c98d5647070"
+                        products:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              product:
+                                type: string
+                                example: "60c72b2f9b1d8e5a5c8f9b2a"
+                              quantity:
+                                type: integer
+                                example: 2
+                              price:
+                                type: number
+                                example: 19.99
+                              name:
+                                type: string
+                                example: "Aloe Vera Gel"
+                        tax:
+                          type: string
+                          example: "5"
+                        itemTotal:
+                          type: number
+                          example: 39.98
+                        grandTotalAmount:
+                          type: number
+                          example: 41.98
+                        shippingAddress:
+                          type: object
+                          properties:
+                            address:
+                              type: string
+                            city:
+                              type: string
+                            state:
+                              type: string
+                            pincode:
+                              type: string
+                        status:
+                          type: string
+                          enum: [In Progress, On the Way, Delivered]
+                          example: "In Progress"
+                        createdAt:
+                          type: string
+                          format: date-time
+                        updatedAt:
+                          type: string
+                          format: date-time
+    400:
+      description: Validation failed - invalid pagination parameters
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Invalid query parameters"
+    401:
+      description: Unauthorized - user authentication required
+    500:
+      description: Server error
+

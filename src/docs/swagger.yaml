@@ -38,7 +38,8 @@ components:
       description: Admin endpoints for managing app constants like charges, taxes, and promotional content
     - name: Static Pages
       description: Static pages - Contact Us, About Us, Privacy Policy, Terms & Conditions
-
+    - name: Order
+      description: Order creation and payment verification endpoints
 
 
 paths:
@@ -177,5 +178,17 @@ paths:
   /terms-and-conditions:
     get:
       $ref: "./paths/staticRoutes.yaml#/getTermsAndConditions"
+
+  /order/create-order:
+    post:
+      $ref: "./paths/orderUser.yaml#/createOrder"
+
+  /order/verify-payment:
+    post:
+      $ref: "./paths/orderUser.yaml#/verifyPayment"
+
+  /order/my-orders:
+    get:
+      $ref: "./paths/orderUser.yaml#/getMyOrders"
 
 
