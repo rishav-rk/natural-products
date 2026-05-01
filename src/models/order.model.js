@@ -9,7 +9,6 @@ const orderSchema = new mongoose.Schema(
   {
     orderId: {
       type: String,
-      unique: true,
       required: [true, "Please provide order ID"],
     },
     placedOn: {
@@ -51,58 +50,54 @@ const orderSchema = new mongoose.Schema(
     tax: {
       type: String,
     },
-
     grandTotalAmount: {
       type: String,
       required: [true, "Please provide total amount"],
     },
     shippingAddress: {
-      houseNumberAndFloor: {
-        type: String,
-        required: [true, "Please provide house number"],
-      },
-      buildingAndBlock: {
-        type: String,
-        required: [true, "Please provide building name"],
-      },
-      landMarkAndArea: {
-        type: String,
-        required: [true, "Please provide landmark/area"],
-      },
-      city: {
-        type: String,
-        required: [true, "Please provide city"],
-      },
-      state: {
-        type: String,
-        required: [true, "Please provide state"],
-      },
-      pincode: {
-        type: String,
-        required: [true, "Please provide pincode"],
-      },
-      country: {
-        type: String,
-        default: "India",
-      },
+      type: Object,
     },
     status: {
       type: String,
       enum: [...Object.values(ORDER_STATUS)],
-      default: "pending",
+      default: ORDER_STATUS.INPROGRESS,
     },
-    paymentMethod: {
-      type: String,
-      enum: [...Object.values(PAYMENT_METHOD)],
-    },
-    paymentStatus: {
-      type: String,
-      enum: [...Object.values(PAYMENT_STATUS)],
-      default: "pending",
+    payment: {
+      razorpayOrderId: {
+        type: String,
+        required: [true, "Razorpay order ID is required"],
+      },
+      razorpayPaymentId: {
+        type: String,
+        default: null,
+      },
+      razorpaySignature: {
+        type: String,
+        default: null,
+      },
+      status: {
+        type: String,
+        enum: Object.values(PAYMENT_STATUS),
+        default: PAYMENT_STATUS.PENDING,
+      },
+      amount: {
+        type: Number,
+        required: [true, "Payment amount is required"],
+      },
+      currency: {
+        type: String,
+        default: "INR",
+      },
+      paidAt: {
+        type: Date,
+        default: null,
+      },
     },
   },
   { timestamps: true },
 );
+
+orderSchema.index({"orderId": 1})
 
 const Order = mongoose.model("Order", orderSchema);
 export default Order;

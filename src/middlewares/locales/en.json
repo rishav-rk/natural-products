@@ -161,5 +161,12 @@
 	"products is not defined": "products is not defined",
 	"amount is not defined": "amount is not defined",
 	"paymentMethod is not defined": "paymentMethod is not defined",
-	"order is not defined": "order is not defined"
+	"order is not defined": "order is not defined",
+	"Cannot read properties of undefined (reading 'find')": "Cannot read properties of undefined (reading 'find')",
+	"Cannot read properties of undefined (reading 'map')": "Cannot read properties of undefined (reading 'map')",
+	"amount is not allowed, currency is not allowed, receipt is not allowed, notes is not allowed": "amount is not allowed, currency is not allowed, receipt is not allowed, notes is not allowed",
+	"Invalid payment signature": "Invalid payment signature",
+	"Order validation failed": " payment.amount: Payment amount is required, payment.razorpayOrderId: Razorpay order ID is required, grandTotalAmount: Please provide total amount, user: Please provide user reference, orderId: Please provide order ID, payment.method: `null` is not a valid enum value for path `payment.method`.",
+	"Cannot read properties of undefined (reading 'substring')": "Cannot read properties of undefined (reading 'substring')",
+	"Cannot read properties of undefined (reading 'slice')": "Cannot read properties of undefined (reading 'slice')"
 }

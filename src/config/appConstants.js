@@ -23,17 +23,13 @@ export const PAYMENT_METHOD = {
 
 export const PAYMENT_STATUS = {
   PENDING: "pending",
-  FAILED: "failed",
-  CANCELLED: "cancelled",
   COMPLETED: "completed",
 };
 
 export const ORDER_STATUS = {
-  PENDING: "pending",
-  CONFIRMED: "confirmed",
-  PROCESSING: "processing",
-  SHIPPING: "shipping",
-  DELIVERED: "delivered",
+  INPROGRESS: 'In Progress',
+  OTW: 'On the Way', 
+  DELIVERED: 'Delivered'
 };
 
 export const USER_TYPE = {
@@ -123,6 +119,7 @@ export const SUCCESS_MESSAGES = {
 };
 
 export const ERROR_MESSAGES = {
+  INVALID_SIGNATURE: 'Invalid payment signature',
   ADDRESS_REQUIRED: "Address is required",
   ADDRESS_NOT_FOUND: "Address not found",
   PRODUCT_ALREADY_EXISTS: "Product already exists. Try updating it",

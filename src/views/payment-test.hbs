@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Razorpay Backend Tester</title>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Bebas+Neue&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#080c10;
+  --panel:#0d1117;
+  --card:#111820;
+  --border:#1e2d3d;
+  --border2:#243447;
+  --accent:#00d4ff;
+  --accent2:#ff6b35;
+  --green:#00e676;
+  --red:#ff3d57;
+  --yellow:#ffd740;
+  --text:#cdd9e5;
+  --muted:#4d6070;
+  --mono:'IBM Plex Mono',monospace;
+  --display:'Bebas Neue',sans-serif;
+}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--mono);
+  min-height:100vh;
+  display:grid;
+  grid-template-columns:380px 1fr;
+  grid-template-rows:56px 1fr;
+  height:100vh;
+  overflow:hidden;
+}
+
+/* scanline effect */
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);
+  pointer-events:none;z-index:999;
+}
+
+/* ── TOP BAR ── */
+.topbar{
+  grid-column:1/-1;
+  background:var(--panel);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;
+  padding:0 24px;gap:16px;
+  position:relative;
+}
+.topbar-title{
+  font-family:var(--display);
+  font-size:1.5rem;
+  letter-spacing:0.08em;
+  color:var(--accent);
+}
+.topbar-sub{
+  font-size:0.65rem;color:var(--muted);
+  letter-spacing:0.1em;text-transform:uppercase;
+}
+.topbar-spacer{flex:1}
+.status-pill{
+  display:flex;align-items:center;gap:6px;
+  font-size:0.65rem;letter-spacing:0.08em;
+  padding:5px 14px;border-radius:3px;
+  border:1px solid var(--border2);
+  color:var(--muted);
+  text-transform:uppercase;
+}
+.status-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--muted);
+  transition:background 0.3s,box-shadow 0.3s;
+}
+.status-dot.live{background:var(--green);box-shadow:0 0 8px var(--green);}
+.status-dot.error{background:var(--red);box-shadow:0 0 8px var(--red);}
+.flow-steps{display:flex;align-items:center;gap:0;}
+.step-tag{
+  font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;
+  padding:4px 12px;border:1px solid var(--border);
+  color:var(--muted);
+  transition:all 0.3s;
+}
+.step-tag:not(:first-child){border-left:none;}
+.step-tag.active{border-color:var(--accent);color:var(--accent);background:rgba(0,212,255,0.06);}
+.step-tag.done{border-color:var(--green);color:var(--green);background:rgba(0,230,118,0.06);}
+
+/* ── LEFT PANEL ── */
+.left{
+  background:var(--panel);
+  border-right:1px solid var(--border);
+  overflow-y:auto;
+  padding:0;
+}
+.left::-webkit-scrollbar{width:3px}
+.left::-webkit-scrollbar-thumb{background:var(--border2)}
+
+.section{padding:20px 24px;border-bottom:1px solid var(--border);}
+.section-head{
+  font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;
+  color:var(--accent);margin-bottom:16px;
+  display:flex;align-items:center;gap:8px;
+}
+.section-head::before{content:'//';color:var(--muted);}
+
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+.field:last-child{margin-bottom:0;}
+.field label{
+  font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--muted);
+}
+.field input,.field select{
+  background:var(--card);
+  border:1px solid var(--border2);
+  border-radius:3px;
+  color:var(--text);
+  font-family:var(--mono);
+  font-size:0.78rem;
+  padding:10px 12px;
+  outline:none;
+  transition:border-color 0.2s,box-shadow 0.2s;
+  width:100%;
+}
+.field input:focus,.field select:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 2px rgba(0,212,255,0.12);
+}
+.field select option{background:var(--card);}
+
+.field input.has-val{border-color:var(--border2);color:var(--accent);}
+
+.amount-row{display:grid;grid-template-columns:1fr 110px;gap:10px;}
+
+.route-row{
+  display:flex;align-items:center;gap:0;
+  background:var(--card);border:1px solid var(--border2);border-radius:3px;
+  overflow:hidden;
+}
+.method-tag{
+  font-size:0.65rem;padding:10px 10px;
+  background:rgba(0,212,255,0.08);
+  color:var(--accent);border-right:1px solid var(--border2);
+  letter-spacing:0.05em;white-space:nowrap;
+  flex-shrink:0;
+}
+.route-row input{
+  border:none!important;border-radius:0!important;
+  box-shadow:none!important;background:transparent!important;
+  font-size:0.75rem;
+}
+
+.body-editor{
+  background:var(--card);
+  border:1px solid var(--border2);
+  border-radius:3px;
+  color:var(--accent2);
+  font-family:var(--mono);
+  font-size:0.72rem;
+  padding:10px 12px;
+  outline:none;
+  width:100%;
+  resize:vertical;
+  min-height:90px;
+  line-height:1.7;
+  transition:border-color 0.2s;
+}
+.body-editor:focus{border-color:var(--accent2);box-shadow:0 0 0 2px rgba(255,107,53,0.1);}
+
+/* action buttons */
+.action-btn{
+  width:100%;padding:12px;
+  font-family:var(--display);
+  font-size:1.05rem;letter-spacing:0.12em;
+  border:none;border-radius:3px;cursor:pointer;
+  position:relative;overflow:hidden;
+  transition:all 0.2s;display:flex;
+  align-items:center;justify-content:center;gap:10px;
+}
+.action-btn:disabled{opacity:0.35;cursor:not-allowed;}
+.action-btn.primary{
+  background:var(--accent);color:#000;
+}
+.action-btn.primary:not(:disabled):hover{
+  box-shadow:0 0 24px rgba(0,212,255,0.4);
+  transform:translateY(-1px);
+}
+.action-btn.secondary{
+  background:transparent;color:var(--accent2);
+  border:1px solid var(--accent2);
+}
+.action-btn.secondary:not(:disabled):hover{
+  background:rgba(255,107,53,0.08);
+  box-shadow:0 0 16px rgba(255,107,53,0.2);
+}
+.action-btn.success-btn{
+  background:var(--green);color:#000;
+}
+.btn-icon{font-size:0.9rem;}
+.btn-row{display:flex;flex-direction:column;gap:8px;}
+
+/* ── RIGHT PANEL ── */
+.right{
+  display:grid;
+  grid-template-rows:1fr 1fr;
+  overflow:hidden;
+}
+
+.pane{
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  border-bottom:1px solid var(--border);
+}
+.pane:last-child{border-bottom:none;}
+
+.pane-header{
+  background:var(--panel);
+  border-bottom:1px solid var(--border);
+  padding:10px 20px;
+  display:flex;align-items:center;gap:10px;
+  flex-shrink:0;
+}
+.pane-title{
+  font-size:0.6rem;letter-spacing:0.18em;
+  text-transform:uppercase;color:var(--muted);
+}
+.pane-badge{
+  font-size:0.58rem;padding:2px 8px;
+  border-radius:2px;letter-spacing:0.08em;
+  border:1px solid var(--border2);color:var(--muted);
+}
+.pane-badge.ok{border-color:var(--green);color:var(--green);background:rgba(0,230,118,0.06);}
+.pane-badge.fail{border-color:var(--red);color:var(--red);background:rgba(255,61,87,0.06);}
+.pane-badge.pending{border-color:var(--yellow);color:var(--yellow);background:rgba(255,215,64,0.06);}
+
+.pane-body{
+  flex:1;overflow-y:auto;padding:16px 20px;
+  font-size:0.72rem;line-height:1.8;
+}
+.pane-body::-webkit-scrollbar{width:3px}
+.pane-body::-webkit-scrollbar-thumb{background:var(--border2)}
+
+/* log entries */
+.log-entry{
+  display:grid;
+  grid-template-columns:70px 65px 1fr;
+  gap:8px;padding:3px 0;
+  border-bottom:1px solid rgba(255,255,255,0.02);
+  align-items:start;
+}
+.log-time{color:var(--muted);font-size:0.65rem;}
+.log-tag{font-size:0.6rem;letter-spacing:0.06em;padding:1px 5px;border-radius:2px;text-align:center;}
+.tag-info{background:rgba(0,212,255,0.1);color:var(--accent);}
+.tag-success{background:rgba(0,230,118,0.1);color:var(--green);}
+.tag-error{background:rgba(255,61,87,0.1);color:var(--red);}
+.tag-warn{background:rgba(255,215,64,0.1);color:var(--yellow);}
+.tag-send{background:rgba(255,107,53,0.1);color:var(--accent2);}
+.log-msg{color:var(--text);word-break:break-all;}
+
+/* JSON viewer */
+.json-viewer{
+  font-size:0.7rem;line-height:1.9;
+  white-space:pre-wrap;word-break:break-all;
+}
+.json-key{color:var(--accent);}
+.json-str{color:var(--green);}
+.json-num{color:var(--accent2);}
+.json-bool{color:var(--yellow);}
+.json-null{color:var(--muted);}
+.json-brace{color:var(--muted);}
+
+.empty-state{
+  color:var(--muted);font-size:0.7rem;
+  display:flex;align-items:center;gap:8px;
+  padding:20px 0;opacity:0.7;
+}
+.empty-state::before{content:'▸';color:var(--border2);}
+
+/* spinning loader */
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{
+  display:inline-block;width:14px;height:14px;
+  border:2px solid rgba(0,0,0,0.3);
+  border-top-color:#000;
+  border-radius:50%;
+  animation:spin 0.6s linear infinite;
+}
+
+/* success flash */
+@keyframes flashIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.flash{animation:flashIn 0.3s ease forwards;}
+
+.divider{height:1px;background:var(--border);margin:12px 0;}
+
+.mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+
+.copy-btn{
+  background:transparent;border:1px solid var(--border2);
+  color:var(--muted);font-family:var(--mono);font-size:0.58rem;
+  padding:3px 8px;border-radius:2px;cursor:pointer;
+  margin-left:auto;letter-spacing:0.06em;
+  transition:all 0.15s;
+}
+.copy-btn:hover{border-color:var(--accent);color:var(--accent);}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div>
+    <div class="topbar-title">RZP TESTER</div>
+    <div class="topbar-sub">Backend Integration — Full Flow</div>
+  </div>
+  <div class="topbar-spacer"></div>
+  <div class="flow-steps">
+    <div class="step-tag active" id="step1">1 · CREATE ORDER</div>
+    <div class="step-tag" id="step2">2 · CHECKOUT</div>
+    <div class="step-tag" id="step3">3 · VERIFY</div>
+  </div>
+  <div style="width:16px"></div>
+  <div class="status-pill">
+    <div class="status-dot" id="statusDot"></div>
+    <span id="statusText">IDLE</span>
+  </div>
+</div>
+
+<!-- LEFT CONFIG PANEL -->
+<div class="left">
+
+  <!-- Server Config -->
+  <div class="section">
+    <div class="section-head">Server Config</div>
+    <div class="field">
+      <label>Backend Base URL</label>
+      <input type="text" id="baseUrl" value="http://localhost:5000" placeholder="http://localhost:5000"/>
+    </div>
+    <div class="field">
+      <label>Razorpay Key ID (frontend)</label>
+      <input type="text" id="rzpKey" placeholder="rzp_test_XXXXXXXXXX" value="rzp_test_XXXXXXXXXX"/>
+    </div>
+  </div>
+
+  <!-- Step 1: Create Order -->
+  <div class="section">
+    <div class="section-head">Step 1 · Create Order</div>
+    <div class="field">
+      <label>POST route</label>
+      <div class="route-row">
+        <span class="method-tag">POST</span>
+        <input type="text" id="createRoute" value="/api/order/create-order"/>
+      </div>
+    </div>
+    <div class="amount-row">
+      <div class="field" style="margin:0">
+        <label>Amount</label>
+        <input type="number" id="amount" value={{amount}} min="1"/>
+      </div>
+      <div class="field" style="margin:0">
+        <label>Currency</label>
+        <select id="currency">
+          <option value="INR">INR</option>
+          <option value="USD">USD</option>
+          <option value="EUR">EUR</option>
+        </select>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="field">
+      <label>Request Body JSON</label>
+      <textarea class="body-editor" id="createBody" rows="4">{
+}</textarea>
+    </div>
+    <div class="field">
+      <label>Custom Headers (JSON)</label>
+      <textarea class="body-editor" id="createHeaders" rows="2">{
+  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODAxMTgzNjYsInR5cGUiOiJhY2Nlc3MiLCJpZCI6IjY5ZjJlNjVlNjk0ZTFjOThkNTY0NzA3MCIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzc3NTI2MzY2fQ.bH6PnslJ_dUVs2DfQHGn9P8XdEYuX6naY696rfC6sxI"
+}</textarea>
+    </div>
+    <div class="btn-row">
+      <button class="action-btn primary" id="btnCreate" onclick="createOrder()">
+        <span class="btn-icon">⚡</span> CREATE ORDER
+      </button>
+    </div>
+  </div>
+
+  <!-- Step 2: Checkout -->
+  <div class="section">
+    <div class="section-head">Step 2 · Razorpay Checkout</div>
+    <div class="mini-grid">
+      <div class="field" style="margin:0">
+        <label>Prefill Name</label>
+        <input type="text" id="pfName" value="Test User"/>
+      </div>
+      <div class="field" style="margin:0">
+        <label>Prefill Phone</label>
+        <input type="tel" id="pfPhone" value="9999999999"/>
+      </div>
+    </div>
+    <div class="field" style="margin-top:8px">
+      <label>Prefill Email</label>
+      <input type="email" id="pfEmail" value="test@example.com"/>
+    </div>
+    <div class="divider"></div>
+    <div class="btn-row">
+      <button class="action-btn secondary" id="btnCheckout" onclick="launchCheckout()" disabled>
+        <span class="btn-icon">🔓</span> LAUNCH CHECKOUT
+      </button>
+    </div>
+    <div style="margin-top:8px;font-size:0.6rem;color:var(--muted);">
+      ↑ Enabled after order is created
+    </div>
+  </div>
+
+  <!-- Step 3: Verify -->
+  <div class="section">
+    <div class="section-head">Step 3 · Verify Payment</div>
+    <div class="field">
+      <label>POST route</label>
+      <div class="route-row">
+        <span class="method-tag">POST</span>
+        <input type="text" id="verifyRoute" value="/api/order/verify-payment"/>
+      </div>
+    </div>
+    <div class="field">
+      <label>Custom Headers (JSON)</label>
+      <textarea class="body-editor" id="verifyHeaders" rows="2">{
+  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODAxMTgzNjYsInR5cGUiOiJhY2Nlc3MiLCJpZCI6IjY5ZjJlNjVlNjk0ZTFjOThkNTY0NzA3MCIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzc3NTI2MzY2fQ.bH6PnslJ_dUVs2DfQHGn9P8XdEYuX6naY696rfC6sxI"
+}</textarea>
+    </div>
+    <div style="margin-bottom:8px;font-size:0.6rem;color:var(--muted);">
+      Body auto-filled with: razorpay_order_id, razorpay_payment_id, razorpay_signature
+    </div>
+    <div class="btn-row">
+      <button class="action-btn success-btn" id="btnVerify" onclick="verifyPayment()" disabled>
+        <span class="btn-icon">✓</span> VERIFY SIGNATURE
+      </button>
+    </div>
+  </div>
+
+  <!-- Reset -->
+  <div class="section">
+    <button class="action-btn secondary" onclick="resetAll()" style="color:var(--red);border-color:var(--red)">
+      ↺ RESET ALL
+    </button>
+  </div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="right">
+
+  <!-- Request / Response pane -->
+  <div class="pane">
+    <div class="pane-header">
+      <div class="pane-title">Request · Response</div>
+      <div class="pane-badge" id="respBadge">WAITING</div>
+      <div style="flex:1"></div>
+      <button class="copy-btn" onclick="copyResponse()">COPY</button>
+    </div>
+    <div class="pane-body" id="respPane">
+      <div class="empty-state">Hit CREATE ORDER to begin the flow</div>
+    </div>
+  </div>
+
+  <!-- Event log pane -->
+  <div class="pane">
+    <div class="pane-header">
+      <div class="pane-title">Event Log</div>
+      <div class="pane-badge pending" id="logCount">0 events</div>
+      <div style="flex:1"></div>
+      <button class="copy-btn" onclick="clearLog()">CLEAR</button>
+    </div>
+    <div class="pane-body" id="logPane">
+      <div class="empty-state">Events will appear here</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────
+let state = {
+  orderId: null,
+  paymentId: null,
+  signature: null,
+  logCount: 0,
+  lastResponse: null,
+};
+
+// ── Sync amount to body ────────────────────────────
+document.getElementById('amount').addEventListener('input', syncBody);
+document.getElementById('currency').addEventListener('change', syncBody);
+function syncBody() {
+  try {
+    const body = JSON.parse(document.getElementById('createBody').value);
+    body.amount = parseInt(document.getElementById('amount').value) || 500;
+    body.currency = document.getElementById('currency').value;
+    document.getElementById('createBody').value = JSON.stringify(body, null, 2);
+  } catch(e) {}
+}
+
+// ── Logging ────────────────────────────────────────
+function log(type, msg) {
+  const pane = document.getElementById('logPane');
+  const empty = pane.querySelector('.empty-state');
+  if (empty) empty.remove();
+
+  const now = new Date().toTimeString().slice(0,8);
+  const el = document.createElement('div');
+  el.className = 'log-entry flash';
+  el.innerHTML = `
+    <span class="log-time">${now}</span>
+    <span class="log-tag tag-${type}">${type.toUpperCase()}</span>
+    <span class="log-msg">${msg}</span>
+  `;
+  pane.appendChild(el);
+  pane.scrollTop = pane.scrollHeight;
+  state.logCount++;
+  document.getElementById('logCount').textContent = `${state.logCount} events`;
+}
+
+function clearLog() {
+  document.getElementById('logPane').innerHTML = '<div class="empty-state">Events will appear here</div>';
+  state.logCount = 0;
+  document.getElementById('logCount').textContent = '0 events';
+}
+
+// ── JSON pretty render ─────────────────────────────
+function renderJson(obj) {
+  const str = JSON.stringify(obj, null, 2);
+  return str
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"([^"]+)":/g,'<span class="json-key">"$1"</span>:')
+    .replace(/: "([^"]*)"/g,': <span class="json-str">"$1"</span>')
+    .replace(/: (\d+\.?\d*)/g,': <span class="json-num">$1</span>')
+    .replace(/: (true|false)/g,': <span class="json-bool">$1</span>')
+    .replace(/: null/g,': <span class="json-null">null</span>');
+}
+
+function showResponse(label, reqObj, resObj, ok) {
+  state.lastResponse = { request: reqObj, response: resObj };
+  const badge = document.getElementById('respBadge');
+  badge.textContent = ok ? 'OK' : 'FAIL';
+  badge.className = 'pane-badge ' + (ok ? 'ok' : 'fail');
+
+  const pane = document.getElementById('respPane');
+  pane.innerHTML = `
+    <div style="color:var(--muted);font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:6px;">▸ REQUEST · ${label}</div>
+    <div class="json-viewer">${renderJson(reqObj)}</div>
+    <div style="height:1px;background:var(--border);margin:14px 0;"></div>
+    <div style="color:var(--muted);font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:6px;">▸ RESPONSE · ${ok ? '<span style=color:var(--green)>SUCCESS</span>' : '<span style=color:var(--red)>ERROR</span>'}</div>
+    <div class="json-viewer">${renderJson(resObj)}</div>
+  `;
+}
+
+function copyResponse() {
+  if (state.lastResponse) {
+    navigator.clipboard.writeText(JSON.stringify(state.lastResponse, null, 2));
+    log('info', 'Response copied to clipboard');
+  }
+}
+
+// ── Status bar ─────────────────────────────────────
+function setStatus(text, type) {
+  document.getElementById('statusText').textContent = text;
+  const dot = document.getElementById('statusDot');
+  dot.className = 'status-dot' + (type === 'live' ? ' live' : type === 'error' ? ' error' : '');
+}
+
+// ── Step indicators ────────────────────────────────
+function setStep(n) {
+  for (let i = 1; i <= 3; i++) {
+    const el = document.getElementById('step' + i);
+    if (i < n) el.className = 'step-tag done';
+    else if (i === n) el.className = 'step-tag active';
+    else el.className = 'step-tag';
+  }
+}
+
+// ── Parse headers ──────────────────────────────────
+function parseHeaders(fieldId) {
+  try {
+    const h = JSON.parse(document.getElementById(fieldId).value);
+    return { 'Content-Type': 'application/json', ...h };
+  } catch(e) {
+    return { 'Content-Type': 'application/json' };
+  }
+}
+
+// ── STEP 1: Create Order ───────────────────────────
+async function createOrder() {
+  const btn = document.getElementById('btnCreate');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> CREATING...';
+  setStatus('CREATING ORDER', '');
+  setStep(1);
+
+  const base = document.getElementById('baseUrl').value.replace(/\/$/, '');
+  const route = document.getElementById('createRoute').value;
+  const url = base + route;
+
+  let body;
+  try {
+    body = JSON.parse(document.getElementById('createBody').value);
+  } catch(e) {
+    log('error', 'Invalid JSON in request body');
+    btn.disabled = false;
+    btn.innerHTML = '<span class="btn-icon">⚡</span> CREATE ORDER';
+    return;
+  }
+
+  const headers = parseHeaders('createHeaders');
+  log('send', `POST ${url}`);
+  log('info', `Body: ${JSON.stringify(body)}`);
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+    });
+
+    const data = await res.json();
+    const ok = res.ok;
+
+    showResponse(`POST ${route}`, { method:'POST', url, headers, body }, data, ok);
+
+    if (!ok) {
+      log('error', `Server responded ${res.status}: ${data.message || JSON.stringify(data)}`);
+      setStatus('ORDER FAILED', 'error');
+    } else {
+      // Try to detect order_id field — common naming variants
+      const orderId = data.data.orderDetails.razorpayOrder.id;
+      if (!orderId) {
+        log('warn', 'Could not find order_id in response. Check field name.');
+        log('info', 'Response keys: ' + Object.keys(data).join(', '));
+      } else {
+        state.orderId = orderId;
+        log('success', `Order created: ${orderId}`);
+      }
+      setStatus('ORDER READY', 'live');
+      document.getElementById('btnCheckout').disabled = false;
+      setStep(2);
+    }
+  } catch(e) {
+    const errObj = { error: e.message, hint: 'Check CORS headers on your Express server. Add: app.use(require("cors")())' };
+    showResponse(`POST ${route}`, { method:'POST', url, body }, errObj, false);
+    log('error', `Fetch failed: ${e.message}`);
+    log('warn', 'Tip: Make sure your Express server has CORS enabled');
+    setStatus('NETWORK ERROR', 'error');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<span class="btn-icon">⚡</span> CREATE ORDER';
+}
+
+// ── STEP 2: Launch Checkout ────────────────────────
+function launchCheckout() {
+  const key = document.getElementById('rzpKey').value.trim();
+  if (!key || key === 'rzp_test_XXXXXXXXXX') {
+    log('error', 'Set your Razorpay Key ID first');
+    return;
+  }
+
+  const amount = parseInt(document.getElementById('amount').value) * 100;
+  const currency = document.getElementById('currency').value;
+
+  log('info', `Launching Razorpay checkout (order: ${state.orderId || 'none'})`);
+  setStatus('CHECKOUT OPEN', 'live');
+
+  const options = {
+    key,
+    amount,
+    currency,
+    order_id: state.orderId || undefined,
+    name: 'Backend Tester',
+    description: 'Integration Test',
+    method: {
+    upi: true,
+    card: true,
+    netbanking: false,
+    wallet: false,
+    paylater: false,
+  },
+ config: {
+  display: {
+    blocks: {
+      upi: {
+        name: 'Pay via UPI',
+        instruments: [{ method: 'upi', flows: ['collect'] }],
+      },
+      card: {
+        name: 'Pay via Card',
+        instruments: [{ method: 'card' }],
+      },
+    },
+    sequence: ['block.upi', 'block.card'],  // ← add card here
+    preferences: { show_default_blocks: false },
+  },
+},
+    prefill: {
+      name: document.getElementById('pfName').value,
+      email: document.getElementById('pfEmail').value,
+      contact: document.getElementById('pfPhone').value,
+    },
+    theme: { color: '#00d4ff' },
+    handler: function(response) {
+      state.paymentId = response.razorpay_payment_id;
+      state.signature = response.razorpay_signature;
+      log('success', `Payment done: ${response.razorpay_payment_id}`);
+      log('info', `Signature: ${response.razorpay_signature?.slice(0,24)}...`);
+      log('info', response)
+      showResponse('Razorpay Handler', {}, response, true);
+      setStatus('PAYMENT DONE', 'live');
+      document.getElementById('btnVerify').disabled = false;
+      setStep(3);
+    },
+    modal: {
+      ondismiss: () => {
+        log('warn', 'Checkout dismissed');
+        setStatus('DISMISSED', '');
+      }
+    }
+  };
+
+  try {
+    const rzp = new Razorpay(options);
+    rzp.on('payment.failed', (r) => {
+      log('error', `Payment failed: ${r.error.description}`);
+      showResponse('Payment Failed', {}, r.error, false);
+      setStatus('PAYMENT FAILED', 'error');
+    });
+    rzp.open();
+  } catch(e) {
+    log('error', `Razorpay error: ${e.message}`);
+  }
+}
+
+// ── STEP 3: Verify ────────────────────────────────
+async function verifyPayment() {
+  const btn = document.getElementById('btnVerify');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner" style="border-top-color:#000"></span> VERIFYING...';
+  setStatus('VERIFYING', '');
+
+  const base = document.getElementById('baseUrl').value.replace(/\/$/, '');
+  const route = document.getElementById('verifyRoute').value;
+  const url = base + route;
+
+  const body = {
+    razorpayOrderId: state.orderId,
+    razorpayPaymentId: state.paymentId,
+    razorpaySignature: state.signature,
+  };
+
+  const headers = parseHeaders('verifyHeaders');
+  log('send', `POST ${url}`);
+  log('info', `order_id: ${state.orderId}`);
+  log('info', `payment_id: ${state.paymentId}`);
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+    });
+
+    const data = await res.json();
+    const ok = res.ok;
+
+    showResponse(`POST ${route}`, { method:'POST', url, headers, body }, data, ok);
+
+    if (ok) {
+      log('success', 'Signature verified by backend ✓');
+      setStatus('VERIFIED ✓', 'live');
+      setStep(4); // all done
+      // Mark all steps done
+      ['step1','step2','step3'].forEach(id => document.getElementById(id).className = 'step-tag done');
+    } else {
+      log('error', `Verification failed: ${data.message || res.status}`);
+      setStatus('VERIFY FAILED', 'error');
+      btn.disabled = false;
+    }
+  } catch(e) {
+    const errObj = { error: e.message };
+    showResponse(`POST ${route}`, { body }, errObj, false);
+    log('error', `Fetch failed: ${e.message}`);
+    setStatus('NETWORK ERROR', 'error');
+    btn.disabled = false;
+  }
+
+  btn.innerHTML = '<span class="btn-icon">✓</span> VERIFY SIGNATURE';
+}
+
+// ── Reset ──────────────────────────────────────────
+function resetAll() {
+  state = { orderId: null, paymentId: null, signature: null, logCount: 0, lastResponse: null };
+  document.getElementById('btnCheckout').disabled = true;
+  document.getElementById('btnVerify').disabled = true;
+  document.getElementById('respPane').innerHTML = '<div class="empty-state">Hit CREATE ORDER to begin the flow</div>';
+  document.getElementById('respBadge').textContent = 'WAITING';
+  document.getElementById('respBadge').className = 'pane-badge';
+  clearLog();
+  setStatus('IDLE', '');
+  setStep(1);
+  log('info', 'Flow reset. Ready to test.');
+}
+
+// init
+log('info', 'Razorpay backend tester ready');
+log('info', 'Set your base URL and Key ID, then hit CREATE ORDER');
+</script>
+</body>
+</html>

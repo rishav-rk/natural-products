@@ -36,6 +36,8 @@ components:
       description: Cart endpoints for user adding products to cart , updating them, deleting products and clearing cart
     - name: Admin Constants
       description: Admin endpoints for managing app constants like charges, taxes, and promotional content
+    - name: Static Pages
+      description: Static pages - Contact Us, About Us, Privacy Policy, Terms & Conditions
 
 
 
@@ -159,5 +161,21 @@ paths:
   /products/get-product/{productId}:
     get:
       $ref: "./paths/common.yaml#/getProductById"
+
+  /contact-us:
+    get:
+      $ref: "./paths/staticRoutes.yaml#/getContactUs"
+
+  /about-us:
+    get:
+      $ref: "./paths/staticRoutes.yaml#/getAboutUs"
+
+  /privacy-policy:
+    get:
+      $ref: "./paths/staticRoutes.yaml#/getPrivacyPolicy"
+
+  /terms-and-conditions:
+    get:
+      $ref: "./paths/staticRoutes.yaml#/getTermsAndConditions"
 
 

@@ -1,0 +1,75 @@
+getContactUs:
+  summary: Get Contact Us page
+  tags:
+    - Static Pages
+  security:
+    - bearerAuth: []
+  responses:
+    200:
+      description: Contact Us page rendered successfully
+      content:
+        text/html:
+          schema:
+            type: string
+            example: "<html>...</html>"
+    401:
+      description: Unauthorized - user authentication required
+    500:
+      description: Server error
+
+getAboutUs:
+  summary: Get About Us page
+  tags:
+    - Static Pages
+  security:
+    - bearerAuth: []
+  responses:
+    200:
+      description: About Us page rendered successfully
+      content:
+        text/html:
+          schema:
+            type: string
+            example: "<html>...</html>"
+    401:
+      description: Unauthorized - user authentication required
+    500:
+      description: Server error
+
+getPrivacyPolicy:
+  summary: Get Privacy Policy page
+  tags:
+    - Static Pages
+  security:
+    - bearerAuth: []
+  responses:
+    200:
+      description: Privacy Policy page rendered successfully
+      content:
+        text/html:
+          schema:
+            type: string
+            example: "<html>...</html>"
+    401:
+      description: Unauthorized - user authentication required
+    500:
+      description: Server error
+
+getTermsAndConditions:
+  summary: Get Terms & Conditions page
+  tags:
+    - Static Pages
+  security:
+    - bearerAuth: []
+  responses:
+    200:
+      description: Terms & Conditions page rendered successfully
+      content:
+        text/html:
+          schema:
+            type: string
+            example: "<html>...</html>"
+    401:
+      description: Unauthorized - user authentication required
+    500:
+      description: Server error
