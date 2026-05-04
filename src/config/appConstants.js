@@ -132,6 +132,7 @@ export const ERROR_MESSAGES = {
   AUTHENTICATION_FAILED: "Please authenticate",
   UNAUTHORIZED: "You are not authorized to perform this action",
   ACCOUNT_NOT_EXIST: "Account does not exist",
+  OLD_PASSWORD_MISMATCH: "Incorrect old password",
   WRONG_PASSWORD: "Password is Incorrect",
   ACCOUNT_DELETED: "Your account has been deleted",
   ACCOUNT_BLOCKED: "Your account has been blocked. Please contact the admin",

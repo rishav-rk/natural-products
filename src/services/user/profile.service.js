@@ -33,7 +33,7 @@ export const changePassword = async (passwordData, token) => {
   if (!isMatch) {
     throw new OperationalError(
       STATUS_CODES.ACTION_FAILED,
-      ERROR_MESSAGES.WRONG_PASSWORD,
+      ERROR_MESSAGES.OLD_PASSWORD_MISMATCH,
     );
   }
 
