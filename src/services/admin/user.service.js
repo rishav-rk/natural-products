@@ -5,19 +5,19 @@ import {
   USER_TYPE,
 } from "../../config/appConstants.js";
 import { OperationalError } from "../../utils/error.js";
-import { Admin, User } from "../../models/index.js";
+import { Admin, Token, User } from "../../models/index.js";
 import { paginationOptions } from "../../utils/universalFunctions.js";
 
 export const getUsers = async (query) => {
-
-  const filter = (query.search) ? {
-    isVerified: true,
-    $or: [
-      { name: { $regex: query.search, $options: "i" } },
-      { phoneNumber: { $regex: query.search, $options: "i" } },
-      
-    ],
-  } : { isVerified: true };
+  const filter = query.search
+    ? {
+        isVerified: true,
+        $or: [
+          { name: { $regex: query.search, $options: "i" } },
+          { phoneNumber: { $regex: query.search, $options: "i" } },
+        ],
+      }
+    : { isVerified: true };
 
   const users = await User.find(
     filter,
@@ -40,7 +40,13 @@ export const enableDisableUser = async (userId) => {
     [{ $set: { isActive: { $not: "$isActive" } } }],
     { new: true },
   ).lean();
-  
+
+  await Token.findOneAndUpdate(
+    { user: userId },
+    { $set: { isDeleted: { $not: "$isDeleted" } } },
+    { new: true },
+  );
+
   if (!user) {
     throw new OperationalError(
       STATUS_CODES.NOT_FOUND,
