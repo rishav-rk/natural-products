@@ -5,7 +5,7 @@ info:
   description: API documentation for nature's lab
 
 servers:
-  - url: https://api.bestpriceindia.net/api
+  - url: https://apis.bestpriceindia.net/api
     description: Production server
   - url: http://localhost:5000/api
     description: Development server
@@ -30,6 +30,8 @@ components:
       description: Admin user management endpoints
     - name: Admin Product Operations
       description: Admin product management endpoints
+    - name: Admin Order Management
+      description: Admin order management and retrieval endpoints
     - name: Common
       description: Common endpoints for users as well as admins
     - name: Cart
@@ -147,6 +149,14 @@ paths:
     delete:
       $ref: "./paths/adminProductOperations.yaml#/deleteProduct"
 
+  /admin/orders:
+    get:
+      $ref: "./paths/adminOrder.yaml#/getOrders"
+
+  /admin/orders/{orderId}:
+    get:
+      $ref: "./paths/adminOrder.yaml#/getOrderById"
+
   /admin/constants:
     put:
       $ref: "./paths/appConstants.yaml#/updateConstants"
@@ -190,5 +200,9 @@ paths:
   /order/my-orders:
     get:
       $ref: "./paths/orderUser.yaml#/getMyOrders"
+
+  /order/my-orders/{orderId}:
+    get:
+      $ref: "./paths/orderUser.yaml#/getMyOrderById"
 
 

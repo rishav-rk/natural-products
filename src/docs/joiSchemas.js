@@ -4,6 +4,7 @@ import * as profileValidation from "../validators/user/profile.validator.js";
 import * as userValidation from "../validators/admin/user.validator.js";
 import * as adminAuthValidation from "../validators/admin/auth.validator.js";
 import * as productValidation from "../validators/admin/product.validator.js"
+import * as orderValidation from "../validators/admin/order.validator.js"
 
 
 const generateSchemas = () => {
@@ -14,7 +15,8 @@ const generateSchemas = () => {
     profileValidation,
     userValidation, 
     adminAuthValidation, 
-    productValidation
+    productValidation,
+    orderValidation
   ];
 
   // Process each validator source

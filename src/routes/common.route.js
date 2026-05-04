@@ -4,6 +4,8 @@ import { USER_TYPE } from "../config/appConstants.js"
 import { validate } from "../middlewares/validate.js"
 import * as productValidator from "../validators/admin/product.validator.js"
 import * as productController from "../controllers/product.controller.js"
+import { getConstants } from "../validators/admin/aCAndVideo.validator.js"
+import { getConstants as getConstantsController } from "../controllers/admin/aCAndVideo.controller.js"
 
 const router = Router()
 
@@ -20,10 +22,6 @@ router.get(
     validate(productValidator.getProductById), 
     productController.getProductById
 )
-
-import { getConstants } from "../validators/admin/aCAndVideo.validator.js"
-import { getConstants as getConstantsController } from "../controllers/admin/aCAndVideo.controller.js"
-
 router.get('/constants', auth([USER_TYPE.USER,USER_TYPE.ADMIN]), validate(getConstants), getConstantsController)
 
 

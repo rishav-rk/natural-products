@@ -1,0 +1,79 @@
+const calculateGrandTotal = (products, tax) => {
+  const itemTotal = products.reduce((sum, p) => sum + p.price * p.quantity, 0);
+  return {
+    itemTotal,
+    grandTotalAmount: parseFloat(
+      itemTotal + (parseFloat(tax) / 100).toFixed(2) * itemTotal,
+    ).toFixed(2),
+  };
+};
+
+// Generate unique order ID based on user name
+const generateOrderId = (name) => {
+  const userSubstr = name.slice(0, 4).toUpperCase();
+  return userSubstr.length === 4
+    ? `${userSubstr}-${Date.now()}`
+    : `${userSubstr.padEnd(4, "0")}-${Date.now()}`;
+};
+
+// Validate cart and fetch shipping address
+const validateAndGetCart = async (user, cart) => {
+  if (!cart || cart.products.length === 0) {
+    throw new OperationalError(
+      STATUS_CODES.ACTION_FAILED,
+      "Cannot place order, Cart is empty",
+    );
+  }
+
+  if (!cart?.deliveryAddress) {
+    throw new OperationalError(
+      STATUS_CODES.ACTION_FAILED,
+      ERROR_MESSAGES.ADDRESS_REQUIRED,
+    );
+  }
+
+  const shippingAddress = user.addresses.find(
+    (a) => a._id.toString() === cart.deliveryAddress.toString(),
+  );
+
+  return shippingAddress;
+};
+
+// Update cart products with actual prices from database
+const updateProductsWithPrices = (cartProducts, priceMap) => {
+  return cartProducts.map((cartItem) => ({
+    ...cartItem,
+    price: priceMap[cartItem.product].price,
+    name: priceMap[cartItem.product].name,
+  }));
+};
+
+// Clear user cart after successful payment
+const clearUserCart = async (userId) => {
+  await User.findByIdAndUpdate(
+    userId,
+    {
+      $set: {
+        "cart.products": [],
+        "cart.deliveryAddress": null,
+        "cart.tax": 0,
+      },
+    },
+    { new: true },
+  );
+};
+
+const orderFilter = {
+  "payment.razorpayOrderId": 0,
+  "payment.razorpayPaymentId": 0,
+  "payment.razorpaySignature": 0,
+};
+
+export {
+  generateOrderId,
+  calculateGrandTotal,
+  validateAndGetCart,
+  clearUserCart,
+  updateProductsWithPrices,
+  orderFilter
+};

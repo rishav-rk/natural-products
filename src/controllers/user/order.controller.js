@@ -26,6 +26,17 @@ export const getMyOrders = catchAsync(async (req, res) => {
   );
 });
 
+export const getMyOrderById = catchAsync(async (req, res) => {
+  const order = await orderService.getMyOrderById(req.params.orderId);
+  return successResponse(
+    req,
+    res,
+    STATUS_CODES.SUCCESS,
+    SUCCESS_MESSAGES.SUCCESS,
+    { order },
+  );
+});
+
 export const verifyPayment = catchAsync(async (req, res) => {
   const payment = await orderService.verifyPayment(req.body, req.token);
   return successResponse(

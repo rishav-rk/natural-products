@@ -7,6 +7,9 @@ export const signUpValidator = {
     countryCode: JOI.COUNTRY_CODE,
     phoneNumber: JOI.PHONENUMBER,
     password: JOI.PASSWORD,
+    deviceId: JOI.DEVICE_ID,
+    deviceType: JOI.DEVICE_TYPE,
+    deviceToken: Joi.string(),
   }).required(),
 };
 

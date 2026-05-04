@@ -17,3 +17,9 @@ export const getMyOrderValidator = {
         limit: JOI.LIMIT,
     })
 }
+
+export const getMyOrderByIdValidator = {
+    params: Joi.object({
+        orderId: JOI.OBJECTID
+    })
+}

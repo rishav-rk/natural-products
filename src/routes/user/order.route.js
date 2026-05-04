@@ -4,11 +4,13 @@ import {
   createOrderValidator,
   verifyPaymentValidator,
   getMyOrderValidator,
+  getMyOrderByIdValidator,
 } from "../../validators/user/order.validator.js";
 import {
   createOrder,
   verifyPayment,
   getMyOrders,
+  getMyOrderById
   // updateOrderAndProduct
 } from "../../controllers/user/order.controller.js";
 import auth from "../../middlewares/auth.js";
@@ -25,23 +27,23 @@ router.post(
   createOrder,
 );
 
-// router.get("/test", async (req, res) => {
-//   const id = "69f1e37b6df72aa60ebeca27";
-//   const user = await User.findById(id, { cart: 1 }, { lean: true });
-//   const itemTotal = user.cart.products.reduce(
-//     (sum, p) => sum + p.price * p.quantity,
-//     0,
-//   );
+router.get("/test", async (req, res) => {
+  const id = "69f1e37b6df72aa60ebeca27";
+  const user = await User.findById(id, { cart: 1 }, { lean: true });
+  const itemTotal = user.cart.products.reduce(
+    (sum, p) => sum + p.price * p.quantity,
+    0,
+  );
 
-//   const amount = (
-//     itemTotal +
-//     (parseFloat(user.cart.tax) / 100) * itemTotal
-//   ).toFixed(2);
-//   // console.log(amount)
-//   return res.render("payment-test", {
-//     amount: amount,
-//   });
-// });
+  const amount = (
+    itemTotal +
+    (parseFloat(user.cart.tax) / 100) * itemTotal
+  ).toFixed(2);
+  // console.log(amount)
+  return res.render("payment-test", {
+    amount: amount,
+  });
+});
 
 router.post(
   "/verify-payment",
@@ -50,17 +52,24 @@ router.post(
   verifyPayment,
 );
 
-// router.post(
-//   '/webhook',
-//   raw({ type: 'application/json' }), // raw buffer!
-//   updateOrderAndProduct
-// );
-
 router.get(
   "/my-orders",
   auth(USER_TYPE.USER),
   validate(getMyOrderValidator),
   getMyOrders,
 );
+
+router.get(
+  "/my-orders/:orderId",
+  auth(USER_TYPE.USER),
+  validate(getMyOrderByIdValidator),
+  getMyOrderById,
+);
+
+// router.post(
+//   '/webhook',
+//   raw({ type: 'application/json' }), // raw buffer!
+//   updateOrderAndProduct
+// );
 
 export default router;
