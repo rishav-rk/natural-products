@@ -43,7 +43,7 @@ export const enableDisableUser = async (userId) => {
 
   await Token.findOneAndUpdate(
     { user: userId },
-    { $set: { isDeleted: { $not: "$isDeleted" } } },
+    [{ $set: { isDeleted: { $not: "$isDeleted" } } }],
     { new: true },
   );
 
