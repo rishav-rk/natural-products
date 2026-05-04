@@ -97,6 +97,7 @@ export const createOrder = async (orderData, token) => {
 // ? update this -> when payment is done , received acknowledgement from razorpay's webhook then the verification step is to be done.
 export const verifyPayment = async (paymentInfo, token) => {
   const { razorpayOrderId, razorpayPaymentId, razorpaySignature } = paymentInfo;
+  console.log(razorpayOrderId, razorpayPaymentId)
 
   // Verify signature
   const body = razorpayOrderId + "|" + razorpayPaymentId;
@@ -104,6 +105,9 @@ export const verifyPayment = async (paymentInfo, token) => {
     .createHmac("sha256", config.razorypay.secret)
     .update(body)
     .digest("hex");
+
+
+    console.log(expectedSignature, razorpaySignature);
 
   const isValid = crypto.timingSafeEqual(
     Buffer.from(expectedSignature),
