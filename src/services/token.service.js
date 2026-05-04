@@ -39,10 +39,12 @@ export const saveToken = async (data) => {
     dataToBeSaved.otp = data.otp;
   }
   if (data.userType === USER_TYPE.ADMIN) {
-    dataToBeSaved.admin = data.user
-  } dataToBeSaved.user = data.user
+    dataToBeSaved.admin = data.user;
+  } else {
+    dataToBeSaved.user = data.user;
+  }
 
- // await deletePreviousToken(dataToBeSaved)
+  // await deletePreviousToken(dataToBeSaved)
 
   const tokenDoc = await Token.create(dataToBeSaved);
 
@@ -95,7 +97,7 @@ export const updateToken = async (tokenId) => {
   await Token.updateOne(
     { _id: tokenId },
     {
-     $set : { isVerified: true, otp: null }
+      $set: { isVerified: true, otp: null },
     },
   );
 };
@@ -139,11 +141,13 @@ export const generateForgotPasswordToken = async (
 };
 
 export const resendOTP = async (token, otp) => {
-
-  await Token.updateOne({ _id: token._id }, { otp, isVerified : false });
+  await Token.updateOne({ _id: token._id }, { otp, isVerified: false });
 };
 
-export const deletePreviousToken = async (tokenId) =>{
-
-  await Token.updateMany({_id: tokenId}, {$set : {isDeleted : true}},{lean: true})
-}
+export const deletePreviousToken = async (tokenId) => {
+  await Token.updateMany(
+    { _id: tokenId },
+    { $set: { isDeleted: true } },
+    { lean: true },
+  );
+};
