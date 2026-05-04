@@ -39,7 +39,7 @@ export const addAddressValidator = {
 
 export const updateAddressValidator = {
   body: Joi.object({
-    houseNumberAndFloor: Joi.string().required(),
+    houseNumberAndFloor: Joi.string().required().example("H.No. 123, Sector - 23"),
     buildingAndBlock: Joi.string().example("Block A, Building 5"),
     landMarkAndArea: Joi.string().example("Near Central Park"),
     pincode: Joi.string().required().example("560091"),

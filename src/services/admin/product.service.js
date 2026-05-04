@@ -12,10 +12,8 @@ export const addProduct = async (productData) => {
     price: productData.price,
     stock: productData.stock,
     keywords: productData.keywords,
-    details: {
-      userBefore: productData.details.userBefore,
-      approvedName: productData.details.approvedName,
-    },
+    "details.useBefore": productData.details.userBefore,
+      "details.approvedName": productData.details.approvedName,
     images: productData.images,
   });
 };
@@ -28,10 +26,8 @@ export const updateProduct = async (productData, productId) => {
     price: productData.price,
     stock: productData.stock,
     keywords: productData.keywords,
-    details: {
-      userBefore: productData.details.userBefore,
-      approvedName: productData.details.approvedName,
-    },
+    "details.useBefore": productData.details.userBefore,
+      "details.approvedName": productData.details.approvedName,
     images: productData.images,
   }}, {
     new: true,

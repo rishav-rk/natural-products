@@ -107,7 +107,7 @@ export const verifyPayment = async (paymentInfo, token) => {
 
   const isValid = crypto.timingSafeEqual(
     Buffer.from(expectedSignature),
-    Buffer.from(razorpaySignature),
+    Buffer.from(razorpaySignature)
   );
 
   console.log(isValid);
