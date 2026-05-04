@@ -18,8 +18,8 @@ const calculateGrandTotal = (products, tax) => {
   return {
     itemTotal,
     grandTotalAmount: parseFloat(
-      (itemTotal + (parseFloat(tax) / 100) * itemTotal).toFixed(2),
-    ),
+      itemTotal + (parseFloat(tax) / 100).toFixed(2) * itemTotal
+    ).toFixed(2),
   };
 };
 
@@ -134,12 +134,15 @@ export const createOrder = async (orderData, token) => {
       tax,
     );
 
+    console.log(grandTotalAmount * 100);
     // Create Razorpay order
     const razorpayOrder = await razorpay.orders.create({
       amount: grandTotalAmount * 100, // paise
       currency: "INR",
       receipt: `receipt_${Date.now()}`,
     });
+
+    console.log(razorpayOrder);
 
     return {
       razorpayOrder,
@@ -149,6 +152,7 @@ export const createOrder = async (orderData, token) => {
   }
 };
 
+// ? update this -> when payment is done , received acknowledgement from razorpay's webhook then the verification step is to be done.
 export const verifyPayment = async (paymentInfo, token) => {
   try {
     const { razorpayOrderId, razorpayPaymentId, razorpaySignature } =
@@ -161,7 +165,12 @@ export const verifyPayment = async (paymentInfo, token) => {
       .update(body)
       .digest("hex");
 
-    if (expectedSignature !== razorpaySignature) {
+    const isValid = crypto.timingSafeEqual(
+      Buffer.from(expectedSignature),
+      Buffer.from(razorpaySignature),
+    );
+
+    if (!isValid) {
       throw new OperationalError(
         STATUS_CODES.ACTION_FAILED,
         ERROR_MESSAGES.INVALID_SIGNATURE,
@@ -242,3 +251,37 @@ export const getMyOrders = async (token, query) => {
     paginationOptions(query.page, query.limit),
   );
 };
+
+
+// ! implement webhook based payment on production environemnt
+// export const updateOrderAndProduct = async (req) => {
+//   const signature = req.headers["x-razorpay-signature"];
+//   const secret = config.razorypay.webhookSecret;
+
+//   // Verify the webhook came from Razorpay
+//   const expected = crypto
+//     .createHmac("sha256", secret)
+//     .update(req.body) // req.body is raw Buffer here
+//     .digest("hex");
+
+//   if (expected !== signature) {
+//     return res.status(400).json({ error: "Invalid webhook" });
+//   }
+
+//   const event = JSON.parse(req.body.toString());
+
+//   switch (event.event) {
+//     case "payment.captured":
+//       // Payment successful — fulfill order
+//       console.log("Payment captured:", event.payload.payment.entity.id);
+//       break;
+
+//     case "payment.failed":
+//       // Notify user, don't fulfill
+//       console.log("Payment failed:", event.payload.payment.entity.id);
+//       break;
+
+//     default:
+//       console.log("Unhandled event:", event.event);
+//   }
+// };
