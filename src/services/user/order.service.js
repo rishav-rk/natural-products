@@ -84,8 +84,6 @@ export const createOrder = async (orderData, token) => {
       receipt: generateOrderId(user.name),
     });
 
-    console.log(razorpayOrder);
-
     return {
       razorpayOrder,
     };

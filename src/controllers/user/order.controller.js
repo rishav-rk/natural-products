@@ -10,7 +10,7 @@ export const createOrder = catchAsync(async (req, res) => {
     res,
     STATUS_CODES.CREATED,
     SUCCESS_MESSAGES.ORDER_CREATED,
-    { orderDetails },
+    { ...orderDetails },
   );
 });
 

@@ -40,7 +40,7 @@ export const saveToken = async (data) => {
   }
   if (data.userType === USER_TYPE.ADMIN) {
     dataToBeSaved.admin = data.user;
-  } else {
+  } else if(data.userType === USER_TYPE.USER){
     dataToBeSaved.user = data.user;
   }
 
