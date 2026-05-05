@@ -87,9 +87,7 @@ export const updateCart = {
         quantity: Joi.number().integer().min(0).required(),
       })
     ),
-    addressId: JOI.OBJECTID.alter({
-      request: (schema) => schema.optional(),
-    }),
+    addressId: JOI.OBJECTID
   })
     .or("products", "addressId")
     .required(),
