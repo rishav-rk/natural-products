@@ -32,7 +32,7 @@ router.put(
 router.post("/auth/logout", auth(USER_TYPE.ADMIN), adminController.logout);
 
 router.get(
-  "/",
+  "/dashboard",
   auth(USER_TYPE.ADMIN),
   validate(adminValidator.getDashboardValidator),
   adminController.getDashboard,
