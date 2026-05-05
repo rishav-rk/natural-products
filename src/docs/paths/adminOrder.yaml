@@ -6,6 +6,12 @@ getOrders:
     - bearerAuth: []
   parameters:
     - in: query
+      name: status
+      schema:
+        type: string
+        default: 'In Progress'
+      description: Track by order status
+    - in: query
       name: page
       schema:
         type: integer

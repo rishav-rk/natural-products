@@ -34,6 +34,10 @@ const productSchema = new mongoose.Schema(
         type: String,
         default: "Back to Nature's Lap, Plot No. 202, Industrial Focal Point, Phase - 9, Bengaluru, KA, India",
       }, 
+      countryOfOrigin: {
+        type: String, 
+        default : "India"
+      },
       useBefore: {
         type: String, 
         required: [true, "Please provide product user before date"]

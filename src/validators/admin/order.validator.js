@@ -1,4 +1,4 @@
-import { JOI } from "../../config/appConstants.js";
+import { JOI, ORDER_STATUS } from "../../config/appConstants.js";
 import Joi from "joi";
 
 export const getOrders = {
@@ -8,6 +8,7 @@ export const getOrders = {
     // search: Joi.string().optional().example("order123"),
     startDate: Joi.date().optional().example("2024-01-01"),
     endDate: Joi.date().optional().example("2024-12-31"),
+    status : Joi.string().valid(...Object.values(ORDER_STATUS))
   }).optional(),
 };
 

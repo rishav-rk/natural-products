@@ -172,5 +172,7 @@
 	"Cannot place order, Cart is empty": "Cannot place order, Cart is empty",
 	"startDate must be a valid date, endDate must be a valid date": "startDate must be a valid date, endDate must be a valid date",
 	"orderId must be a valid mongo id": "orderId must be a valid mongo id",
-	"No such order": "No such order"
+	"No such order": "No such order",
+	"status is not allowed": "status is not allowed",
+	"status must be one of [In Progress, On the Way, Delivered]": "status must be one of [In Progress, On the Way, Delivered]"
 }

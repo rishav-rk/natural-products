@@ -10,7 +10,7 @@ export const getOrders = catchAsync(async (req, res) => {
     res,
     STATUS_CODES.SUCCESS,
     SUCCESS_MESSAGES.SUCCESS,
-    { orders },
+    { orders, totalOrders : orders.length },
   );
 });
 

@@ -10,7 +10,6 @@ import { orderFilter } from "../../utils/orderUtils.js";
 import { paginationOptions } from "../../utils/universalFunctions.js";
 
 export const getOrders = async (query) => {
-  console.log(query)
   let filter = {};
 
   // if (query.search) {
@@ -34,6 +33,10 @@ export const getOrders = async (query) => {
       endDate.setHours(23, 59, 59, 999);
       filter.placedOn.$lte = endDate;
     }
+  }
+
+  if(query.status) {
+    filter.status = query.status;
   }
 
   return await Order.find(
