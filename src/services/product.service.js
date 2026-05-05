@@ -5,6 +5,7 @@ import { paginationOptions } from "../utils/universalFunctions.js";
 
 export const getProducts = async (query) => {
   const filter = {
+    stock : {$gt : 0},
     isDeleted: false,
   };
   const { search } = query;

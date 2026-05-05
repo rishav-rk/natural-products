@@ -20,10 +20,22 @@ import {
 } from "../../utils/orderUtils.js";
 
 // Fetch and validate products, build price map
+
+const validateStock = (dbProduct, requestedQty, currentCartQty = 0) => {
+  const totalRequested = requestedQty + currentCartQty;
+  if (totalRequested > dbProduct.stock) {
+    throw new OperationalError(
+      STATUS_CODES.ACTION_FAILED,
+      ERROR_MESSAGES.OUT_OF_STOCK
+    );
+  }
+};
+
 const getProductsWithPrices = async (productIds) => {
   const dbProducts = await Product.find({
     _id: { $in: productIds },
     isDeleted: false,
+    isOutOfStock : false
   }).lean();
 
   if (dbProducts.length !== productIds.length) {

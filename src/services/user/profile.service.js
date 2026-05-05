@@ -2,6 +2,7 @@ import {
   ADDRESS_TYPE,
   ERROR_MESSAGES,
   STATUS_CODES,
+  SUCCESS_MESSAGES,
 } from "../../config/appConstants.js";
 import { OperationalError } from "../../utils/error.js";
 import { User, Product, ADC } from "../../models/index.js";
@@ -163,7 +164,7 @@ const validateStock = (dbProduct, requestedQty, currentCartQty = 0) => {
   if (totalRequested > dbProduct.stock) {
     throw new OperationalError(
       STATUS_CODES.ACTION_FAILED,
-      `Only ${dbProduct.stock} unit(s) of "${dbProduct.name}" are available. You already have ${currentCartQty} in your cart. You can add ${dbProduct.stock - currentCartQty} more.`,
+      ERROR_MESSAGES.OUT_OF_STOCK
     );
   }
 };
@@ -260,12 +261,12 @@ export const updateCart = async (cartData, token) => {
       ERROR_MESSAGES.USER_NOT_FOUND,
     );
     
-
   if (products) {
     const productIds = products.map((p) => p.productId);
     const dbProducts = await Product.find({
       _id: { $in: productIds },
       isDeleted: false,
+      isOutOfStock : false
     }).lean();
     const productMap = {};
     dbProducts.forEach((p) => (productMap[p._id.toString()] = p));

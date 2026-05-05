@@ -119,6 +119,7 @@ export const SUCCESS_MESSAGES = {
 };
 
 export const ERROR_MESSAGES = {
+  OUT_OF_STOCK: "Sorry, this product is temporarily out of stock" , 
   NO_SUCH_ORDER: 'No such order',
   INVALID_SIGNATURE: 'Invalid payment signature',
   ADDRESS_REQUIRED: "Address is required",

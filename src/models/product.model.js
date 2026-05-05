@@ -25,6 +25,10 @@ const productSchema = new mongoose.Schema(
     keywords:[ {
       type: String, 
     }],
+    isOutOfStock: {
+      type: Boolean, 
+      default : false
+    },
     details: {
       manufacturer: {
         type: String,
