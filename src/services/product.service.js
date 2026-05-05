@@ -1,13 +1,15 @@
-import { STATUS_CODES, ERROR_MESSAGES } from "../config/appConstants.js";
+import { STATUS_CODES, ERROR_MESSAGES, USER_TYPE } from "../config/appConstants.js";
 import { Product } from "../models/index.js";
 import { OperationalError } from "../utils/error.js";
 import { paginationOptions } from "../utils/universalFunctions.js";
 
-export const getProducts = async (query) => {
+export const getProducts = async (query, token) => {
   const filter = {
-    stock : {$gt : 0},
     isDeleted: false,
   };
+  if(token.type === USER_TYPE.USER){
+    filter.stock.$gt = 0
+  }
   const { search } = query;
   if (search) {
     filter.$or = [
