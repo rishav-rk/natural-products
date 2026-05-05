@@ -24,3 +24,7 @@ export const changeAdminPasswordValidator = {
         "newPassword" : JOI.PASSWORD
     }).required()
 }
+
+export const getDashboardValidator = {
+    body : Joi.object({})
+}

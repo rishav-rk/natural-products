@@ -13,11 +13,7 @@ router.post(
   adminController.login,
 );
 
-router.get(
-  "/profile",
-  auth(USER_TYPE.ADMIN),
-  adminController.getProfile,
-);
+router.get("/profile", auth(USER_TYPE.ADMIN), adminController.getProfile);
 
 router.patch(
   "/profile/change-password",
@@ -26,16 +22,20 @@ router.patch(
   adminController.changePassword,
 );
 
-router.put("/profile/update-profile",
+router.put(
+  "/profile/update-profile",
   auth(USER_TYPE.ADMIN),
   validate(adminValidator.updateAdminProfileValidator),
   adminController.updateProfile,
 );
 
-router.post(
-  "/auth/logout",
+router.post("/auth/logout", auth(USER_TYPE.ADMIN), adminController.logout);
+
+router.get(
+  "/",
   auth(USER_TYPE.ADMIN),
-  adminController.logout,
+  validate(adminValidator.getDashboardValidator),
+  adminController.getDashboard,
 );
 
 export default router;

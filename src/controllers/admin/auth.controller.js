@@ -26,7 +26,7 @@ export const getProfile = catchAsync(async (req, res) => {
 });
 
 export const changePassword = catchAsync(async (req, res) => {
-  await authService.changePassword( req.body, req.token);
+  await authService.changePassword(req.body, req.token);
   return successResponse(
     res,
     res,
@@ -53,5 +53,16 @@ export const updateProfile = catchAsync(async (req, res) => {
     STATUS_CODES.SUCCESS,
     SUCCESS_MESSAGES.SUCCESS,
     { user: formatUser(admin) },
+  );
+});
+
+export const getDashboard = catchAsync(async (req, res) => {
+  const dashboardData = await authService.getDashboardData();
+  return successResponse(
+    req,
+    res,
+    STATUS_CODES.SUCCESS,
+    SUCCESS_MESSAGES.SUCCESS,
+    { ...dashboardData },
   );
 });

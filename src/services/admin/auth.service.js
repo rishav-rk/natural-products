@@ -5,7 +5,7 @@ import {
   USER_TYPE,
 } from "../../config/appConstants.js";
 import { OperationalError } from "../../utils/error.js";
-import { Admin } from "../../models/index.js";
+import { Admin, User, Order, Product } from "../../models/index.js";
 import {
   deletePreviousToken,
   generateAuthToken,
@@ -15,6 +15,7 @@ import {
 import { successResponse } from "../../utils/response.js";
 import bcrypt from "bcrypt";
 import { formatUser } from "../../utils/formatResponse.js";
+import moment from "moment";
 
 export const login = async (loginData) => {
   const admin = await Admin.findOne({
@@ -45,7 +46,7 @@ export const login = async (loginData) => {
     loginData.deviceId,
   );
 
-  return { admin:formatUser(admin), token: authToken };
+  return { admin: formatUser(admin), token: authToken };
 };
 
 export const updateProfile = async (updateData, token) => {
@@ -56,10 +57,9 @@ export const updateProfile = async (updateData, token) => {
   ).lean();
 
   return admin;
-}
+};
 
 export const changePassword = async (passwordData, token) => {
-
   if (!(await bcrypt.compare(passwordData.oldPassword, token.admin.password))) {
     throw new OperationalError(
       STATUS_CODES.ACTION_FAILED,
@@ -68,9 +68,26 @@ export const changePassword = async (passwordData, token) => {
   }
 
   const hashedPassword = await bcrypt.hash(passwordData.newPassword, 10);
-  await Admin.findByIdAndUpdate(token.admin._id, {$set: { password: hashedPassword }});
-}
+  await Admin.findByIdAndUpdate(token.admin._id, {
+    $set: { password: hashedPassword },
+  });
+};
 
 export const logout = async (token) => {
   await deletePreviousToken(token._id);
-}
+};
+
+export const getDashboardData = async () => {
+  const totalUsers = await User.countDocuments({
+    isVerified: true,
+    isDeleted: false,
+  });
+  const totalProducts = await Product.countDocuments({ isDeleted: false });
+  const totalOrders = await Order.countDocuments({});
+  const fiveDaysAgo = moment().subtract(5, "days").toISOString();
+  const recentOrders = await Order.find({
+    placedOn: { $gte: fiveDaysAgo },
+  });
+
+  return {totalUsers, totalProducts, totalOrders, recentOrders}
+};
