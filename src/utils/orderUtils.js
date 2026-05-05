@@ -48,20 +48,7 @@ const updateProductsWithPrices = (cartProducts, priceMap) => {
   }));
 };
 
-// Clear user cart after successful payment
-const clearUserCart = async (userId) => {
-  await User.findByIdAndUpdate(
-    userId,
-    {
-      $set: {
-        "cart.products": [],
-        "cart.deliveryAddress": null,
-        "cart.tax": 0,
-      },
-    },
-    { new: true },
-  );
-};
+
 
 const orderFilter = {
   "payment.razorpayOrderId": 0,
@@ -73,7 +60,6 @@ export {
   generateOrderId,
   calculateGrandTotal,
   validateAndGetCart,
-  clearUserCart,
   updateProductsWithPrices,
   orderFilter
 };

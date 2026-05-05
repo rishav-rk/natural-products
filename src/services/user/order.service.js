@@ -15,7 +15,6 @@ import {
   generateOrderId,
   calculateGrandTotal,
   validateAndGetCart,
-  clearUserCart,
   updateProductsWithPrices,
   orderFilter,
 } from "../../utils/orderUtils.js";
@@ -43,6 +42,21 @@ const getProductsWithPrices = async (productIds) => {
   });
 
   return productPriceMap;
+};
+
+// Clear user cart after successful payment
+const clearUserCart = async (userId) => {
+  await User.findByIdAndUpdate(
+    userId,
+    {
+      $set: {
+        "cart.products": [],
+        "cart.deliveryAddress": null,
+        "cart.tax": 0,
+      },
+    },
+    { new: true },
+  );
 };
 
 export const createOrder = async (orderData, token) => {
