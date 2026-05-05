@@ -94,22 +94,22 @@ export const createOrder = async (orderData, token) => {
 
 // ? update this -> when payment is done , received acknowledgement from razorpay's webhook then the verification step is to be done.
 export const verifyPayment = async (paymentInfo, token) => {
-  const { razorpayOrderId, razorpayPaymentId, razorpaySignature } = paymentInfo;
-  console.log(razorpayOrderId, razorpayPaymentId)
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = paymentInfo;
+  console.log(razorpay_order_id, razorpay_payment_id)
 
   // Verify signature
-  const body = razorpayOrderId + "|" + razorpayPaymentId;
+  const body = razorpay_order_id + "|" + razorpay_payment_id;
   const expectedSignature = crypto
     .createHmac("sha256", config.razorypay.secret)
     .update(body)
     .digest("hex");
 
 
-    console.log(expectedSignature, razorpaySignature);
+    console.log(expectedSignature, razorpay_signature);
 
   const isValid = crypto.timingSafeEqual(
     Buffer.from(expectedSignature),
-    Buffer.from(razorpaySignature)
+    Buffer.from(razorpay_signature)
   );
 
   console.log(isValid);
@@ -161,9 +161,9 @@ export const verifyPayment = async (paymentInfo, token) => {
     grandTotalAmount,
     shippingAddress,
     payment: {
-      razorpayOrderId,
-      razorpayPaymentId,
-      razorpaySignature,
+      razorpayOrderId: razorpay_order_id,
+      razorpayPaymentId: razorpay_payment_id,
+      razorpaySignature: razorpay_signature,
       status: PAYMENT_STATUS.COMPLETED,
       amount: grandTotalAmount,
       currency: "INR",
