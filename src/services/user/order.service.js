@@ -49,7 +49,7 @@ const getProductsWithPrices = async (productIds) => {
 
   const productMap = {};
   dbProducts.forEach((product) => {
-    productPriceMap[product._id] = product;
+    productMap[product._id] = product;
   });
 
   return productMap;
