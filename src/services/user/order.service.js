@@ -79,6 +79,13 @@ export const createOrder = async (orderData, token) => {
       { lean: true },
     );
 
+    if (!user.cart.deliveryAddress) {
+      throw new OperationalError(
+        STATUS_CODES.ACTION_FAILED,
+        ERROR_MESSAGES.ADDRESS_REQUIRED,
+      );
+    }
+
     // Validate cart
     await validateAndGetCart(user, user.cart);
 
