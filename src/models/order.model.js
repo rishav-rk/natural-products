@@ -33,9 +33,9 @@ const orderSchema = new mongoose.Schema(
           ref: "Product",
           required: [true, "Product id is required"],
         },
-        images: {
+        images: [{
           type: String
-        },
+        }],
         name: {
           type: String,
         },
