@@ -180,9 +180,7 @@ export const addToCart = async (cartData, token) => {
     },
     { name: 1, price: 1, stock: 1 },
   ).lean();
-  const user = await User.findOne({ _id: token.user._id }, { cart: 1 });
-
-  const cart = user.cart;
+  const user = await User.findOne({ _id: token.user._id }, { cart: 1, addresses : 1 });
 
   if (dbProducts.length !== productIds.length) {
     throw new OperationalError(
@@ -201,7 +199,7 @@ export const addToCart = async (cartData, token) => {
 
   for (const incoming of products) {
     const dbProduct = productMap[incoming.productId];
-    const existing = cart?.products.find(
+    const existing = user.cart?.products.find(
       (p) => p.product.toString() === incoming.productId,
     );
 
@@ -210,7 +208,7 @@ export const addToCart = async (cartData, token) => {
     if (existing) {
       existing.quantity += incoming.quantity;
     } else {
-      cart.products.push({
+      user.cart.products.push({
         product: incoming.productId,
         quantity: incoming.quantity,
         price: productMap[incoming.productId].price,
@@ -219,13 +217,14 @@ export const addToCart = async (cartData, token) => {
     }
   }
 
-  await recalculateCharges(cart);
+  await recalculateCharges(user.cart);
 
   if (!user.cart?.deliveryAddress) {
     user.cart.deliveryAddress = user.addresses?.length
       ? user.addresses[0]._id
       : null;
   }
+  console.log(user.cart.deliveryAddress, user.addresses)
 
   await user.save();
 };
@@ -235,14 +234,19 @@ export const getCart = async (token) => {
 
   const cart = { ...(await populateCart(user)) };
 
+  console.log("user", user);
+  console.log(cart);
+
   if (!cart || cart.products.length === 0) {
     throw new OperationalError(STATUS_CODES.ACTION_FAILED, "Cart is empty");
   }
 
-  if (cart?.deliveryAddress) {
+  if (user.addresses.id(cart.deliveryAddress)) {
     cart.selectedAddress = user.addresses.find(
       (a) => a._id.toString() === cart.deliveryAddress.toString(),
     );
+  } else {
+    cart.deliveryAddress = null
   }
 
   cart.itemTotal = parseFloat(
@@ -268,7 +272,7 @@ export const updateCart = async (cartData, token) => {
         _id: { $in: productIds },
         isDeleted: false,
       },
-      { name: 1, price: 1, stock: 1},
+      { name: 1, price: 1, stock: 1 },
     ).lean();
     const productMap = {};
     dbProducts.forEach((p) => (productMap[p._id.toString()] = p));
@@ -289,7 +293,6 @@ export const updateCart = async (cartData, token) => {
       }
     }
   }
-
 
   if (addressId) {
     // ! add check for courier availability for shiprocket
