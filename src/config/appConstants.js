@@ -39,7 +39,7 @@ export const USER_TYPE = {
 };
 
 export const DEVICE_TYPE = {
-  IPHONE: "iPhone",
+  IPHONE: "ios",
   ANDROID: "android",
   WEB: "web",
 };
