@@ -164,7 +164,7 @@ export const verifyOtp = async (data, token) => {
   }
 
   Promise.all([
-    await User.findByIdAndUpdate(token.user._id, { $set: { isActive: true } }),
+    await User.findByIdAndUpdate(token.user._id, { $set: { isVerified: true } }),
     await updateToken(token._id),
   ]);
 };
