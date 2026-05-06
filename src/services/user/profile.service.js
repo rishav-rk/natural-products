@@ -164,7 +164,7 @@ const validateStock = (dbProduct, requestedQty, currentCartQty = 0) => {
   if (totalRequested > dbProduct.stock) {
     throw new OperationalError(
       STATUS_CODES.ACTION_FAILED,
-      ERROR_MESSAGES.OUT_OF_STOCK
+      `Sorry, only ${dbProduct.stock} units of ${dbProduct.name} are available.`,
     );
   }
 };
@@ -173,10 +173,16 @@ export const addToCart = async (cartData, token) => {
   const { products } = cartData;
 
   const productIds = products.map((p) => p.productId);
-  const dbProducts = await Product.find({
-    _id: { $in: productIds },
-    isDeleted: false,
-  }).lean();
+  const dbProducts = await Product.find(
+    {
+      _id: { $in: productIds },
+      isDeleted: false,
+    },
+    { name: 1, price: 1, stock: 1 },
+  ).lean();
+  const user = await User.findOne({ _id: token.user._id }, { cart: 1 });
+
+  const cart = user.cart;
 
   if (dbProducts.length !== productIds.length) {
     throw new OperationalError(
@@ -185,23 +191,21 @@ export const addToCart = async (cartData, token) => {
     );
   }
 
-  const priceMap = {};
-  const productMap = {};
-  dbProducts.forEach((p) => {
-    priceMap[p._id.toString()] = p.price;
-    productMap[p._id.toString()] = p;
+  let productMap = {};
+  dbProducts.forEach((dbProduct) => {
+    productMap[dbProduct._id] = {
+      name: dbProduct.name,
+      price: dbProduct.price,
+      stock: dbProduct.stock,
+    };
   });
 
-  const user = await User.findById(token.user._id);
-  if (!user)
-    throw new OperationalError(
-      STATUS_CODES.ACTION_FAILED,
-      ERROR_MESSAGES.USER_NOT_FOUND,
-    );
+  // console.log("DB Products: ", dbProducts);
+  // console.log("Product Map: ", productMap);
 
   for (const incoming of products) {
     const dbProduct = productMap[incoming.productId];
-    const existing = user.cart.products.find(
+    const existing = cart?.products.find(
       (p) => p.product.toString() === incoming.productId,
     );
 
@@ -210,18 +214,18 @@ export const addToCart = async (cartData, token) => {
     if (existing) {
       existing.quantity += incoming.quantity;
     } else {
-      user.cart.products.push({
+      cart.products.push({
         product: incoming.productId,
         quantity: incoming.quantity,
-        price: priceMap[incoming.productId],
+        price: productMap[incoming.productId].price,
       });
     }
   }
 
-  await recalculateCharges(user.cart);
+  await recalculateCharges(cart);
 
   if (!user.cart?.deliveryAddress) {
-    user.cart.deliveryAddress = user.addresses.length
+    user.cart.deliveryAddress = user.addresses?.length
       ? user.addresses[0]._id
       : null;
   }
@@ -233,7 +237,7 @@ export const addToCart = async (cartData, token) => {
 export const getCart = async (token) => {
   const user = await User.findById(token.user._id);
 
-  const cart = {...await populateCart(user)}
+  const cart = { ...(await populateCart(user)) };
 
   if (!cart || cart.products.length === 0) {
     throw new OperationalError(STATUS_CODES.ACTION_FAILED, "Cart is empty");
@@ -260,13 +264,13 @@ export const updateCart = async (cartData, token) => {
       STATUS_CODES.ACTION_FAILED,
       ERROR_MESSAGES.USER_NOT_FOUND,
     );
-    
+
   if (products) {
     const productIds = products.map((p) => p.productId);
     const dbProducts = await Product.find({
       _id: { $in: productIds },
       isDeleted: false,
-      isOutOfStock : false
+      isOutOfStock: false,
     }).lean();
     const productMap = {};
     dbProducts.forEach((p) => (productMap[p._id.toString()] = p));

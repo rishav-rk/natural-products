@@ -174,5 +174,8 @@
 	"orderId must be a valid mongo id": "orderId must be a valid mongo id",
 	"No such order": "No such order",
 	"status is not allowed": "status is not allowed",
-	"status must be one of [In Progress, On the Way, Delivered]": "status must be one of [In Progress, On the Way, Delivered]"
+	"status must be one of [In Progress, On the Way, Delivered]": "status must be one of [In Progress, On the Way, Delivered]",
+	"quantity is required": "quantity is required",
+	"Sorry, this product is temporarily out of stock": "Sorry, this product is temporarily out of stock",
+	"Sorry, only 59 units of Hyaluronic Acid Moisturizer are available.": "Sorry, only 59 units of Hyaluronic Acid Moisturizer are available."
 }

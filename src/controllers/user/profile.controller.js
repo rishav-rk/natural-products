@@ -92,13 +92,12 @@ export const deleteAddress = catchAsync(async (req, res) => {
 
 
 export const addToCart = catchAsync(async (req, res) => {
-  const cart = await profileService.addToCart(req.body, req.token);
+  await profileService.addToCart(req.body, req.token);
   return successResponse(
     req,
     res,
-    STATUS_CODES.SUCCESS,
+    STATUS_CODES.ACTION_COMPLETE,
     SUCCESS_MESSAGES.SUCCESS,
-    cart,
   );
 });
 
