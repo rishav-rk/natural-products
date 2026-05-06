@@ -3,7 +3,7 @@ import { STATUS_CODES, ERROR_MESSAGES } from "../config/appConstants.js";
 const calculateGrandTotal = (products, tax) => {
   const itemTotal = products.reduce((sum, p) => sum + p.price * p.quantity, 0);
   const taxAmount = (itemTotal * tax) / 100;
-  const grandTotal = (itemTotal + taxAmount).toFixed(2);
+  const grandTotalAmount = (itemTotal + taxAmount).toFixed(2);
   return {
     itemTotal,
     grandTotalAmount
