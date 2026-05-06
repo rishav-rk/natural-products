@@ -6,7 +6,7 @@ const calculateGrandTotal = (products, tax) => {
   const grandTotal = (itemTotal + taxAmount).toFixed(2);
   return {
     itemTotal,
-    grandTotal,
+    grandTotalAmount
   };
 };
 
