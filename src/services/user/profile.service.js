@@ -272,8 +272,6 @@ export const updateCart = async (cartData, token) => {
     ).lean();
     const productMap = {};
     dbProducts.forEach((p) => (productMap[p._id.toString()] = p));
-    console.log("Db products", dbProducts)
-    console.log("Poduct map", productMap)
 
     for (const incoming of products) {
       const idx = user.cart.products.findIndex(

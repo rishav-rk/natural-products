@@ -42,11 +42,12 @@ const validateAndGetCart = async (user, cart) => {
 };
 
 // Update cart products with actual prices from database
-const updateProductsWithPrices = (cartProducts, priceMap) => {
+const updateProductsWithPrices = (cartProducts, productMap) => {
   return cartProducts.map((cartItem) => ({
     ...cartItem,
-    price: priceMap[cartItem.product].price,
-    name: priceMap[cartItem.product].name,
+    price: productMap[cartItem.product].price,
+    name: productMap[cartItem.product].name,
+    images: productMap[cartItem.product].images
   }));
 };
 

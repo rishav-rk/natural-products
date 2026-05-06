@@ -52,7 +52,7 @@ const getProductsWithPrices = async (productIds) => {
     productPriceMap[product._id] = product;
   });
 
-  return productPriceMap;
+  return productMap;
 };
 
 // Clear user cart after successful payment
@@ -87,12 +87,12 @@ export const createOrder = async (orderData, token) => {
 
     // Get products with prices
     const productIds = user.cart.products.map((p) => p.product);
-    const priceMap = await getProductsWithPrices(productIds);
+    const productMap = await getProductsWithPrices(productIds);
 
     // Update products with actual prices
     const updatedProducts = updateProductsWithPrices(
       user.cart.products,
-      priceMap,
+      productMap,
     );
 
     // Calculate total amount
@@ -121,7 +121,6 @@ export const createOrder = async (orderData, token) => {
 export const verifyPayment = async (paymentInfo, token) => {
   const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
     paymentInfo;
-  console.log(razorpay_order_id, razorpay_payment_id);
 
   // Verify signature
   const body = razorpay_order_id + "|" + razorpay_payment_id;
@@ -130,14 +129,10 @@ export const verifyPayment = async (paymentInfo, token) => {
     .update(body)
     .digest("hex");
 
-  console.log(expectedSignature, razorpay_signature);
-
   const isValid = crypto.timingSafeEqual(
     Buffer.from(expectedSignature),
     Buffer.from(razorpay_signature),
   );
-
-  console.log(isValid);
 
   if (!isValid) {
     throw new OperationalError(
@@ -161,12 +156,12 @@ export const verifyPayment = async (paymentInfo, token) => {
 
   // Get products with prices
   const productIds = user.cart.products.map((p) => p.product);
-  const priceMap = await getProductsWithPrices(productIds);
+  const productMap = await getProductsWithPrices(productIds);
 
   // Update products with actual prices
   const updatedProducts = updateProductsWithPrices(
     user.cart.products,
-    priceMap,
+    productMap,
   );
 
   // Calculate total amount
@@ -218,7 +213,7 @@ export const getMyOrders = async (token, query) => {
     { user: token.user._id },
     orderFilter,
     paginationOptions(query.page, query.limit),
-  ).populate("products.product", "images");
+  );
 };
 
 export const getMyOrderById = async (orderId) => {
