@@ -39,7 +39,7 @@ export const USER_TYPE = {
 };
 
 export const DEVICE_TYPE = {
-  IPHONE: "ios",
+  IOS: "ios",
   ANDROID: "android",
   WEB: "web",
 };
@@ -77,7 +77,7 @@ export const JOI = {
   DEVICE_TYPE: Joi.string()
     .valid(...Object.values(DEVICE_TYPE))
     .required()
-    .example("iPhone"),
+    .example("ios"),
   DEVICE_ID: Joi.string().required().example("unique device id"),
   DEVICE_TOKEN: Joi.string().example("fcm token"),
   ROLE: Joi.string()

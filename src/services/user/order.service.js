@@ -35,7 +35,6 @@ const getProductsWithPrices = async (productIds) => {
   const dbProducts = await Product.find({
     _id: { $in: productIds },
     isDeleted: false,
-    isOutOfStock : false
   }).lean();
 
   if (dbProducts.length !== productIds.length) {
