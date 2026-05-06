@@ -234,9 +234,6 @@ export const getCart = async (token) => {
 
   const cart = { ...(await populateCart(user)) };
 
-  console.log("user", user);
-  console.log(cart);
-
   if (!cart || cart.products.length === 0) {
     throw new OperationalError(STATUS_CODES.ACTION_FAILED, "Cart is empty");
   }

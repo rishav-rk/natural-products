@@ -2,11 +2,11 @@ import { OperationalError } from "./error.js";
 import { STATUS_CODES, ERROR_MESSAGES } from "../config/appConstants.js";
 const calculateGrandTotal = (products, tax) => {
   const itemTotal = products.reduce((sum, p) => sum + p.price * p.quantity, 0);
+  const taxAmount = (itemTotal * tax) / 100;
+  const grandTotal = (itemTotal + taxAmount).toFixed(2);
   return {
     itemTotal,
-    grandTotalAmount: parseFloat(
-      itemTotal + (parseFloat(tax) / 100).toFixed(2) * itemTotal,
-    ).toFixed(2),
+    grandTotal,
   };
 };
 
@@ -47,11 +47,9 @@ const updateProductsWithPrices = (cartProducts, productMap) => {
     ...cartItem,
     price: productMap[cartItem.product].price,
     name: productMap[cartItem.product].name,
-    images: productMap[cartItem.product].images
+    images: productMap[cartItem.product].images,
   }));
 };
-
-
 
 const orderFilter = {
   "payment.razorpayOrderId": 0,
@@ -64,5 +62,5 @@ export {
   calculateGrandTotal,
   validateAndGetCart,
   updateProductsWithPrices,
-  orderFilter
+  orderFilter,
 };
