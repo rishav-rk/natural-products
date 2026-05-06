@@ -47,7 +47,7 @@ const getProductsWithPrices = async (productIds) => {
     );
   }
 
-  const productPriceMap = {};
+  const productMap = {};
   dbProducts.forEach((product) => {
     productPriceMap[product._id] = product;
   });
