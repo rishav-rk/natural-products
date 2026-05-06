@@ -192,13 +192,9 @@ export const addToCart = async (cartData, token) => {
   }
 
   let productMap = {};
-  dbProducts.forEach((dbProduct) => {
-    productMap[dbProduct._id] = {
-      name: dbProduct.name,
-      price: dbProduct.price,
-      stock: dbProduct.stock,
-    };
-  });
+  dbProducts.forEach(
+    (dbProduct) => (productMap[dbProduct._id.toString()] = dbProduct),
+  );
 
   // console.log("DB Products: ", dbProducts);
   // console.log("Product Map: ", productMap);
@@ -218,6 +214,7 @@ export const addToCart = async (cartData, token) => {
         product: incoming.productId,
         quantity: incoming.quantity,
         price: productMap[incoming.productId].price,
+        _id: incoming.productId,
       });
     }
   }
@@ -231,7 +228,6 @@ export const addToCart = async (cartData, token) => {
   }
 
   await user.save();
-  return await populateCart(user);
 };
 
 export const getCart = async (token) => {
@@ -267,11 +263,13 @@ export const updateCart = async (cartData, token) => {
 
   if (products) {
     const productIds = products.map((p) => p.productId);
-    const dbProducts = await Product.find({
-      _id: { $in: productIds },
-      isDeleted: false,
-      isOutOfStock: false,
-    }).lean();
+    const dbProducts = await Product.find(
+      {
+        _id: { $in: productIds },
+        isDeleted: false,
+      },
+      { name: 1, price: 1, stock: 1},
+    ).lean();
     const productMap = {};
     dbProducts.forEach((p) => (productMap[p._id.toString()] = p));
 
@@ -282,7 +280,7 @@ export const updateCart = async (cartData, token) => {
 
       if (idx === -1) continue;
 
-      if (incoming.quantity === 0) {
+      if (incoming.quantity <= 0) {
         user.cart.products.splice(idx, 1);
       } else {
         const dbProduct = productMap[incoming.productId];
@@ -307,7 +305,6 @@ export const updateCart = async (cartData, token) => {
 
   await recalculateCharges(user.cart);
   await user.save();
-  return await populateCart(user);
 };
 
 export const deleteFromCart = async (productId, token) => {

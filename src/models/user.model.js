@@ -1,12 +1,12 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
-import {ADDRESS_TYPE} from "../config/appConstants.js"
+import { ADDRESS_TYPE } from "../config/appConstants.js";
 
 const userSchema = new mongoose.Schema(
   {
     image: {
       type: String,
-      default: ""
+      default: "",
     },
     name: {
       type: String,
@@ -62,8 +62,8 @@ const userSchema = new mongoose.Schema(
           enum: [...Object.values(ADDRESS_TYPE)],
         },
         addressLabel: {
-          type: String, 
-        }, 
+          type: String,
+        },
         pincode: {
           type: String,
         },
@@ -99,7 +99,6 @@ const userSchema = new mongoose.Schema(
           },
         },
       ],
-      
       deliveryAddress: {
         type: mongoose.Schema.Types.ObjectId,
         default: null,

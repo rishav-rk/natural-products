@@ -26,16 +26,19 @@ const validateStock = (dbProduct, requestedQty, currentCartQty = 0) => {
   if (totalRequested > dbProduct.stock) {
     throw new OperationalError(
       STATUS_CODES.ACTION_FAILED,
-      ERROR_MESSAGES.OUT_OF_STOCK
+      ERROR_MESSAGES.OUT_OF_STOCK,
     );
   }
 };
 
 const getProductsWithPrices = async (productIds) => {
-  const dbProducts = await Product.find({
-    _id: { $in: productIds },
-    isDeleted: false,
-  }).lean();
+  const dbProducts = await Product.find(
+    {
+      _id: { $in: productIds },
+      isDeleted: false,
+    },
+    { name: 1, price: 1, images: 1 },
+  ).lean();
 
   if (dbProducts.length !== productIds.length) {
     throw new OperationalError(
@@ -46,10 +49,7 @@ const getProductsWithPrices = async (productIds) => {
 
   const productPriceMap = {};
   dbProducts.forEach((product) => {
-    productPriceMap[product._id] = {
-      price: product.price,
-      name: product.name,
-    };
+    productPriceMap[product._id] = product;
   });
 
   return productPriceMap;
@@ -119,8 +119,9 @@ export const createOrder = async (orderData, token) => {
 
 // ? update this -> when payment is done , received acknowledgement from razorpay's webhook then the verification step is to be done.
 export const verifyPayment = async (paymentInfo, token) => {
-  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = paymentInfo;
-  console.log(razorpay_order_id, razorpay_payment_id)
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
+    paymentInfo;
+  console.log(razorpay_order_id, razorpay_payment_id);
 
   // Verify signature
   const body = razorpay_order_id + "|" + razorpay_payment_id;
@@ -129,12 +130,11 @@ export const verifyPayment = async (paymentInfo, token) => {
     .update(body)
     .digest("hex");
 
-
-    console.log(expectedSignature, razorpay_signature);
+  console.log(expectedSignature, razorpay_signature);
 
   const isValid = crypto.timingSafeEqual(
     Buffer.from(expectedSignature),
-    Buffer.from(razorpay_signature)
+    Buffer.from(razorpay_signature),
   );
 
   console.log(isValid);
@@ -218,7 +218,7 @@ export const getMyOrders = async (token, query) => {
     { user: token.user._id },
     orderFilter,
     paginationOptions(query.page, query.limit),
-  );
+  ).populate("products.product", "images");
 };
 
 export const getMyOrderById = async (orderId) => {
