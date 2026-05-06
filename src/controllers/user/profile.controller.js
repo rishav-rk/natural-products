@@ -114,13 +114,12 @@ export const getCart = catchAsync(async (req, res) => {
 });
 
 export const updateCart = catchAsync(async (req, res) => {
-  const cart = await profileService.updateCart(req.body, req.token);
+  await profileService.updateCart(req.body, req.token);
   return successResponse(
     req,
     res,
-    STATUS_CODES.SUCCESS,
+    STATUS_CODES.ACTION_COMPLETE,
     SUCCESS_MESSAGES.SUCCESS,
-    cart,
   );
 });
 
