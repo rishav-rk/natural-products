@@ -170,6 +170,8 @@ export const verifyPayment = async (paymentInfo, token) => {
       ERROR_MESSAGES.NO_SUCH_ORDER,
     );
   }
+const paymentDetails = await razorpay.payments.fetch(razorpay_payment_id)
+  console.log("Payment Details : ", paymentDetails)
 
   // 4. Atomic transaction: promote order + decrement stock + clear cart
   const session = await mongoose.startSession();

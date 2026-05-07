@@ -231,7 +231,7 @@ export const addToCart = async (cartData, token) => {
 };
 
 export const getCart = async (token) => {
-  const user = await User.findById(token.user._id);
+  const user = await User.findById(token.user._id, {cart : 1, addresses : 1});
 
   const cart = { ...(await populateCart(user)) };
 
@@ -245,11 +245,17 @@ export const getCart = async (token) => {
       (a) => a._id.toString() === cart.deliveryAddress.toString(),
     );
   } else {
-    user.cart.deliveryAddress = user.addresses?.length
-      ? user.addresses[0]._id
-      : null;
+    if(user.addresses?.length > 0){
+      cart.deliveryAddress = user.addresses[0]._id;
+      cart.selectedAddress = user.addresses.find(
+      (a) => a._id.toString() === cart.deliveryAddress.toString(),
+    );
+  } else {
+    cart.deliveryAddress = null
   }
-
+}
+  user.cart.deliveryAddress = cart.deliveryAddress;
+  
   cart.itemTotal = parseFloat(
     cart.products.reduce((sum, p) => sum + p.price * p.quantity, 0),
   ).toFixed(2);

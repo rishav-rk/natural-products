@@ -5,7 +5,6 @@ import {
   PAYMENT_METHOD,
 } from "../config/appConstants.js";
 
-
 const orderSchema = new mongoose.Schema(
   {
     orderId: {
@@ -33,9 +32,11 @@ const orderSchema = new mongoose.Schema(
           ref: "Product",
           required: [true, "Product id is required"],
         },
-        images: [{
-          type: String
-        }],
+        images: [
+          {
+            type: String,
+          },
+        ],
         name: {
           type: String,
         },
@@ -51,8 +52,8 @@ const orderSchema = new mongoose.Schema(
       },
     ],
     itemTotal: {
-      type: String, 
-      required: [true, 'Please provide item total']
+      type: String,
+      required: [true, "Please provide item total"],
     },
     tax: {
       type: String,
@@ -99,12 +100,17 @@ const orderSchema = new mongoose.Schema(
         type: Date,
         default: null,
       },
+      method: {
+        type: String,
+        enum: Object.values(PAYMENT_METHOD),
+        default: null,
+      },
     },
   },
   { timestamps: true },
 );
 
-orderSchema.index({"orderId": 1})
+orderSchema.index({ orderId: 1 });
 
 orderSchema.index(
   { createdAt: 1 },
