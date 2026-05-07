@@ -38,6 +38,14 @@ const validateAndGetCart = async (user, cart) => {
     (a) => a._id.toString() === cart.deliveryAddress.toString(),
   );
 
+  if(!shippingAddress){
+    cart.deliveryAddress = null;
+        throw new OperationalError(
+      STATUS_CODES.ACTION_FAILED,
+      ERROR_MESSAGES.ADDRESS_REQUIRED,
+    );
+  }
+
   return shippingAddress;
 };
 

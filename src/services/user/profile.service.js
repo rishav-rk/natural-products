@@ -224,8 +224,6 @@ export const addToCart = async (cartData, token) => {
       ? user.addresses[0]._id
       : null;
   }
-  console.log(user.cart.deliveryAddress, user.addresses)
-
   await user.save();
 };
 
@@ -244,6 +242,7 @@ export const getCart = async (token) => {
     );
   } else {
     cart.deliveryAddress = null
+    cart.selectedAddress = null;
   }
 
   cart.itemTotal = parseFloat(

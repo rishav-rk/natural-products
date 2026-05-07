@@ -9,6 +9,7 @@ import { Admin, Token, User } from "../../models/index.js";
 import { paginationOptions } from "../../utils/universalFunctions.js";
 
 export const getUsers = async (query) => {
+  console.log(query)
   const filter = query.search
     ? {
         isVerified: true,

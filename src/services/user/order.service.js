@@ -108,7 +108,6 @@ export const createOrder = async (orderData, token) => {
       tax,
     );
 
-    console.log(grandTotalAmount * 100);
     // Create Razorpay order
     const razorpayOrder = await razorpay.orders.create({
       amount: grandTotalAmount * 100, // paise
