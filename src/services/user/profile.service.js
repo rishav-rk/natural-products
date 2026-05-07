@@ -239,7 +239,6 @@ export const getCart = async (token) => {
     throw new OperationalError(STATUS_CODES.ACTION_FAILED, "Cart is empty");
   }
   const isValidAddress = user.addresses.id(cart.deliveryAddress);
-  console.log(isValidAddress)
 
   if (isValidAddress) {
     cart.selectedAddress = user.addresses.find(
@@ -249,7 +248,6 @@ export const getCart = async (token) => {
     user.cart.deliveryAddress = user.addresses?.length
       ? user.addresses[0]._id
       : null;
-      console.log(cart.deliveryAddress)
   }
 
   cart.itemTotal = parseFloat(
