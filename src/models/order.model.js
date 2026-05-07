@@ -103,7 +103,7 @@ const orderSchema = new mongoose.Schema(
       method: {
         type: String,
         enum: Object.values(PAYMENT_METHOD),
-        default: null,
+        default: PAYMENT_METHOD.UPI,
       },
     },
   },
