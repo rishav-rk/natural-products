@@ -180,7 +180,10 @@ export const addToCart = async (cartData, token) => {
     },
     { name: 1, price: 1, stock: 1 },
   ).lean();
-  const user = await User.findOne({ _id: token.user._id }, { cart: 1, addresses : 1 });
+  const user = await User.findOne(
+    { _id: token.user._id },
+    { cart: 1, addresses: 1 },
+  );
 
   if (dbProducts.length !== productIds.length) {
     throw new OperationalError(
@@ -235,22 +238,26 @@ export const getCart = async (token) => {
   if (!cart || cart.products.length === 0) {
     throw new OperationalError(STATUS_CODES.ACTION_FAILED, "Cart is empty");
   }
-  const isValidAddress = user.addresses.id(cart.deliveryAddress)
-
-  console.log("Is valid address", isValidAddress)
+  const isValidAddress = user.addresses.id(cart.deliveryAddress);
+  console.log(isValidAddress)
 
   if (isValidAddress) {
     cart.selectedAddress = user.addresses.find(
       (a) => a._id.toString() === cart.deliveryAddress.toString(),
     );
   } else {
-    cart.deliveryAddress = null
+    user.cart.deliveryAddress = user.addresses?.length
+      ? user.addresses[0]._id
+      : null;
+      console.log(cart.deliveryAddress)
   }
 
   cart.itemTotal = parseFloat(
     cart.products.reduce((sum, p) => sum + p.price * p.quantity, 0),
   ).toFixed(2);
-  console.log(cart)
+
+  user.save();
+
   return cart;
 };
 
