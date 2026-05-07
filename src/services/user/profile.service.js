@@ -235,19 +235,22 @@ export const getCart = async (token) => {
   if (!cart || cart.products.length === 0) {
     throw new OperationalError(STATUS_CODES.ACTION_FAILED, "Cart is empty");
   }
+  const isValidAddress = user.addresses.id(cart.deliveryAddress)
 
-  if (user.addresses.id(cart.deliveryAddress)) {
+  console.log("Is valid address", isValidAddress)
+
+  if (isValidAddress) {
     cart.selectedAddress = user.addresses.find(
       (a) => a._id.toString() === cart.deliveryAddress.toString(),
     );
   } else {
     cart.deliveryAddress = null
-    cart.selectedAddress = null;
   }
 
   cart.itemTotal = parseFloat(
     cart.products.reduce((sum, p) => sum + p.price * p.quantity, 0),
   ).toFixed(2);
+  console.log(cart)
   return cart;
 };
 

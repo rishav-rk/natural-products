@@ -44,6 +44,7 @@ const validateAndGetCart = async (user, cart) => {
       STATUS_CODES.ACTION_FAILED,
       ERROR_MESSAGES.ADDRESS_REQUIRED,
     );
+    cart.deliveryAddress = null
   }
 
   return shippingAddress;
