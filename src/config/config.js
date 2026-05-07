@@ -55,7 +55,7 @@ export default {
   baseurl: envVars.HOST_URL,
   projectName: envVars.PROJECT_NAME,
   environment: envVars.ENVIRONMENT,
-  razorypay:{
+  razorpay:{
     id: envVars.RAZORPAY_KEY_ID, 
     secret: envVars.RAZORPAY_KEY_SECRET
   }
