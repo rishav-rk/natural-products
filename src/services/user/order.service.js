@@ -1,14 +1,13 @@
 import razorpay from "../../config/razorpay.js";
 import crypto from "crypto";
+import mongoose from "mongoose";
 import {
   ERROR_MESSAGES,
-  ORDER_STATUS,
   PAYMENT_STATUS,
   STATUS_CODES,
 } from "../../config/appConstants.js";
 import { ADC, Product, Order, User } from "../../models/index.js";
 import { OperationalError } from "../../utils/error.js";
-import moment from "moment";
 import config from "../../config/config.js";
 import { paginationOptions } from "../../utils/universalFunctions.js";
 import {
@@ -19,24 +18,11 @@ import {
   orderFilter,
 } from "../../utils/orderUtils.js";
 
-// Fetch and validate products, build price map
-
-const validateStock = (dbProduct, requestedQty, currentCartQty = 0) => {
-  const totalRequested = requestedQty + currentCartQty;
-  if (totalRequested > dbProduct.stock) {
-    throw new OperationalError(
-      STATUS_CODES.ACTION_FAILED,
-      ERROR_MESSAGES.OUT_OF_STOCK,
-    );
-  }
-};
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const getProductsWithPrices = async (productIds) => {
   const dbProducts = await Product.find(
-    {
-      _id: { $in: productIds },
-      isDeleted: false,
-    },
+    { _id: { $in: productIds }, isDeleted: false },
     { name: 1, price: 1, images: 1 },
   ).lean();
 
@@ -47,16 +33,10 @@ const getProductsWithPrices = async (productIds) => {
     );
   }
 
-  const productMap = {};
-  dbProducts.forEach((product) => {
-    productMap[product._id] = product;
-  });
-
-  return productMap;
+  return Object.fromEntries(dbProducts.map((p) => [p._id, p]));
 };
 
-// Clear user cart after successful payment
-const clearUserCart = async (userId) => {
+const clearUserCart = async (userId, session) => {
   await User.findByIdAndUpdate(
     userId,
     {
@@ -66,73 +46,103 @@ const clearUserCart = async (userId) => {
         "cart.tax": 0,
       },
     },
-    { new: true },
+    { session },
   );
 };
 
-export const createOrder = async (orderData, token) => {
-  try {
-    // Fetch user data
-    const user = await User.findById(
-      token.user._id,
-      { cart: 1, addresses: 1, name: 1 },
-      { lean: true },
-    );
-
-    if (!user.cart.deliveryAddress) {
-      throw new OperationalError(
-        STATUS_CODES.ACTION_FAILED,
-        ERROR_MESSAGES.ADDRESS_REQUIRED,
-      );
-    }
-
-    // Validate cart
-    await validateAndGetCart(user, user.cart);
-
-    // Fetch tax
-    const { tax } = await ADC.findOne({}).lean();
-
-    // Get products with prices
-    const productIds = user.cart.products.map((p) => p.product);
-    const productMap = await getProductsWithPrices(productIds);
-
-    // Update products with actual prices
-    const updatedProducts = updateProductsWithPrices(
-      user.cart.products,
-      productMap,
-    );
-
-    // Calculate total amount
-    const { itemTotal, grandTotalAmount } = calculateGrandTotal(
-      updatedProducts,
-      tax,
-    );
-
-    // Create Razorpay order
-    const razorpayOrder = await razorpay.orders.create({
-      amount: grandTotalAmount * 100, // paise
-      currency: "INR",
-      receipt: generateOrderId(user.name),
-    });
-
-    return {
-      razorpayOrder,
-    };
-  } catch (error) {
-    throw error;
-  }
+// Hook your mailer here — email failure won't affect the payment response
+const sendOrderConfirmationEmail = async (user, order) => {
+  // TODO: implement email — e.g. with nodemailer, resend, sendgrid
+  // await mailer.send({ to: user.email, template: 'order-confirmation', data: { order } });
+  console.log(
+    `[EMAIL] Order confirmation for ${user.name}, orderId: ${order.orderId}`,
+  );
 };
 
-// ? update this -> when payment is done , received acknowledgement from razorpay's webhook then the verification step is to be done.
+// ─── Create Razorpay Order ────────────────────────────────────────────────────
+// Saves a pending Order in DB so verifyPayment doesn't need to refetch everything
+
+export const createOrder = async (orderData, token) => {
+  const user = await User.findById(
+    token.user._id,
+    { cart: 1, addresses: 1, name: 1 },
+    { lean: true },
+  );
+
+  if (!user.cart.deliveryAddress) {
+    throw new OperationalError(
+      STATUS_CODES.ACTION_FAILED,
+      ERROR_MESSAGES.ADDRESS_REQUIRED,
+    );
+  }
+
+  const shippingAddress = await validateAndGetCart(user, user.cart);
+  const { tax } = await ADC.findOne({}).lean();
+
+  const productIds = user.cart.products.map((p) => p.product);
+  const productMap = await getProductsWithPrices(productIds);
+  const updatedProducts = updateProductsWithPrices(
+    user.cart.products,
+    productMap,
+  );
+
+  const { itemTotal, grandTotalAmount } = calculateGrandTotal(
+    updatedProducts,
+    tax,
+  );
+  const orderId = generateOrderId(user.name);
+
+  // Create Razorpay order first to get the razorpayOrderId
+  const razorpayOrder = await razorpay.orders.create({
+    amount: grandTotalAmount * 100, // in paise
+    currency: "INR",
+    receipt: orderId,
+  });
+
+  // Persist as pending — verifyPayment will promote this to completed
+  await Order.create({
+    orderId,
+    placedOn: new Date(),
+    user: token.user._id,
+    products: updatedProducts,
+    tax,
+    itemTotal,
+    grandTotalAmount,
+    shippingAddress,
+    payment: {
+      razorpayOrderId: razorpayOrder.id,
+      status: PAYMENT_STATUS.PENDING,
+      amount: grandTotalAmount,
+      currency: "INR",
+    },
+  });
+
+  return { razorpayOrder };
+};
+
+// ─── Verify Payment ───────────────────────────────────────────────────────────
+
 export const verifyPayment = async (paymentInfo, token) => {
   const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
     paymentInfo;
 
-  // Verify signature
-  const body = razorpay_order_id + "|" + razorpay_payment_id;
+  // 1. Idempotency check — handles retries and double submissions
+  const alreadyProcessed = await Order.findOne({
+    "payment.razorpayPaymentId": razorpay_payment_id,
+    "payment.status": PAYMENT_STATUS.COMPLETED,
+  }).lean();
+
+  if (alreadyProcessed) {
+    throw new OperationalError(
+      STATUS_CODES.ACTION_FAILED,
+      `Payment already verified, orderdId: ${alreadyProcessed.orderId}`,
+    );
+  }
+
+  // 2. Verify Razorpay signature
   const expectedSignature = crypto
-    .createHmac("sha256", config.razorypay.secret)
-    .update(body)
+    .createHmac("sha256", config.razorpay.secret)
+    .update(`${razorpay_order_id}|${razorpay_payment_id}`)
     .digest("hex");
 
   const isValid = crypto.timingSafeEqual(
@@ -147,121 +157,134 @@ export const verifyPayment = async (paymentInfo, token) => {
     );
   }
 
-  // Fetch user data
-  const user = await User.findById(
-    token.user._id,
-    { cart: 1, addresses: 1, name: 1 },
-    { lean: true },
-  );
-
-  // Validate cart
-  const shippingAddress = await validateAndGetCart(user, user.cart);
-
-  // Fetch tax
-  const { tax } = await ADC.findOne({}).lean();
-
-  // Get products with prices
-  const productIds = user.cart.products.map((p) => p.product);
-  const productMap = await getProductsWithPrices(productIds);
-
-  // Update products with actual prices
-  const updatedProducts = updateProductsWithPrices(
-    user.cart.products,
-    productMap,
-  );
-
-  // Calculate total amount
-  const { grandTotalAmount, itemTotal } = calculateGrandTotal(
-    updatedProducts,
-    tax,
-  );
-
-  // Create order in database
-  const order = await Order.create({
-    orderId: generateOrderId(user.name),
-    placedOn: moment().toISOString(),
+  // 3. Fetch the pending order saved during createOrder
+  const pendingOrder = await Order.findOne({
+    "payment.razorpayOrderId": razorpay_order_id,
     user: token.user._id,
-    products: updatedProducts,
-    tax,
-    itemTotal,
-    grandTotalAmount,
-    shippingAddress,
-    payment: {
-      razorpayOrderId: razorpay_order_id,
-      razorpayPaymentId: razorpay_payment_id,
-      razorpaySignature: razorpay_signature,
-      status: PAYMENT_STATUS.COMPLETED,
-      amount: grandTotalAmount,
-      currency: "INR",
-      paidAt: moment().toISOString(),
-    },
+    "payment.status": PAYMENT_STATUS.PENDING,
   });
 
-  // Update product stock using bulkWrite for efficiency
-  const bulkOps = updatedProducts.map((product) => ({
-    updateOne: {
-      filter: { _id: product.product },
-      update: { $inc: { stock: -product.quantity } },
-    },
-  }));
-  await Product.bulkWrite(bulkOps);
-
-  // Clear user cart after successful payment
-  await clearUserCart(user._id);
-
-  // TODO: Send order confirmation email
-
-  return { message: "Payment verified" };
-};
-
-export const getMyOrders = async (token, query) => {
-  return await Order.find(
-    { user: token.user._id },
-    orderFilter,
-    paginationOptions(query.page, query.limit),
-  );
-};
-
-export const getMyOrderById = async (orderId) => {
-  const order = await Order.findOne({ _id: orderId }, orderFilter);
-  if (!order) {
+  if (!pendingOrder) {
     throw new OperationalError(
       STATUS_CODES.ACTION_FAILED,
       ERROR_MESSAGES.NO_SUCH_ORDER,
     );
   }
 
+  // 4. Atomic transaction: promote order + decrement stock + clear cart
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    // Promote pending order to completed
+    pendingOrder.payment.razorpayPaymentId = razorpay_payment_id;
+    pendingOrder.payment.razorpaySignature = razorpay_signature;
+    pendingOrder.payment.status = PAYMENT_STATUS.COMPLETED;
+    pendingOrder.payment.paidAt = new Date();
+    await pendingOrder.save({ session });
+
+    // Decrement stock — $gte guard prevents negative stock on race condition
+    const bulkOps = pendingOrder.products.map((product) => ({
+      updateOne: {
+        filter: {
+          _id: product.product,
+          stock: { $gte: product.quantity },
+        },
+        update: { $inc: { stock: -product.quantity } },
+      },
+    }));
+
+    const result = await Product.bulkWrite(bulkOps, { session });
+
+    if (result.modifiedCount !== pendingOrder.products.length) {
+      throw new OperationalError(
+        STATUS_CODES.ACTION_FAILED,
+        ERROR_MESSAGES.OUT_OF_STOCK,
+      );
+    }
+
+    await clearUserCart(token.user._id, session);
+
+    await session.commitTransaction();
+  } catch (err) {
+    await session.abortTransaction();
+    throw err;
+  } finally {
+    session.endSession();
+  }
+
+  // 5. Send confirmation email — non-blocking, failure won't affect response
+  const user = await User.findById(token.user._id, {
+    name: 1,
+    email: 1,
+  }).lean();
+  sendOrderConfirmationEmail(user, pendingOrder).catch((err) =>
+    console.error("[EMAIL] Order confirmation failed:", err),
+  );
+};
+
+// ─── Order Queries ────────────────────────────────────────────────────────────
+
+export const getMyOrders = async (token, query) => {
+  return await Order.find(
+    { user: token.user._id, "payment.status" : PAYMENT_STATUS.COMPLETED },
+    orderFilter,
+    paginationOptions(query.page, query.limit),
+  );
+};
+
+export const getMyOrderById = async (orderId) => {
+  const order = await Order.findOne({ _id: orderId, "payment.status": PAYMENT_STATUS.COMPLETED }, orderFilter);
+  if (!order) {
+    throw new OperationalError(
+      STATUS_CODES.ACTION_FAILED,
+      ERROR_MESSAGES.NO_SUCH_ORDER,
+    );
+  }
   return order;
 };
-// ! implement webhook based payment on production environemnt
-// export const updateOrderAndProduct = async (req) => {
-//   const signature = req.headers["x-razorpay-signature"];
-//   const secret = config.razorypay.webhookSecret;
 
-//   // Verify the webhook came from Razorpay
-//   const expected = crypto
-//     .createHmac("sha256", secret)
-//     .update(req.body) // req.body is raw Buffer here
-//     .digest("hex");
+// ─── Razorpay Webhook (use in production instead of verifyPayment) ────────────
+// IMPORTANT: mount this with express.raw(), not express.json()
+// app.use('/webhook/razorpay', express.raw({ type: 'application/json' }), webhookHandler)
 
-//   if (expected !== signature) {
-//     return res.status(400).json({ error: "Invalid webhook" });
-//   }
+export const handleRazorpayWebhook = async (req) => {
+  const signature = req.headers["x-razorpay-signature"];
 
-//   const event = JSON.parse(req.body.toString());
+  const expected = crypto
+    .createHmac("sha256", config.razorpay.webhookSecret)
+    .update(req.body) // raw Buffer — only works with express.raw()
+    .digest("hex");
 
-//   switch (event.event) {
-//     case "payment.captured":
-//       // Payment successful — fulfill order
-//       console.log("Payment captured:", event.payload.payment.entity.id);
-//       break;
+  if (expected !== signature) {
+    throw new OperationalError(
+      STATUS_CODES.ACTION_FAILED,
+      "Invalid webhook signature",
+    );
+  }
 
-//     case "payment.failed":
-//       // Notify user, don't fulfill
-//       console.log("Payment failed:", event.payload.payment.entity.id);
-//       break;
+  const event = JSON.parse(req.body.toString());
+  const payment = event.payload.payment.entity;
 
-//     default:
-//       console.log("Unhandled event:", event.event);
-//   }
-// };
+  switch (event.event) {
+    case "payment.captured":
+      // In production: trigger your order fulfillment here
+      console.log("[WEBHOOK] Payment captured:", payment.id);
+await Order.findOneAndUpdate(
+        { "payment.razorpayOrderId": payment.order_id },
+        { "payment.status": PAYMENT_STATUS.COMPLETED },
+      );
+      break;
+
+    case "payment.failed":
+      console.log("[WEBHOOK] Payment failed:", payment.id);
+      await Order.findOneAndUpdate(
+        { "payment.razorpayOrderId": payment.order_id },
+        { "payment.status": PAYMENT_STATUS.FAILED },
+      );
+      break;
+
+    default:
+      console.log("[WEBHOOK] Unhandled event:", event.event);
+  }
+};

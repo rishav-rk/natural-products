@@ -106,5 +106,13 @@ const orderSchema = new mongoose.Schema(
 
 orderSchema.index({"orderId": 1})
 
+orderSchema.index(
+  { createdAt: 1 },
+  {
+    expireAfterSeconds: 3600,
+    partialFilterExpression: { "payment.status": PAYMENT_STATUS.PENDING },
+  },
+);
+
 const Order = mongoose.model("Order", orderSchema);
 export default Order;

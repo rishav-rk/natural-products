@@ -24,6 +24,7 @@ export const PAYMENT_METHOD = {
 export const PAYMENT_STATUS = {
   PENDING: "pending",
   COMPLETED: "completed",
+  FAILED: "failed"
 };
 
 export const ORDER_STATUS = {

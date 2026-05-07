@@ -38,13 +38,12 @@ export const getMyOrderById = catchAsync(async (req, res) => {
 });
 
 export const verifyPayment = catchAsync(async (req, res) => {
-  const payment = await orderService.verifyPayment(req.body, req.token);
+  await orderService.verifyPayment(req.body, req.token);
   return successResponse(
     req,
     res,
-    STATUS_CODES.SUCCESS,
+    STATUS_CODES.ACTION_COMPLETE,
     SUCCESS_MESSAGES.SUCCESS,
-    { payment },
   );
 });
 

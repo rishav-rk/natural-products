@@ -254,7 +254,7 @@ export const getCart = async (token) => {
     cart.products.reduce((sum, p) => sum + p.price * p.quantity, 0),
   ).toFixed(2);
 
-  user.save();
+  await user.save();
 
   return cart;
 };
