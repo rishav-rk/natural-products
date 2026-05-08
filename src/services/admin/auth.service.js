@@ -89,7 +89,7 @@ export const getDashboardData = async () => {
   const fiveDaysAgo = moment().subtract(5, "days").toISOString();
   const recentOrders = await Order.find({
     placedOn: { $gte: fiveDaysAgo },
-  });
+  }, {}, {limit : 5, sort: {placeOn: -1}});
 
   return { totalUsers, totalProducts, totalOrders, recentOrders };
 };
@@ -110,7 +110,13 @@ export const getTransactionsData = async (query) => {
     ];
   }
 
-  const transactions = await Order.find(
+  const totalTransactions = await Order.find(
+    {},
+    { _id: 1, payment: 1 },
+    { lean: true },
+  );
+
+  const filteredTransactions = await Order.find(
     filter,
     {
       orderId: 1,
@@ -123,16 +129,32 @@ export const getTransactionsData = async (query) => {
     paginationOptions(query.page, query.limit),
   );
 
-  const totalTransactions = transactions.length;
   let totalRevenue = 0.0;
-  transactions.forEach((trans) => {
+  let totalRevenueFromMode = 0.0;
+  totalTransactions.forEach((trans) => {
     if (
       trans.payment.status !== PAYMENT_STATUS.PENDING ||
       trans.payment.status !== PAYMENT_STATUS.FAILED
     ) {
-      totalRevenue += parseFloat(trans.payment.amount)
+      totalRevenue += parseFloat(trans.payment.amount);
     }
   });
 
-  return {transactions, totalRevenue : totalRevenue.toFixed(2), totalTransactions, from: query.mode}
+  filteredTransactions.forEach((trans) => {
+    if (
+      trans.payment.status !== PAYMENT_STATUS.PENDING ||
+      trans.payment.status !== PAYMENT_STATUS.FAILED
+    ) {
+      totalRevenueFromMode += parseFloat(trans.payment.amount);
+    }
+  });
+
+  return {
+    filteredTransactions,
+    totalRevenue: totalRevenue.toFixed(2),
+    totalTransactionsCount: totalTransactions.length,
+    from: query.mode,
+    filteredTransactionsCount : filteredTransactions.length,
+    totalRevenueFromMode
+  };
 };

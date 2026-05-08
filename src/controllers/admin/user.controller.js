@@ -5,7 +5,7 @@ import { formatUser } from "../../utils/formatResponse.js";
 import { catchAsync } from "../../utils/universalFunctions.js";
 
 export const getUsers = catchAsync(async (req, res) => {
-  const users = await userService.getUsers(req.query);
+  const {users, totalUsers} = await userService.getUsers(req.query);
   const formattedUsers = users.map((user) => {
     delete user.password
     delete user.__v
@@ -15,7 +15,7 @@ export const getUsers = catchAsync(async (req, res) => {
     res,
     STATUS_CODES.SUCCESS,
     SUCCESS_MESSAGES.SUCCESS,
-    {users, totalUsers: users.length},
+    {users, totalUsers},
   );
 });
 

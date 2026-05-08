@@ -10,7 +10,6 @@ import { paginationOptions } from "../../utils/universalFunctions.js";
 
 export const getUsers = async (query) => {
 
-
   const filter = { isVerified : true}
   if(query.search){
     filter.$or = [
@@ -23,7 +22,8 @@ export const getUsers = async (query) => {
     {},
     paginationOptions(query.page, query.limit),
   );
-  return users;
+  const totalUsers = await User.countDocuments({isVerified: true});
+  return {users, totalUsers};
 };
 
 export const getUserById = async (userId) => {
