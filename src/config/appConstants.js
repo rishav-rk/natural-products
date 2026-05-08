@@ -13,9 +13,7 @@ export const ADDRESS_TYPE = {
 };
 
 export const PAYMENT_METHOD = {
-  // ! update accordingly
-  CREDIT: "creditCard",
-  DEBIT: "debitCard",
+  CARD: "card",
   UPI: "upi",
   NETBANKING: "netBanking",
   WALLET: "wallet",

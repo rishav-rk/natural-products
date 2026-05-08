@@ -1,5 +1,6 @@
 import {
   ERROR_MESSAGES,
+  PAYMENT_STATUS,
   STATUS_CODES,
   TOKEN_TYPE,
   USER_TYPE,
@@ -89,5 +90,48 @@ export const getDashboardData = async () => {
     placedOn: { $gte: fiveDaysAgo },
   });
 
-  return {totalUsers, totalProducts, totalOrders, recentOrders}
+  return { totalUsers, totalProducts, totalOrders, recentOrders };
+};
+
+export const getTransactionsData = async (query) => {
+  console.log(query);
+
+  const filter = {};
+
+  if (query.mode) {
+    filter["payment.method"] = query.mode;
+  }
+
+  if (query.search) {
+    filter.$or = [
+      { orderId: { $regex: query.search } },
+      { "payment.razorpayOrderId": { $regex: query.search } },
+    ];
+  }
+
+  const transactions = await Order.find(
+    filter,
+    {
+      orderId: 1,
+      "payment.razorpayOrderId": 1,
+      "payment.paidOn": 1,
+      "payment.status": 1,
+      "payment.amount": 1,
+      "payment.method": 1,
+    },
+    { lean: true },
+  );
+
+  const totalTransactions = transactions.length;
+  let totalRevenue = 0.0;
+  transactions.forEach((trans) => {
+    if (
+      trans.payment.status !== PAYMENT_STATUS.PENDING ||
+      trans.payment.status !== PAYMENT_STATUS.FAILED
+    ) {
+      totalRevenue += parseFloat(trans.payment.amount)
+    }
+  });
+
+  return {transactions, totalRevenue : totalRevenue.toFixed(2), totalTransactions, from: query.mode}
 };

@@ -178,5 +178,9 @@
 	"quantity is required": "quantity is required",
 	"Sorry, this product is temporarily out of stock": "Sorry, this product is temporarily out of stock",
 	"Sorry, only 59 units of Hyaluronic Acid Moisturizer are available.": "Sorry, only 59 units of Hyaluronic Acid Moisturizer are available.",
-	"Address is required": "Address is required"
+	"Address is required": "Address is required",
+	"tag is not allowed": "tag is not allowed",
+	"mode must be one of [card, upi, netBanking, wallet]": "mode must be one of [card, upi, netBanking, wallet]",
+	"mode must be one of [card, upi, netBanking, wallet], mode is not allowed to be empty": "mode must be one of [card, upi, netBanking, wallet], mode is not allowed to be empty",
+	"search is not allowed to be empty": "search is not allowed to be empty"
 }

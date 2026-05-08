@@ -9,17 +9,15 @@ import { Admin, Token, User } from "../../models/index.js";
 import { paginationOptions } from "../../utils/universalFunctions.js";
 
 export const getUsers = async (query) => {
-  console.log(query)
-  const filter = query.search
-    ? {
-        isVerified: true,
-        $or: [
-          { name: { $regex: query.search, $options: "i" } },
-          { phoneNumber: { $regex: query.search, $options: "i" } },
-        ],
-      }
-    : { isVerified: true };
 
+
+  const filter = { isVerified : true}
+  if(query.search){
+    filter.$or = [
+      { name: { $regex: query.search, $options: "i" } },
+      { phoneNumber: { $regex: query.search, $options: "i" } },
+    ]
+  }
   const users = await User.find(
     filter,
     {},

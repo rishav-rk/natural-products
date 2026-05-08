@@ -170,9 +170,8 @@ export const verifyPayment = async (paymentInfo, token) => {
       ERROR_MESSAGES.NO_SUCH_ORDER,
     );
   }
-const paymentDetails = await razorpay.payments.fetch(razorpay_payment_id)
-  console.log("Payment Details : ", paymentDetails)
 
+  const paymentDetails = await razorpay.payments.fetch(razorpay_payment_id);
   // 4. Atomic transaction: promote order + decrement stock + clear cart
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -182,7 +181,8 @@ const paymentDetails = await razorpay.payments.fetch(razorpay_payment_id)
     pendingOrder.payment.razorpayPaymentId = razorpay_payment_id;
     pendingOrder.payment.razorpaySignature = razorpay_signature;
     pendingOrder.payment.status = PAYMENT_STATUS.COMPLETED;
-    pendingOrder.payment.paidAt = new Date();
+    pendingOrder.payment.method = paymentDetails.method;
+    pendingOrder.payment.paidAt = new Date(paymentDetails.created_at * 1000);
     await pendingOrder.save({ session });
 
     // Decrement stock — $gte guard prevents negative stock on race condition

@@ -66,3 +66,14 @@ export const getDashboard = catchAsync(async (req, res) => {
     { ...dashboardData },
   );
 });
+
+export const getTransactions = catchAsync(async (req, res) => {
+  const transationsData = await authService.getTransactionsData(req.query);
+  return successResponse(
+    req,
+    res,
+    STATUS_CODES.SUCCESS,
+    SUCCESS_MESSAGES.SUCCESS,
+    { ...transationsData },
+  );
+});

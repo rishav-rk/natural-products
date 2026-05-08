@@ -38,4 +38,11 @@ router.get(
   adminController.getDashboard,
 );
 
+router.get(
+  "/transactions", 
+  auth(USER_TYPE.ADMIN), 
+  validate(adminValidator.getTransactionsValidator), 
+  adminController.getTransactions
+)
+
 export default router;
