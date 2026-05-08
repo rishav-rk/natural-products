@@ -39,11 +39,11 @@ export const getOrders = async (query) => {
     filter.status = query.status;
   }
 
-  return await Order.find(
+  return {orders : await Order.find(
     filter,
     orderFilter,
     paginationOptions(query.page, query.limit),
-  );
+  ), totalOrders : await Order.countDocuments({}) }
 };
 
 export const getOrderById = async (orderId) => {
