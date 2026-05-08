@@ -140,21 +140,10 @@ export const getTransactionsData = async (query) => {
     }
   });
 
-  filteredTransactions.forEach((trans) => {
-    if (
-      trans.payment.status !== PAYMENT_STATUS.PENDING ||
-      trans.payment.status !== PAYMENT_STATUS.FAILED
-    ) {
-      totalRevenueFromMode += parseFloat(trans.payment.amount);
-    }
-  });
-
   return {
     filteredTransactions,
     totalRevenue: totalRevenue.toFixed(2),
     totalTransactionsCount: totalTransactions.length,
-    from: query.mode,
-    filteredTransactionsCount : filteredTransactions.length,
-    totalRevenueFromMode
+    from: query.mode
   };
 };
