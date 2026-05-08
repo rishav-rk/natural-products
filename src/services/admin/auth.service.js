@@ -17,6 +17,7 @@ import { successResponse } from "../../utils/response.js";
 import bcrypt from "bcrypt";
 import { formatUser } from "../../utils/formatResponse.js";
 import moment from "moment";
+import { paginationOptions } from "../../utils/universalFunctions.js";
 
 export const login = async (loginData) => {
   const admin = await Admin.findOne({
@@ -119,7 +120,7 @@ export const getTransactionsData = async (query) => {
       "payment.amount": 1,
       "payment.method": 1,
     },
-    { lean: true },
+    paginationOptions(query.page, query.limit),
   );
 
   const totalTransactions = transactions.length;
