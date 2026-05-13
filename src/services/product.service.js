@@ -41,10 +41,10 @@ export const getProducts = async (query, token) => {
   }
 
   const projection = {
-    createdAt: -1,
-    updatedAt: -1,
-    isDeleted: -1,
-    __v: -1,
+    createdAt: 0,
+    updatedAt: 0,
+    isDeleted: 0,
+    __v: 0
   };
 
   const [products, totalCount] = await Promise.all([
