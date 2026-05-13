@@ -3,6 +3,8 @@ import {
   ERROR_MESSAGES,
   TOKEN_TYPE,
   USER_TYPE,
+  ORDER_STATUS,
+  PAYMENT_STATUS,
 } from "../../config/appConstants.js";
 import { Order } from "../../models/index.js";
 import { OperationalError } from "../../utils/error.js";
@@ -10,7 +12,9 @@ import { orderFilter } from "../../utils/orderUtils.js";
 import { paginationOptions } from "../../utils/universalFunctions.js";
 
 export const getOrders = async (query) => {
-  let filter = {};
+  let filter = {
+    "payment.status" : PAYMENT_STATUS.PENDING
+  };
 
   // if (query.search) {
   //   filter.$or = [
@@ -35,15 +39,32 @@ export const getOrders = async (query) => {
     }
   }
 
-  if(query.status) {
+  if (query.status) {
     filter.status = query.status;
   }
 
-  return {orders : await Order.find(
+  const orders = await Order.find(
     filter,
     orderFilter,
     paginationOptions(query.page, query.limit),
-  ), totalOrders : await Order.countDocuments({}) }
+  );
+
+  const allOrders = await Order.find({}, orderFilter);
+
+  const completedOrders = allOrders.filter(
+    (order) => order.status === ORDER_STATUS.DELIVERED,
+  );
+  const totalRevenue = completedOrders.reduce(
+    (acc, order) => order.grandTotalAmount + acc,
+    0,
+  );
+
+  return {
+    orders,
+    orderCount: orders.length,
+    totalOrders: allOrders.length,
+    completedOrders: completedOrders.length,
+  };
 };
 
 export const getOrderById = async (orderId) => {
