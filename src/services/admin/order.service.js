@@ -12,7 +12,7 @@ import { orderFilter } from "../../utils/orderUtils.js";
 import { paginationOptions } from "../../utils/universalFunctions.js";
 export const getOrders = async (query) => {
 
-  const selectUserFields = "name image countryCode phoneNumber isActive";
+  const selectUserFields = "name image";
 
   let filter = {
     "payment.status": { $ne: PAYMENT_STATUS.PENDING },
@@ -80,7 +80,10 @@ export const getOrders = async (query) => {
 };
 
 export const getOrderById = async (orderId) => {
-  const order = await Order.findById(orderId, orderFilter);
+
+  const selectUserFields = "name image isActive countryCode phoneNumber";
+  
+  const order = await Order.findById(orderId, orderFilter).populate("user", selectUserFields);
   if (!order) {
     throw new OperationalError(
       STATUS_CODES.SUCCESS,
