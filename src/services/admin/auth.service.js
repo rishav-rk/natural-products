@@ -97,7 +97,9 @@ export const getDashboardData = async () => {
 export const getTransactionsData = async (query) => {
   console.log(query);
 
-  const filter = {};
+  const filter = {
+    "payment.status" : { $ne : PAYMENT_STATUS.PENDING}
+  };
 
   if (query.mode) {
     filter["payment.method"] = query.mode;
