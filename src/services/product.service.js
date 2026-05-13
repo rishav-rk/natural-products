@@ -7,12 +7,28 @@ export const getProducts = async (query, token) => {
   const filter = {
     isDeleted: false,
   };
-  if(token.type === USER_TYPE.USER){
-    filter.stock.$gt = 0
+
+  // Fix: assign object, not property on undefined
+  if (token.type === USER_TYPE.USER) {
+    filter.stock = { $gt: 0 };
   }
-  const { search } = query;
-  if (search) {
-    filter.$or = [
+
+  // Category filter
+  if (query.category) {
+    filter.category = query.category;
+  }
+
+  // // Price range filter
+  // if (query.minPrice || query.maxPrice) {
+  //   filter.price = {};
+  //   if (query.minPrice) filter.price.$gte = Number(query.minPrice);
+  //   if (query.maxPrice) filter.price.$lte = Number(query.maxPrice);
+  // }
+
+  // Search — prefer $text index, fall back to $regex
+  if (query.search) {
+    // Requires: ProductSchema.index({ name: "text", description: "text", benefits: "text", keywords: "text" })
+        filter.$or = [
       { name: { $regex: search, $options: "i" } },
       { description: { $regex: search, $options: "i" } },
       { benefits: { $regex: search, $options: "i" } },
@@ -20,11 +36,17 @@ export const getProducts = async (query, token) => {
     ];
   }
 
-  return await Product.find(
-    filter,
-    {},
-    paginationOptions(query.page, query.limit),
-  );
+  const projection = {};
+
+  const [products, totalCount] = await Promise.all([
+    Product.find(filter, projection, paginationOptions(query.page, query.limit)),
+    Product.countDocuments(filter),
+  ]);
+
+  return {
+    products,
+    totalCount
+  };
 };
 
 export const getProductById = async (productId) => {

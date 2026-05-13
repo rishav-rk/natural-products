@@ -5,6 +5,7 @@ import { ERROR_MESSAGES, STATUS_CODES } from "../../config/appConstants.js";
 
 export const addProduct = async (productData) => {
 
+  console.log(productData)
   return await Product.create({
     name: productData.name,
     description: productData.description,
@@ -13,26 +14,32 @@ export const addProduct = async (productData) => {
     stock: productData.stock,
     keywords: productData.keywords,
     "details.useBefore": productData.details.useBefore,
-      "details.approvedName": productData.details.approvedName,
+    "details.approvedName": productData.details.approvedName,
     images: productData.images,
   });
 };
 
 export const updateProduct = async (productData, productId) => {
-  const product = await Product.findOneAndUpdate({_id: productId, isDeleted: false}, {$set : {
-    name: productData.name,
-    description: productData.description,
-    benefits: productData.benefits,
-    price: productData.price,
-    stock: productData.stock,
-    keywords: productData.keywords,
-    "details.useBefore": productData.details.useBefore,
-      "details.approvedName": productData.details.approvedName,
-    images: productData.images,
-  }}, {
-    new: true,
-    lean: true,
-  });
+  const product = await Product.findOneAndUpdate(
+    { _id: productId, isDeleted: false },
+    {
+      $set: {
+        name: productData.name,
+        description: productData.description,
+        benefits: productData.benefits,
+        price: productData.price,
+        stock: productData.stock,
+        keywords: productData.keywords,
+        "details.useBefore": productData.details.useBefore,
+        "details.approvedName": productData.details.approvedName,
+        images: productData.images,
+      },
+    },
+    {
+      new: true,
+      lean: true,
+    },
+  );
 
   if (!product) {
     throw new OperationalError(

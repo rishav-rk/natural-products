@@ -11,6 +11,9 @@ import { OperationalError } from "../../utils/error.js";
 import { orderFilter } from "../../utils/orderUtils.js";
 import { paginationOptions } from "../../utils/universalFunctions.js";
 export const getOrders = async (query) => {
+
+  const selectUserFields = "name image countryCode phoneNumber isActive";
+
   let filter = {
     "payment.status": { $ne: PAYMENT_STATUS.PENDING },
   };
@@ -30,7 +33,7 @@ export const getOrders = async (query) => {
   // Run independent queries in parallel
   const [orders, orderCount, stats] = await Promise.all([
     // Paginated filtered orders
-    Order.find(filter, orderFilter, paginationOptions(query.page, query.limit)),
+    Order.find(filter, orderFilter, paginationOptions(query.page, query.limit)).populate("user", selectUserFields),
 
     // Count of filtered orders
     Order.countDocuments(filter),
