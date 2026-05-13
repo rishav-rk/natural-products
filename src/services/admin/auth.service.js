@@ -95,11 +95,11 @@ export const getDashboardData = async () => {
 };
 
 export const getTransactionsData = async (query) => {
-  console.log(query);
-
-  const filter = {
-    "payment.status" : { $ne : PAYMENT_STATUS.PENDING}
+  const baseFilter = {
+    "payment.status": { $nin: [PAYMENT_STATUS.PENDING, PAYMENT_STATUS.FAILED] }
   };
+
+  const filter = { ...baseFilter };
 
   if (query.mode) {
     filter["payment.method"] = query.mode;
@@ -112,39 +112,44 @@ export const getTransactionsData = async (query) => {
     ];
   }
 
-  const totalTransactions = await Order.find(
-    {},
-    { _id: 1, payment: 1 },
-    { lean: true },
-  );
+  const [filteredTransactions, totalCount, revenueStats] = await Promise.all([
+    // Paginated + filtered transactions
+    Order.find(
+      filter,
+      {
+        orderId: 1,
+        "payment.razorpayOrderId": 1,
+        "payment.paidOn": 1,
+        "payment.status": 1,
+        "payment.amount": 1,
+        "payment.method": 1,
+      },
+      paginationOptions(query.page, query.limit),
+    ),
 
-  const filteredTransactions = await Order.find(
-    filter,
-    {
-      orderId: 1,
-      "payment.razorpayOrderId": 1,
-      "payment.paidOn": 1,
-      "payment.status": 1,
-      "payment.amount": 1,
-      "payment.method": 1,
-    },
-    paginationOptions(query.page, query.limit),
-  );
+    // Accurate count of filtered results
+    Order.countDocuments(filter),
 
-  let totalRevenue = 0.0;
-  totalTransactions.forEach((trans) => {
-    if (
-      trans.payment.status !== PAYMENT_STATUS.PENDING ||
-      trans.payment.status !== PAYMENT_STATUS.FAILED
-    ) {
-      totalRevenue += parseFloat(trans.payment.amount);
-    }
-  });
+    // Total revenue via aggregation — no data pulled into memory
+    Order.aggregate([
+      { $match: baseFilter },
+      {
+        $group: {
+          _id: null,
+          totalRevenue: { $sum: { $toDouble: "$payment.amount" } },
+        },
+      },
+    ]),
+  ]);
+
+  console.log(revenueStats)
+
+  const totalRevenue = revenueStats[0]?.totalRevenue ?? 0;
 
   return {
     filteredTransactions,
     totalRevenue: totalRevenue.toFixed(2),
-    totalTransactionsCount: filteredTransactions.length,
-    from: query.mode
+    totalTransactionsCount: totalCount,
+    from: query.mode,
   };
 };
