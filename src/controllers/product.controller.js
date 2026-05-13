@@ -5,14 +5,14 @@ import { formatProducts, formatUser } from "../utils/formatResponse.js";
 import { catchAsync } from "../utils/universalFunctions.js";
 
 export const getProducts = catchAsync(async (req, res) => {
-  const products = await productService.getProducts(req.query, req.token);
-  const fomattedProducts = products.map((product) => formatProducts(product));
+  const {products, totalCount} = await productService.getProducts(req.query, req.token);
+  // const fomattedProducts = products.map((product) => formatProducts(product));
   return successResponse(
     req,
     res,
     STATUS_CODES.SUCCESS,
     SUCCESS_MESSAGES.SUCCESS,
-    { products: fomattedProducts , totalCount : products.length},
+    { products, totalCount},
   );
 });
 

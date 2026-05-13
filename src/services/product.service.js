@@ -1,4 +1,8 @@
-import { STATUS_CODES, ERROR_MESSAGES, USER_TYPE } from "../config/appConstants.js";
+import {
+  STATUS_CODES,
+  ERROR_MESSAGES,
+  USER_TYPE,
+} from "../config/appConstants.js";
 import { Product } from "../models/index.js";
 import { OperationalError } from "../utils/error.js";
 import { paginationOptions } from "../utils/universalFunctions.js";
@@ -28,7 +32,7 @@ export const getProducts = async (query, token) => {
   // Search — prefer $text index, fall back to $regex
   if (query.search) {
     // Requires: ProductSchema.index({ name: "text", description: "text", benefits: "text", keywords: "text" })
-        filter.$or = [
+    filter.$or = [
       { name: { $regex: search, $options: "i" } },
       { description: { $regex: search, $options: "i" } },
       { benefits: { $regex: search, $options: "i" } },
@@ -36,16 +40,25 @@ export const getProducts = async (query, token) => {
     ];
   }
 
-  const projection = {};
+  const projection = {
+    createdAt: -1,
+    updatedAt: -1,
+    isDeleted: -1,
+    __v: -1,
+  };
 
   const [products, totalCount] = await Promise.all([
-    Product.find(filter, projection, paginationOptions(query.page, query.limit)),
+    Product.find(
+      filter,
+      projection,
+      paginationOptions(query.page, query.limit),
+    ),
     Product.countDocuments(filter),
   ]);
 
   return {
     products,
-    totalCount
+    totalCount,
   };
 };
 
