@@ -10,60 +10,69 @@ import { Order } from "../../models/index.js";
 import { OperationalError } from "../../utils/error.js";
 import { orderFilter } from "../../utils/orderUtils.js";
 import { paginationOptions } from "../../utils/universalFunctions.js";
-
 export const getOrders = async (query) => {
   let filter = {
-    "payment.status" : { $ne : PAYMENT_STATUS.PENDING}
+    "payment.status": { $ne: PAYMENT_STATUS.PENDING },
   };
 
-  // if (query.search) {
-  //   filter.$or = [
-  //     { orderId: { $regex: query.search, $options: "i" } },
-  //     { "user.name": { $regex: query.search, $options: "i" } },
-  //   ];
-  // }
-  // Add date range filter if provided
   if (query.startDate || query.endDate) {
     filter.placedOn = {};
-
-    if (query.startDate) {
-      // Start of the day
-      filter.placedOn.$gte = new Date(query.startDate);
-    }
-
+    if (query.startDate) filter.placedOn.$gte = new Date(query.startDate);
     if (query.endDate) {
-      // End of the day
       const endDate = new Date(query.endDate);
       endDate.setHours(23, 59, 59, 999);
       filter.placedOn.$lte = endDate;
     }
   }
 
-  if (query.status) {
-    filter.status = query.status;
-  }
+  if (query.status) filter.status = query.status;
 
-  const orders = await Order.find(
-    filter,
-    orderFilter,
-    paginationOptions(query.page, query.limit),
-  );
+  // Run independent queries in parallel
+  const [orders, orderCount, stats] = await Promise.all([
+    // Paginated filtered orders
+    Order.find(filter, orderFilter, paginationOptions(query.page, query.limit)),
 
-  const allOrders = await Order.find({}, orderFilter);
+    // Count of filtered orders
+    Order.countDocuments(filter),
 
-  const completedOrders = allOrders.filter(
-    (order) => order.status === ORDER_STATUS.DELIVERED,
-  );
-  const totalRevenue = completedOrders.reduce(
-    (acc, order) => order.grandTotalAmount + acc,
-    0,
-  );
+    // Aggregate total + completed + revenue in ONE db call
+    Order.aggregate([
+      { $match: { "payment.status": { $ne: PAYMENT_STATUS.PENDING } } },
+      {
+        $group: {
+          _id: null,
+          totalOrders: { $sum: 1 },
+          completedOrders: {
+            $sum: {
+              $cond: [{ $eq: ["$status", ORDER_STATUS.DELIVERED] }, 1, 0],
+            },
+          },
+          totalRevenue: {
+            $sum: {
+              $cond: [
+                { $eq: ["$status", ORDER_STATUS.DELIVERED] },
+                "$grandTotalAmount",
+                0,
+              ],
+            },
+          },
+        },
+      },
+    ]),
+  ]);
+
+  const { totalOrders, completedOrders, totalRevenue } = stats[0] ?? {
+    totalOrders: 0,
+    completedOrders: 0,
+    totalRevenue: 0,
+  };
 
   return {
     orders,
-    orderCount: orders.length,
-    totalOrders: allOrders.length,
-    completedOrders: completedOrders.length,
+    orderCount,
+    totalOrders,
+    completedOrders,
+    totalRevenue,
   };
 };
 

@@ -20,7 +20,7 @@ export const addProduct = {
       .items(Joi.string())
       .example(["aloe vera", "gel", "skincare"]),
     details: Joi.object({
-      userBefore: Joi.string().required().example("3 years from Mfg. date"),
+      useBefore: Joi.string().required().example("3 years from Mfg. date"),
       approvedName: Joi.string().required().example("Aloe Vera Gel / 46AQA-AP"),
     }).required(),
     images: Joi.array()
@@ -57,7 +57,7 @@ export const updateProduct = {
       .items(Joi.string())
       .example(["aloe vera", "gel", "skincare"]),
     details: Joi.object({
-      userBefore: Joi.string().required().example("3 years from Mfg. date"),
+      useBefore: Joi.string().required().example("3 years from Mfg. date"),
       approvedName: Joi.string().required().example("Aloe Vera Gel / 46AQA-AP"),
     }).required(),
     images: Joi.array()
