@@ -132,7 +132,6 @@ export const getTransactionsData = async (query) => {
   );
 
   let totalRevenue = 0.0;
-  let totalRevenueFromMode = 0.0;
   totalTransactions.forEach((trans) => {
     if (
       trans.payment.status !== PAYMENT_STATUS.PENDING ||
@@ -145,7 +144,7 @@ export const getTransactionsData = async (query) => {
   return {
     filteredTransactions,
     totalRevenue: totalRevenue.toFixed(2),
-    totalTransactionsCount: totalTransactions.length,
+    totalTransactionsCount: filteredTransactions.length,
     from: query.mode
   };
 };
