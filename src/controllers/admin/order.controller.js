@@ -4,13 +4,13 @@ import { successResponse } from "../../utils/response.js";
 import { catchAsync } from "../../utils/universalFunctions.js";
 
 export const getOrders = catchAsync(async (req, res) => {
-  const {orders, totalOrders} = await orderService.getOrders(req.query);
+  const { orders, totalOrders, orderCount, completedOrders } = await orderService.getOrders(req.query);
   return successResponse(
     req,
     res,
     STATUS_CODES.SUCCESS,
     SUCCESS_MESSAGES.SUCCESS,
-    { orders, totalOrders},
+    { orders, orderCount, totalOrders, completedOrders },
   );
 });
 

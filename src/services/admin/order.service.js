@@ -13,7 +13,7 @@ import { paginationOptions } from "../../utils/universalFunctions.js";
 
 export const getOrders = async (query) => {
   let filter = {
-    "payment.status" : PAYMENT_STATUS.PENDING
+    "payment.status" : { $not: PAYMENT_STATUS.PENDING}
   };
 
   // if (query.search) {
