@@ -12,7 +12,7 @@ export const addProduct = async (productData) => {
     price: productData.price,
     stock: productData.stock,
     keywords: productData.keywords,
-    "details.useBefore": productData.details.userBefore,
+    "details.useBefore": productData.details.useBefore,
       "details.approvedName": productData.details.approvedName,
     images: productData.images,
   });
@@ -26,7 +26,7 @@ export const updateProduct = async (productData, productId) => {
     price: productData.price,
     stock: productData.stock,
     keywords: productData.keywords,
-    "details.useBefore": productData.details.userBefore,
+    "details.useBefore": productData.details.useBefore,
       "details.approvedName": productData.details.approvedName,
     images: productData.images,
   }}, {
