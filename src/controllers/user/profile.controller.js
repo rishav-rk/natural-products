@@ -1,8 +1,10 @@
 import { successResponse } from "../../utils/response.js";
-import { STATUS_CODES, SUCCESS_MESSAGES } from "../../config/appConstants.js";
+import { ERROR_MESSAGES, STATUS_CODES, SUCCESS_MESSAGES } from "../../config/appConstants.js";
 import { formatUser } from "../../utils/formatResponse.js";
 import { catchAsync } from "../../utils/universalFunctions.js";
+import { checkPincodeServiceability } from "../../utils/delivery.js";
 import * as profileService from "../../services/user/profile.service.js";
+import { OperationalError } from "../../utils/error.js";
 
 export const getProfile = catchAsync(async (req, res) => {
   return successResponse(
@@ -47,22 +49,40 @@ export const deleteAccount = catchAsync(async (req, res) => {
 
 // implement this
 export const updateAddress = catchAsync(async (req, res) => {
-  const addresses = await profileService.updateAddress(
-    req.body,
+  const addressData = req.body;
+   const { serviceable, isOda } = await checkPincodeServiceability(addressData.pincode);
+
+  if (!serviceable) {
+    throw new OperationalError(
+      STATUS_CODES.ACTION_FAILED,
+      ERROR_MESSAGES.NOT_SERVICEABLE
+    );
+  }
+  await profileService.updateAddress(
+    addressData,
     req.params.addressId,
     req.token,
   );
   return successResponse(
     res,
     res,
-    STATUS_CODES.SUCCESS,
+    STATUS_CODES.ACTION_COMPLETE,
     SUCCESS_MESSAGES.SUCCESS,
-    { addresses },
   );
 });
 
 export const addAddress = catchAsync(async (req, res) => {
   const addressData = req.body;
+
+  const { serviceable, isOda } = await checkPincodeServiceability(addressData.pincode);
+
+  if (!serviceable) {
+    throw new OperationalError(
+      STATUS_CODES.ACTION_FAILED,
+      ERROR_MESSAGES.NOT_SERVICEABLE
+    );
+  }
+
   addressData.location = {
     type: "Point",
     coordinates: [addressData.longitude, addressData.latitude],
@@ -70,13 +90,12 @@ export const addAddress = catchAsync(async (req, res) => {
   delete addressData.latitude;
   delete addressData.longitude;
 
-  const address = await profileService.addAddress(addressData, req.token);
+  await profileService.addAddress(addressData, req.token);
   return successResponse(
     res,
     res,
     STATUS_CODES.CREATED,
     SUCCESS_MESSAGES.SUCCESS,
-    { address },
   );
 });
 

@@ -8,6 +8,7 @@ import morgan from "morgan";
 
 import { jwtStrategy } from "./config/passport.js";
 import routes from "./routes/index.js";
+import deliveryRoutes from "./routes/deliveryRoutes.js"
 
 import swaggerUI from "swagger-ui-express"
 import swaggerSpec from "./config/swagger.js"
@@ -71,6 +72,7 @@ app.use(passport.initialize());
 passport.use("jwt", jwtStrategy);
 
 // v1 api routes
+app.use("/delhivery", deliveryRoutes)
 app.use("/api", routes);
 
 //send back a 404 error for any unknown api request

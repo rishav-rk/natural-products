@@ -28,6 +28,9 @@ const envVarsSchema = Joi.object()
     RAZORPAY_KEY_SECRET: Joi.string()
       .required()
       .description("Razorpay secret key required"),
+    DELHIVERY_API_TOKEN: Joi.string().required().description('Delhivery api token required'), 
+    DELHIVERY_BASE_URL: Joi.string().required().description('Delhivery production url is required'),
+    DELHIVERY_BASE_TEST_URL: Joi.string().description('Delhivery testing url')
   })
   .unknown();
 
@@ -58,5 +61,10 @@ export default {
   razorpay:{
     id: envVars.RAZORPAY_KEY_ID, 
     secret: envVars.RAZORPAY_KEY_SECRET
+  },
+  delhivery: {
+    secret: envVars.DELHIVERY_API_TOKEN, 
+    baseUrl : envVars.DELHIVERY_BASE_URL, 
+    testUrl: envVars.DELHIVERY_BASE_TEST_URL
   }
 };

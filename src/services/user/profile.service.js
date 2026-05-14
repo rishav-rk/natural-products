@@ -122,8 +122,6 @@ export const addAddress = async (addressData, token) => {
     },
     { new: true },
   ).lean();
-
-  return user.addresses;
 };
 
 export const deleteAddress = async (addressId, token) => {
