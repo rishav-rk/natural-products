@@ -30,18 +30,37 @@ export const checkPincodeServiceability = async (pincode) => {
   };
 };
 
-export const calculateShippingCost = async () => {
-
+const checkShippingRate = async ({
+  destinationPin,
+  originPin,
+  weight,
+  paymentType = "Pre-paid",
+  mode = "S",
+}) => {
   const options = {
     method: "GET",
-    url: `${config.delhivery.baseUrl}/api/kinko/v1/invoice/charges/.json?md=E&ss=Delivered&d_pin=110053&o_pin=110042&cgm=10&pt=Pre-paid`,
+    url: `${config.delhivery.baseUrl}/api/kinko/v1/invoice/charges/.json`,
+    params: {
+      md: mode,
+      ss: "Delivered",
+      d_pin: destinationPin,
+      o_pin: originPin,
+      cgm: weight,
+      pt: paymentType,
+    },
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${config.delhivery.secret}`,
     },
   };
 
-  const result = await axios.request(options)
-  console.log(result)
-  return successResponse(req, res, 200, 'OK')
+  const { data } = await axios.request(options);
+  const rate = data[0];
+
+  return {
+    shippingFee: rate.total_amount,
+    zone: rate.zone,
+    chargedWeight: rate.charged_weight,
+    isCOD: rate.charge_COD > 0,
+  };
 };
