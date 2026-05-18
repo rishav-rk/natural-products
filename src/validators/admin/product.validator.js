@@ -32,6 +32,7 @@ export const addProduct = {
         "https://example.com/image1.jpg",
         "https://example.com/image2.jpg",
       ]),
+      backgroudColor: Joi.string().example('#000000')
   }).required(),
 };
 
@@ -69,6 +70,7 @@ export const updateProduct = {
         "https://example.com/image1.jpg",
         "https://example.com/image2.jpg",
       ]),
+      backgroudColor: Joi.string().example('#000000')
   }).required()
 }
 

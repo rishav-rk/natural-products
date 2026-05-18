@@ -16,6 +16,7 @@ export const addProduct = async (productData) => {
     "details.useBefore": productData.details.useBefore,
     "details.approvedName": productData.details.approvedName,
     images: productData.images,
+    backgroundColor: product.backgroundColor
   });
 };
 
@@ -33,6 +34,7 @@ export const updateProduct = async (productData, productId) => {
         "details.useBefore": productData.details.useBefore,
         "details.approvedName": productData.details.approvedName,
         images: productData.images,
+        backgroundColor: productData.backgroundColor
       },
     },
     {

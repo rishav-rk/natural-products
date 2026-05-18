@@ -29,6 +29,9 @@ const productSchema = new mongoose.Schema(
       type: Boolean, 
       default : false
     },
+    backgroundColor: {
+      type: String, 
+    },
     details: {
       manufacturer: {
         type: String,
