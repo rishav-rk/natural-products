@@ -1,4 +1,4 @@
-import {JOI} from "../../config/appConstants.js";
+import { JOI } from "../../config/appConstants.js";
 import Joi from "joi";
 
 export const addProduct = {
@@ -32,15 +32,15 @@ export const addProduct = {
         "https://example.com/image1.jpg",
         "https://example.com/image2.jpg",
       ]),
-      backgroudColor: Joi.string().example('#000000')
+    backgroundColor: Joi.string().example("#000000"),
   }).required(),
 };
 
 export const updateProduct = {
-    params : Joi.object({
-        productId: JOI.OBJECTID
-    }).required(), 
-      body: Joi.object({
+  params: Joi.object({
+    productId: JOI.OBJECTID,
+  }).required(),
+  body: Joi.object({
     name: Joi.string().required().example("Aloe Vera Gel"),
     description: Joi.string()
       .required()
@@ -70,26 +70,26 @@ export const updateProduct = {
         "https://example.com/image1.jpg",
         "https://example.com/image2.jpg",
       ]),
-      backgroudColor: Joi.string().example('#000000')
-  }).required()
-}
+    backgroundColor: Joi.string().example("#000000"),
+  }).required(),
+};
 
 export const deleteProduct = {
-  params : Joi.object({
-    productId : JOI.OBJECTID
-  })
-}
+  params: Joi.object({
+    productId: JOI.OBJECTID,
+  }),
+};
 
 export const getProducts = {
-    query : Joi.object({
-      page: JOI.PAGE, 
-      limit: JOI.LIMIT, 
-      search : Joi.string().example("aloe vera")
-    })
-}
+  query: Joi.object({
+    page: JOI.PAGE,
+    limit: JOI.LIMIT,
+    search: Joi.string().example("aloe vera"),
+  }),
+};
 
 export const getProductById = {
-  params : Joi.object({
-    productId: JOI.OBJECTID
-  })
-}
+  params: Joi.object({
+    productId: JOI.OBJECTID,
+  }),
+};
