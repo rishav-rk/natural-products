@@ -32,6 +32,8 @@ export const addProduct = {
         "https://example.com/image1.jpg",
         "https://example.com/image2.jpg",
       ]),
+      weight: Joi.number().example("must be in kg, e.g. 0.3 for 300gm and 1 for 1kg"),
+      discount: Joi.number().example("in percent like 49 for 49 % discount")
   }).required(),
 };
 
@@ -69,6 +71,8 @@ export const updateProduct = {
         "https://example.com/image1.jpg",
         "https://example.com/image2.jpg",
       ]),
+      weight: Joi.number().example("must be in kg, e.g. 0.3 for 300gm and 1 for 1kg"),
+      discount: Joi.number().example("in percent like 49 for 49 % discount")
   }).required()
 }
 

@@ -135,10 +135,10 @@ components:
         details:
           type: object
           required:
-            - userBefore
+            - useBefore
             - approvedName
           properties:
-            userBefore:
+            useBefore:
               type: string
               example: "3 years from Mfg. date"
               description: Validity period information
@@ -157,6 +157,19 @@ components:
             - "https://example.com/image1.jpg"
             - "https://example.com/image2.jpg"
           description: Product image URLs (minimum 1, maximum 5)
+        weight:
+          type: number
+          format: float
+          example: 0.3
+          description: "Weight of the product in kg (e.g. 0.3 for 300g, 1 for 1kg)"
+
+        discount:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          example: 49
+          description: "Discount on the product in percent (e.g. 49 for 49%)"
 
     updateProductRequest:
       type: object
@@ -201,10 +214,10 @@ components:
         details:
           type: object
           required:
-            - userBefore
+            - useBefore
             - approvedName
           properties:
-            userBefore:
+            useBefore:
               type: string
               example: "3 years from Mfg. date"
               description: Validity period information
@@ -223,6 +236,19 @@ components:
             - "https://example.com/image1.jpg"
             - "https://example.com/image2.jpg"
           description: Product image URLs (minimum 1, maximum 5)
+        weight:
+          type: number
+          format: float
+          example: 0.3
+          description: "Weight of the product in kg (e.g. 0.3 for 300g, 1 for 1kg)"
+
+        discount:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          example: 49
+          description: "Discount on the product in percent (e.g. 49 for 49%)"
 
     productResponse:
       type: object
@@ -262,7 +288,7 @@ components:
         details:
           type: object
           properties:
-            userBefore:
+            useBefore:
               type: string
               example: "3 years from Mfg. date"
             approvedName:
@@ -276,3 +302,16 @@ components:
           example:
             - "https://example.com/image1.jpg"
           description: Product image URLs
+        weight:
+          type: number
+          format: float
+          example: 0.3
+          description: "Weight of the product in kg (e.g. 0.3 for 300g, 1 for 1kg)"
+
+        discount:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          example: 49
+          description: "Discount on the product in percent (e.g. 49 for 49%)"

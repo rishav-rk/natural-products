@@ -18,7 +18,7 @@ const productSchema = new mongoose.Schema(
       type: String, // ← change from String to Number
       required: [true, "Please provide product price"],
     },
-    mrp: {
+    discountedPrice: {
       type: String,
       // required: [true, "Please provide product MRP"],
     },
