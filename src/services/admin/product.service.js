@@ -49,6 +49,7 @@ export const updateProduct = async (productData, productId) => {
     if (productData.details.approvedName !== undefined)
       updateFields["details.approvedName"] = productData.details.approvedName;
   }
+  
 
   // Price & discount must stay in sync
   if (productData.price !== undefined || productData.discount !== undefined) {
