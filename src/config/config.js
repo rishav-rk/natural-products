@@ -28,6 +28,7 @@ const envVarsSchema = Joi.object()
     RAZORPAY_KEY_SECRET: Joi.string()
       .required()
       .description("Razorpay secret key required"),
+    MESSAGE91_AUTH_KEY: Joi.string().required().description("MSG91 secret key")
   })
   .unknown();
 
@@ -58,5 +59,6 @@ export default {
   razorpay:{
     id: envVars.RAZORPAY_KEY_ID, 
     secret: envVars.RAZORPAY_KEY_SECRET
-  }
+  }, 
+  msg91Secret: envVars.MESSAGE91_AUTH_KEY
 };

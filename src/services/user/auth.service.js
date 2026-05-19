@@ -15,6 +15,7 @@ import {
 } from "../token.service.js";
 import { successResponse } from "../../utils/response.js";
 import bcrypt from "bcrypt";
+import { sendOTPViaSMS } from "../../utils/smsService.js";
 
 export const signUp = async (userData) => {
   if (
@@ -58,6 +59,9 @@ export const signUp = async (userData) => {
     userData.deviceId,
     otp,
   );
+
+  sendOTPViaSMS(userDataToSave.phoneNumber, otp.code)
+
   return { user: user.toObject(), token: authToken };
 };
 
@@ -134,6 +138,8 @@ export const forgotPassword = async (data) => {
     otp,
   );
 
+  sendOTPViaSMS(user.phoneNumber, otp.code)
+
   return resetToken;
 };
 
@@ -204,6 +210,8 @@ export const resendOtp = async (token) => {
   // otp sent via sms
 
   await resendOTP(token._id, otp);
+
+  sendOTPViaSMS(token.user.phoneNumber, otp.code);
 };
 
 export const logout = async (token) => {
