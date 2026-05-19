@@ -5,7 +5,6 @@ import { formatUser } from "../../utils/formatResponse.js";
 import { catchAsync } from "../../utils/universalFunctions.js";
 
 export const signUp = catchAsync(async (req, res) => {
-  console.log(req.body)
   const { user, token } = await authService.signUp(req.body);
   
   return successResponse(
