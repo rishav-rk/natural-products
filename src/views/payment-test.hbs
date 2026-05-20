@@ -380,7 +380,7 @@ body::before{
     <div class="field">
       <label>Custom Headers (JSON)</label>
       <textarea class="body-editor" id="createHeaders" rows="2">{
-  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODAxMTgzNjYsInR5cGUiOiJhY2Nlc3MiLCJpZCI6IjY5ZjJlNjVlNjk0ZTFjOThkNTY0NzA3MCIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzc3NTI2MzY2fQ.bH6PnslJ_dUVs2DfQHGn9P8XdEYuX6naY696rfC6sxI"
+  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODE3NzU1ODYsInR5cGUiOiJhY2Nlc3MiLCJpZCI6IjZhMGMyZmUyYzc4YzVmNWIyYWEyNjNkMyIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzc5MTgzNTg2fQ.vApxtTib7jE0dYpeOxF0e_I8PuXy4SEgZqVGCvxbBF8"
 }</textarea>
     </div>
     <div class="btn-row">
@@ -636,7 +636,8 @@ async function createOrder() {
       setStatus('ORDER FAILED', 'error');
     } else {
       // Try to detect order_id field — common naming variants
-      const orderId = data.data.orderDetails.razorpayOrder.id;
+      const orderId = data.data.razorpayOrder.id;
+      console.log(orderId)
       if (!orderId) {
         log('warn', 'Could not find order_id in response. Check field name.');
         log('info', 'Response keys: ' + Object.keys(data).join(', '));

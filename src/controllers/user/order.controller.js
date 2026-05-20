@@ -4,13 +4,14 @@ import { catchAsync } from "../../utils/universalFunctions.js";
 import { STATUS_CODES, SUCCESS_MESSAGES } from "../../config/appConstants.js";
 
 export const createOrder = catchAsync(async (req, res) => {
-  const orderDetails = await orderService.createOrder(req.body, req.token);
+  const {razorpayOrder} = await orderService.createOrder(req.body, req.token);
+  console.log(razorpayOrder)
   return successResponse(
     req,
     res,
     STATUS_CODES.CREATED,
     SUCCESS_MESSAGES.ORDER_CREATED,
-    { ...orderDetails },
+    { razorpayOrder },
   );
 });
 

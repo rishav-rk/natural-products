@@ -28,7 +28,9 @@ const envVarsSchema = Joi.object()
     RAZORPAY_KEY_SECRET: Joi.string()
       .required()
       .description("Razorpay secret key required"),
-    MESSAGE91_AUTH_KEY: Joi.string().required().description("MSG91 secret key")
+    MESSAGE91_AUTH_KEY: Joi.string().required().description("MSG91 secret key"), 
+    BREVO_API_KEY: Joi.string().required().description('Brevo api key is required'), 
+    SENDER_EMAIL: Joi.string().required().description('sender email address')
   })
   .unknown();
 
@@ -60,5 +62,7 @@ export default {
     id: envVars.RAZORPAY_KEY_ID, 
     secret: envVars.RAZORPAY_KEY_SECRET
   }, 
-  msg91Secret: envVars.MESSAGE91_AUTH_KEY
+  msg91Secret: envVars.MESSAGE91_AUTH_KEY, 
+  brevoApiKey: envVars.BREVO_API_KEY, 
+  senderEmail: envVars.SENDER_EMAIL
 };

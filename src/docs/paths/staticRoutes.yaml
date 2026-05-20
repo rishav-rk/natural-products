@@ -1,17 +1,19 @@
-getContactUs:
+sendQuery:
   summary: Get Contact Us page
   tags:
     - Static Pages
   security:
     - bearerAuth: []
+  requestBody:
+    required: true
+    description: Fields required for signup
+    content:
+      application/json:
+        schema:
+          $ref: '#components/schemas/validateContactUsRequest'
   responses:
-    200:
-      description: Contact Us page rendered successfully
-      content:
-        text/html:
-          schema:
-            type: string
-            example: "<html>...</html>"
+    204:
+      description: Query submitted successfully
     401:
       description: Unauthorized - user authentication required
     500:

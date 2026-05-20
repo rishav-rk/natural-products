@@ -174,8 +174,8 @@ paths:
       $ref: "./paths/common.yaml#/getProductById"
 
   /contact-us:
-    get:
-      $ref: "./paths/staticRoutes.yaml#/getContactUs"
+    post:
+      $ref: "./paths/staticRoutes.yaml#/sendQuery"
 
   /about-us:
     get:

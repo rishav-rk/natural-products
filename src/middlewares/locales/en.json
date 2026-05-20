@@ -182,5 +182,6 @@
 	"tag is not allowed": "tag is not allowed",
 	"mode must be one of [card, upi, netBanking, wallet]": "mode must be one of [card, upi, netBanking, wallet]",
 	"mode must be one of [card, upi, netBanking, wallet], mode is not allowed to be empty": "mode must be one of [card, upi, netBanking, wallet], mode is not allowed to be empty",
-	"search is not allowed to be empty": "search is not allowed to be empty"
+	"search is not allowed to be empty": "search is not allowed to be empty",
+	"razorpay_order_id is required, razorpay_payment_id is required, razorpay_signature is required, razorpayOrderId is not allowed, razorpayPaymentId is not allowed, razorpaySignature is not allowed": "razorpay_order_id is required, razorpay_payment_id is required, razorpay_signature is required, razorpayOrderId is not allowed, razorpayPaymentId is not allowed, razorpaySignature is not allowed"
 }

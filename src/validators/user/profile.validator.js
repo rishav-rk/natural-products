@@ -100,3 +100,12 @@ export const deleteFromCart = {
     productId: JOI.OBJECTID.required(),
   }),
 };
+
+export const validateContactUs = {
+  body: Joi.object({
+    name: Joi.string().required().example('John Doe'), 
+    email: JOI.EMAIL, 
+    subject: Joi.string().required().example('This is for testing purpose'), 
+    message: Joi.string().required().example('Thank you for your service')
+  }).required()
+}
