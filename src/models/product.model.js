@@ -11,23 +11,37 @@ const productSchema = new mongoose.Schema(
       required: [true, "Please provide product description"],
     },
     benefits: {
-        type: String,
-        required: [true, "Please provide product benefits"]
+      type: String,
+      required: [true, "Please provide product benefits"],
     },
     price: {
-      type: String,
+      type: String, // ← change from String to Number
       required: [true, "Please provide product price"],
+    },
+    discountedPrice: {
+      type: String,
+      // required: [true, "Please provide product MRP"],
+    },
+    discount: {
+      type: String,
+      default: 0, // in percentage
     },
     stock: {
       type: Number,
       required: [true, "Please provide product stock"],
     },
-    keywords:[ {
-      type: String, 
-    }],
+    keywords: [
+      {
+        type: String,
+      },
+    ],
+    weight: {
+      type: Number,
+      default: 0.3, // ! must be in kg
+    },
     isOutOfStock: {
-      type: Boolean, 
-      default : false
+      type: Boolean,
+      default: false,
     },
     backgroundColor: {
       type: String, 
@@ -35,37 +49,39 @@ const productSchema = new mongoose.Schema(
     details: {
       manufacturer: {
         type: String,
-        default: "Back to Nature's Lap, Plot No. 202, Industrial Focal Point, Phase - 9, Bengaluru, KA, India",
+        default:
+          "Back to Nature's Lap, Plot No. 202, Industrial Focal Point, Phase - 9, Bengaluru, KA, India",
       },
       packer: {
         type: String,
-        default: "Back to Nature's Lap, Plot No. 202, Industrial Focal Point, Phase - 9, Bengaluru, KA, India",
-      }, 
+        default:
+          "Back to Nature's Lap, Plot No. 202, Industrial Focal Point, Phase - 9, Bengaluru, KA, India",
+      },
       countryOfOrigin: {
-        type: String, 
-        default : "India"
+        type: String,
+        default: "India",
       },
       useBefore: {
-        type: String, 
-        required: [true, "Please provide product user before date"]
-      }, 
+        type: String,
+        required: [true, "Please provide product user before date"],
+      },
       approvedName: {
-        type: String, 
-        required: [true, "Please provide product approved name"]
-      }
+        type: String,
+        required: [true, "Please provide product approved name"],
+      },
     },
     images: [
       {
         type: String,
         required: [true, "Please provide product images"],
-        },
+      },
     ],
     isDeleted: {
       type: Boolean,
       default: false,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const Product = mongoose.model("Product", productSchema);

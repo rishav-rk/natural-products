@@ -29,6 +29,7 @@ export const ORDER_STATUS = {
   INPROGRESS: 'In Progress',
   OTW: 'On the Way', 
   DELIVERED: 'Delivered'
+
 };
 
 export const USER_TYPE = {
@@ -118,6 +119,7 @@ export const SUCCESS_MESSAGES = {
 };
 
 export const ERROR_MESSAGES = {
+  NOT_SERVICEABLE: "This pincode is not serviceable by our delivery partner",
   OUT_OF_STOCK: "Sorry, this product is temporarily out of stock" , 
   NO_SUCH_ORDER: 'No such order',
   INVALID_SIGNATURE: 'Invalid payment signature',

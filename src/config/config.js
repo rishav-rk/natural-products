@@ -30,7 +30,10 @@ const envVarsSchema = Joi.object()
       .description("Razorpay secret key required"),
     MESSAGE91_AUTH_KEY: Joi.string().required().description("MSG91 secret key"), 
     BREVO_API_KEY: Joi.string().required().description('Brevo api key is required'), 
-    SENDER_EMAIL: Joi.string().required().description('sender email address')
+    SENDER_EMAIL: Joi.string().required().description('sender email address'),
+    DELHIVERY_API_TOKEN: Joi.string().required().description('Delhivery api token required'), 
+    DELHIVERY_BASE_URL: Joi.string().required().description('Delhivery production url is required'),
+    DELHIVERY_BASE_TEST_URL: Joi.string().description('Delhivery testing url')
   })
   .unknown();
 
@@ -63,6 +66,13 @@ export default {
     secret: envVars.RAZORPAY_KEY_SECRET
   }, 
   msg91Secret: envVars.MESSAGE91_AUTH_KEY, 
-  brevoApiKey: envVars.BREVO_API_KEY, 
-  senderEmail: envVars.SENDER_EMAIL
+  brevo : {
+    apiKey: envVars.BREVO_API_KEY, 
+    senderEmail: envVars.SENDER_EMAIL,
+  },
+  delhivery: {
+    secret: envVars.DELHIVERY_API_TOKEN, 
+    baseUrl : envVars.DELHIVERY_BASE_URL, 
+    testUrl: envVars.DELHIVERY_BASE_TEST_URL
+  }
 };
