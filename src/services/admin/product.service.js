@@ -36,6 +36,7 @@ export const updateProduct = async (productData, productId) => {
     "stock",
     "keywords",
     "images",
+    "discount",
     "weight",
   ];
   for (const field of scalarFields) {
