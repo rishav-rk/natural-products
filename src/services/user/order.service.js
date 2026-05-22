@@ -252,6 +252,7 @@ export const getMyOrderById = async (orderId) => {
 
 export const handleRazorpayWebhook = async (req) => {
   // 1. Verify webhook signature
+  console.log("processing payment")
   const signature = req.headers["x-razorpay-signature"];
 
   const expected = crypto
@@ -268,6 +269,8 @@ export const handleRazorpayWebhook = async (req) => {
 
   const event = JSON.parse(req.body.toString());
   const payment = event.payload.payment.entity;
+
+  console.log(event)
 
   switch (event.event) {
     case "payment.captured":
@@ -368,6 +371,6 @@ const handlePaymentFailed = async (payment) => {
     console.error("[WEBHOOK] No pending order found to mark failed:", payment.order_id);
     return;
   }
-  
+
   console.log("[WEBHOOK] Payment failed, order marked:", order.orderId);
 };
