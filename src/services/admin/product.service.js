@@ -27,7 +27,6 @@ export const addProduct = async (productData) => {
 
 export const updateProduct = async (productData, productId) => {
   const updateFields = {};
-
   // Scalar fields — only set if provided
   const scalarFields = [
     "name",
@@ -77,20 +76,7 @@ export const updateProduct = async (productData, productId) => {
 
   const updated = await Product.findOneAndUpdate(
     { _id: productId, isDeleted: false },
-    {
-      $set: {
-        name: productData.name,
-        description: productData.description,
-        benefits: productData.benefits,
-        price: productData.price,
-        stock: productData.stock,
-        keywords: productData.keywords,
-        "details.useBefore": productData.details.useBefore,
-        "details.approvedName": productData.details.approvedName,
-        images: productData.images,
-        backgroundColor: productData.backgroundColor
-      },
-    },
+    updateFields,
     {
       new: true,
       lean: true,
