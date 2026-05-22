@@ -11,6 +11,7 @@ import { User, Product, ADC } from "../../models/index.js";
 import { deletePreviousToken } from "../token.service.js";
 import { successResponse } from "../../utils/response.js";
 import bcrypt from "bcrypt";
+import { checkShippingRate } from "../../utils/delivery.js";
 
 export const updateProfile = async (profileData, token) => {
   const user = await User.findByIdAndUpdate(token.user._id, profileData, {
@@ -229,13 +230,18 @@ export const addToCart = async (cartData, token) => {
 };
 
 export const getCart = async (token) => {
-  const user = await User.findById(token.user._id, {cart : 1, addresses : 1});
+  const user = await User.findById(token.user._id, { cart: 1, addresses: 1 });
 
   const cart = { ...(await populateCart(user)) };
 
   if (!cart || cart.products.length === 0) {
     throw new OperationalError(STATUS_CODES.ACTION_FAILED, "Cart is empty");
   }
+
+  const totalWeightOfCartItems = cart.products.reduce(
+    (sum, p) => sum + p.weight * p.quantity,
+    0,
+  );
   const isValidAddress = user.addresses.id(cart.deliveryAddress);
 
   if (isValidAddress) {
@@ -243,17 +249,22 @@ export const getCart = async (token) => {
       (a) => a._id.toString() === cart.deliveryAddress.toString(),
     );
   } else {
-    if(user.addresses?.length > 0){
+    if (user.addresses?.length > 0) {
       cart.deliveryAddress = user.addresses[0]._id;
       cart.selectedAddress = user.addresses.find(
-      (a) => a._id.toString() === cart.deliveryAddress.toString(),
-    );
-  } else {
-    cart.deliveryAddress = null
+        (a) => a._id.toString() === cart.deliveryAddress.toString(),
+      );
+      cart.shippingFee = await checkShippingRate({
+        destinationPin: selectedAddress?.pincode,
+        weight: totalWeightOfCartItems,
+      });
+    } else {
+      cart.deliveryAddress = null;
+    }
   }
-}
   user.cart.deliveryAddress = cart.deliveryAddress;
-  
+  user.cart.shippingFee = cart?.shippingFee;
+
   cart.itemTotal = parseFloat(
     cart.products.reduce((sum, p) => sum + p.price * p.quantity, 0),
   ).toFixed(2);
@@ -280,7 +291,7 @@ export const updateCart = async (cartData, token) => {
         _id: { $in: productIds },
         isDeleted: false,
       },
-      { name: 1, price: 1, stock: 1 },
+      { name: 1, price: 1, stock: 1, weight: 1 },
     ).lean();
     const productMap = {};
     dbProducts.forEach((p) => (productMap[p._id.toString()] = p));
@@ -313,6 +324,15 @@ export const updateCart = async (cartData, token) => {
       );
     }
     user.cart.deliveryAddress = addressExists._id;
+    const totalWeightOfCartItems = cart.products.reduce(
+      (sum, p) => sum + p.weight * p.quantity,
+      0,
+    );
+
+    user.cart.shippingFee = await checkShippingRate({
+      destinationPin: addressExists?.pincode,
+      weight: totalWeightOfCartItems,
+    });
   }
 
   await recalculateCharges(user.cart);
@@ -333,6 +353,15 @@ export const deleteFromCart = async (productId, token) => {
       "Product not in cart",
     );
   }
+      const totalWeightOfCartItems = cart.products.reduce(
+      (sum, p) => sum + p.weight * p.quantity,
+      0,
+    );
+
+    user.cart.shippingFee = await checkShippingRate({
+      destinationPin: addressExists?.pincode,
+      weight: totalWeightOfCartItems,
+    });
 
   await recalculateCharges(user.cart);
   await user.save();

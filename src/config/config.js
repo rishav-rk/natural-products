@@ -33,7 +33,9 @@ const envVarsSchema = Joi.object()
     SENDER_EMAIL: Joi.string().required().description('sender email address'),
     DELHIVERY_API_TOKEN: Joi.string().required().description('Delhivery api token required'), 
     DELHIVERY_BASE_URL: Joi.string().required().description('Delhivery production url is required'),
-    DELHIVERY_BASE_TEST_URL: Joi.string().description('Delhivery testing url')
+    DELHIVERY_BASE_TEST_URL: Joi.string().description('Delhivery testing url'), 
+    WAREHOUSE_NAME: Joi.string().required().description('warehouse name is required'),
+    WAREHOUSE_PINCODE: Joi.string().required().description('warehouse pincode is required')
   })
   .unknown();
 
@@ -73,6 +75,8 @@ export default {
   delhivery: {
     secret: envVars.DELHIVERY_API_TOKEN, 
     baseUrl : envVars.DELHIVERY_BASE_URL, 
-    testUrl: envVars.DELHIVERY_BASE_TEST_URL
+    testUrl: envVars.DELHIVERY_BASE_TEST_URL,
+    warehouseName: envVars.WAREHOUSE_NAME, 
+    warehousePincode: envVars.WAREHOUSE_PINCODE
   }
 };

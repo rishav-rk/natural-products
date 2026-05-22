@@ -30,23 +30,20 @@ export const checkPincodeServiceability = async (pincode) => {
   };
 };
 
-const checkShippingRate = async ({
+export const checkShippingRate = async ({
   destinationPin,
-  originPin,
-  weight,
-  paymentType = "Pre-paid",
-  mode = "S",
+  weight
 }) => {
   const options = {
     method: "GET",
     url: `${config.delhivery.baseUrl}/api/kinko/v1/invoice/charges/.json`,
     params: {
-      md: mode,
+      md: "S",
       ss: "Delivered",
       d_pin: destinationPin,
-      o_pin: originPin,
+      o_pin: config.delhivery.warehousePincode,
       cgm: weight,
-      pt: paymentType,
+      pt: "Pre-paid",
     },
     headers: {
       "Content-Type": "application/json",

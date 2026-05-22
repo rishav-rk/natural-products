@@ -104,6 +104,10 @@ const userSchema = new mongoose.Schema(
         default: null,
       },
       tax: { type: String, default: 0 },
+      shippingFee: {
+        type: String,
+        default: "0",
+      },
       //   couponCode:      { type: String },
       //   discountAmount:  { type: Number, default: 0 },
     },
