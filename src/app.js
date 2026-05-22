@@ -41,7 +41,7 @@ app.use(fileUpload());
 
 //webhook for razorpay payment
 app.post(
-  '/webhook',
+  '/api/order/webhook',
   express.raw({ type: 'application/json' }), // raw buffer!
   handleRazorpayWebhook
 );
