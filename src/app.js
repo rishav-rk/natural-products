@@ -9,6 +9,7 @@ import morgan from "morgan";
 import { jwtStrategy } from "./config/passport.js";
 import routes from "./routes/index.js";
 import deliveryRoutes from "./routes/deliveryRoutes.js"
+import { handleRazorpayWebhook } from "./controllers/user/order.controller.js";
 
 import swaggerUI from "swagger-ui-express"
 import swaggerSpec from "./config/swagger.js"
@@ -38,6 +39,12 @@ app.use((req, res, next) => {
 
 app.use(fileUpload());
 
+//webhook for razorpay payment
+app.post(
+  '/webhook',
+  express.raw({ type: 'application/json' }), // raw buffer!
+  handleRazorpayWebhook
+);
 
 // parse json request body
 app.use(express.json());
