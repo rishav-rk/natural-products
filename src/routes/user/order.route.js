@@ -5,13 +5,14 @@ import {
   verifyPaymentValidator,
   getMyOrderValidator,
   getMyOrderByIdValidator,
+  
 } from "../../validators/user/order.validator.js";
 import {
   createOrder,
   verifyPayment,
   getMyOrders,
-  getMyOrderById
-  // updateOrderAndProduct
+  getMyOrderById,
+  handleRazorpayWebhook
 } from "../../controllers/user/order.controller.js";
 import auth from "../../middlewares/auth.js";
 import { validate } from "../../middlewares/validate.js";
@@ -66,10 +67,10 @@ router.get(
   getMyOrderById,
 );
 
-// router.post(
-//   '/webhook',
-//   raw({ type: 'application/json' }), // raw buffer!
-//   updateOrderAndProduct
-// );
+router.post(
+  '/webhook',
+  raw({ type: 'application/json' }), // raw buffer!
+  handleRazorpayWebhook
+);
 
 export default router;

@@ -251,11 +251,12 @@ export const getMyOrderById = async (orderId) => {
 // app.use('/webhook/razorpay', express.raw({ type: 'application/json' }), webhookHandler)
 
 export const handleRazorpayWebhook = async (req) => {
+  // 1. Verify webhook signature
   const signature = req.headers["x-razorpay-signature"];
 
   const expected = crypto
     .createHmac("sha256", config.razorpay.webhookSecret)
-    .update(req.body) // raw Buffer — only works with express.raw()
+    .update(req.body) // raw Buffer — express.raw() required
     .digest("hex");
 
   if (expected !== signature) {
@@ -270,23 +271,103 @@ export const handleRazorpayWebhook = async (req) => {
 
   switch (event.event) {
     case "payment.captured":
-      // In production: trigger your order fulfillment here
-      console.log("[WEBHOOK] Payment captured:", payment.id);
-await Order.findOneAndUpdate(
-        { "payment.razorpayOrderId": payment.order_id },
-        { "payment.status": PAYMENT_STATUS.COMPLETED },
-      );
+      await handlePaymentCaptured(payment);
       break;
 
     case "payment.failed":
-      console.log("[WEBHOOK] Payment failed:", payment.id);
-      await Order.findOneAndUpdate(
-        { "payment.razorpayOrderId": payment.order_id },
-        { "payment.status": PAYMENT_STATUS.FAILED },
-      );
+      await handlePaymentFailed(payment);
       break;
 
     default:
       console.log("[WEBHOOK] Unhandled event:", event.event);
   }
+};
+
+const handlePaymentCaptured = async (payment) => {
+  // 1. Idempotency check
+  const alreadyProcessed = await Order.findOne({
+    "payment.razorpayPaymentId": payment.id,
+    "payment.status": PAYMENT_STATUS.COMPLETED,
+  }).lean();
+
+  if (alreadyProcessed) {
+    console.log("[WEBHOOK] Payment already processed:", payment.id);
+    return;
+  }
+
+  // 2. Fetch pending order
+  const pendingOrder = await Order.findOne({
+    "payment.razorpayOrderId": payment.order_id,
+    "payment.status": PAYMENT_STATUS.PENDING,
+  });
+
+  if (!pendingOrder) {
+    console.error("[WEBHOOK] No pending order found for:", payment.order_id);
+    return;
+  }
+
+  // 3. Atomic transaction — same as verifyPayment
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    pendingOrder.payment.razorpayPaymentId = payment.id;
+    pendingOrder.payment.status = PAYMENT_STATUS.COMPLETED;
+    pendingOrder.payment.method = payment.method;
+    pendingOrder.payment.paidAt = new Date(payment.created_at * 1000);
+    await pendingOrder.save({ session });
+
+    const bulkOps = pendingOrder.products.map((product) => ({
+      updateOne: {
+        filter: {
+          _id: product.product,
+          stock: { $gte: product.quantity },
+        },
+        update: { $inc: { stock: -product.quantity } },
+      },
+    }));
+
+    const result = await Product.bulkWrite(bulkOps, { session });
+
+    if (result.modifiedCount !== pendingOrder.products.length) {
+      throw new OperationalError(
+        STATUS_CODES.ACTION_FAILED,
+        ERROR_MESSAGES.OUT_OF_STOCK,
+      );
+    }
+
+    await clearUserCart(pendingOrder.user, session);
+
+    await session.commitTransaction();
+  } catch (err) {
+    await session.abortTransaction();
+    throw err;
+  } finally {
+    session.endSession();
+  }
+
+  // 4. Send confirmation email — non-blocking
+  const user = await User.findById(pendingOrder.user, { name: 1, email: 1 }).lean();
+  sendOrderConfirmationEmail(user, pendingOrder).catch((err) =>
+    console.error("[EMAIL] Order confirmation failed:", err),
+  );
+
+  console.log("[WEBHOOK] Payment captured and order fulfilled:", pendingOrder.orderId);
+};
+
+const handlePaymentFailed = async (payment) => {
+  const order = await Order.findOneAndUpdate(
+    {
+      "payment.razorpayOrderId": payment.order_id,
+      "payment.status": PAYMENT_STATUS.PENDING, // only update if still pending
+    },
+    { "payment.status": PAYMENT_STATUS.FAILED },
+  );
+
+  if (!order) {
+    console.error("[WEBHOOK] No pending order found to mark failed:", payment.order_id);
+    return;
+  }
+  
+  console.log("[WEBHOOK] Payment failed, order marked:", order.orderId);
 };

@@ -79,7 +79,12 @@ export const logout = async (token) => {
   await deletePreviousToken(token._id);
 };
 
-export const getDashboardData = async () => {
+export const getDashboardData = async (query) => {
+
+  const baseFilter = {
+    "payment.status": { $nin: [PAYMENT_STATUS.PENDING, PAYMENT_STATUS.FAILED] },
+  };
+
   const totalUsers = await User.countDocuments({
     isVerified: true,
     isDeleted: false,
@@ -87,16 +92,29 @@ export const getDashboardData = async () => {
   const totalProducts = await Product.countDocuments({ isDeleted: false });
   const totalOrders = await Order.countDocuments({});
   const fiveDaysAgo = moment().subtract(5, "days").toISOString();
-  const recentOrders = await Order.find({
-    placedOn: { $gte: fiveDaysAgo },
-  }, {}, {limit : 5, sort: {placeOn: -1}});
+  const recentOrders = await Order.find(
+    {
+      placedOn: { $gte: fiveDaysAgo },
+    },
+    {},
+    { limit: 5, sort: { placeOn: -1 } },
+  );
 
-  return { totalUsers, totalProducts, totalOrders, recentOrders };
+  const graphData = [];
+
+  if (query.search) {
+    if (query.search === "yearly") {
+      baseFilter.paidAt = {$gte: moment().startOf('year').toISOString(), $lte: moment().toISOString()}
+      const ordersThisYear = await Order.find(baseFilter, {}, {lean : true});
+    }
+  }
+
+  return { totalUsers, totalProducts, totalOrders, recentOrders, graphData };
 };
 
 export const getTransactionsData = async (query) => {
   const baseFilter = {
-    "payment.status": { $nin: [PAYMENT_STATUS.PENDING, PAYMENT_STATUS.FAILED] }
+    "payment.status": { $nin: [PAYMENT_STATUS.PENDING, PAYMENT_STATUS.FAILED] },
   };
 
   const filter = { ...baseFilter };
@@ -142,7 +160,7 @@ export const getTransactionsData = async (query) => {
     ]),
   ]);
 
-  console.log(revenueStats)
+  console.log(revenueStats);
 
   const totalRevenue = revenueStats[0]?.totalRevenue ?? 0;
 

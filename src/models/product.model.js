@@ -37,7 +37,7 @@ const productSchema = new mongoose.Schema(
     ],
     weight: {
       type: Number,
-      default: 0.3, // ! must be in kg
+      default: 300, // ! must be in grams
     },
     isOutOfStock: {
       type: Boolean,
