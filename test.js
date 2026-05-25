@@ -15,4 +15,5 @@ console.log(
 
 console.log(data)
 console.log(moment().startOf('year'))
-console.log(moment())
+console.log(moment(moment().toISOString()).month())
+console.log(moment().startOf('week').toISOString())

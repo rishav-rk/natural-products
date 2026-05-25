@@ -1,4 +1,4 @@
-import {JOI, PAYMENT_METHOD} from "../../config/appConstants.js"
+import {DATA_FILTER, JOI, PAYMENT_METHOD} from "../../config/appConstants.js"
 import Joi from "joi"
 
 export const loginAdminValidator = {
@@ -26,7 +26,10 @@ export const changeAdminPasswordValidator = {
 }
 
 export const getDashboardValidator = {
-    body : Joi.object({})
+    body : Joi.object({}),
+    query: Joi.object({
+        data: Joi.string().valid(...Object.values(DATA_FILTER))
+    })
 }
 
 export const getTransactionsValidator = {

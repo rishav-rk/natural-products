@@ -186,5 +186,7 @@
 	"razorpay_order_id is required, razorpay_payment_id is required, razorpay_signature is required, razorpayOrderId is not allowed, razorpayPaymentId is not allowed, razorpaySignature is not allowed": "razorpay_order_id is required, razorpay_payment_id is required, razorpay_signature is required, razorpayOrderId is not allowed, razorpayPaymentId is not allowed, razorpaySignature is not allowed",
 	"This pincode is not serviceable by our delivery partner": "This pincode is not serviceable by our delivery partner",
 	"addressLabel is required": "addressLabel is required",
-	"weight must be a number, discount must be a number": "weight must be a number, discount must be a number"
+	"weight must be a number, discount must be a number": "weight must be a number, discount must be a number",
+	"data must be one of [yearly, month, weekly]": "data must be one of [yearly, month, weekly]",
+	"data must be one of [yearly, monthly, weekly], data is not allowed to be empty": "data must be one of [yearly, monthly, weekly], data is not allowed to be empty"
 }

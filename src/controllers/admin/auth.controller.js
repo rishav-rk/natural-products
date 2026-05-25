@@ -57,7 +57,7 @@ export const updateProfile = catchAsync(async (req, res) => {
 });
 
 export const getDashboard = catchAsync(async (req, res) => {
-  const dashboardData = await authService.getDashboardData();
+  const dashboardData = await authService.getDashboardData(req.query);
   return successResponse(
     req,
     res,

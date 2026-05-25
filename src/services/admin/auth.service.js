@@ -15,7 +15,7 @@ import {
 } from "../token.service.js";
 import { successResponse } from "../../utils/response.js";
 import bcrypt from "bcrypt";
-import { formatUser } from "../../utils/formatResponse.js";
+import { formatUser, formatGraphData } from "../../utils/formatResponse.js";
 import moment from "moment";
 import { paginationOptions } from "../../utils/universalFunctions.js";
 
@@ -80,7 +80,6 @@ export const logout = async (token) => {
 };
 
 export const getDashboardData = async (query) => {
-
   const baseFilter = {
     "payment.status": { $nin: [PAYMENT_STATUS.PENDING, PAYMENT_STATUS.FAILED] },
   };
@@ -91,25 +90,46 @@ export const getDashboardData = async (query) => {
   });
   const totalProducts = await Product.countDocuments({ isDeleted: false });
   const totalOrders = await Order.countDocuments({});
-  const fiveDaysAgo = moment().subtract(5, "days").toISOString();
   const recentOrders = await Order.find(
-    {
-      placedOn: { $gte: fiveDaysAgo },
-    },
     {},
-    { limit: 5, sort: { placeOn: -1 } },
+    {},
+    { limit: 5, sort: { paidAt: -1 } },
   );
 
-  const graphData = [];
+  let graphData = [];
+  const ordersData = {};
+  baseFilter["payment.paidAt"] = {
+    $lte: moment().toISOString(),
+  };
 
-  if (query.search) {
-    if (query.search === "yearly") {
-      baseFilter.paidAt = {$gte: moment().startOf('year').toISOString(), $lte: moment().toISOString()}
-      const ordersThisYear = await Order.find(baseFilter, {}, {lean : true});
-    }
+switch (query.data) {
+    case "monthly":
+      baseFilter["payment.paidAt"].$gte = moment().subtract(30, "days").toISOString();
+      const ordersThisMonth = await Order.find(baseFilter, { payment: 1 }, { lean: true });
+      graphData = formatGraphData(ordersThisMonth, "monthly");
+      break;
+
+    case "weekly":
+      baseFilter["payment.paidAt"].$gte = moment().subtract(7, "days").toISOString();
+      const ordersThisWeek = await Order.find(baseFilter, { payment: 1 }, { lean: true });
+      graphData = formatGraphData(ordersThisWeek, "weekly");
+      break;
+
+    default:
+      baseFilter["payment.paidAt"].$gte = moment().subtract(1, "year").toISOString();
+      const ordersThisYear = await Order.find(baseFilter, { payment: 1 }, { lean: true });
+      graphData = formatGraphData(ordersThisYear, "yearly");
+      break;
   }
 
-  return { totalUsers, totalProducts, totalOrders, recentOrders, graphData };
+  return {
+    totalUsers,
+    totalProducts,
+    totalOrders,
+    recentOrders,
+    graphData,
+    graphDataCount: graphData.length,
+  };
 };
 
 export const getTransactionsData = async (query) => {

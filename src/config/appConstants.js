@@ -19,6 +19,12 @@ export const PAYMENT_METHOD = {
   WALLET: "wallet",
 };
 
+export const DATA_FILTER = {
+  YEARLY: 'yearly', 
+  MONTHLY: 'monthly', 
+  WEEKLY: 'weekly'
+}
+
 export const PAYMENT_STATUS = {
   PENDING: "pending",
   COMPLETED: "completed",

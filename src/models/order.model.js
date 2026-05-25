@@ -110,7 +110,7 @@ const orderSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-orderSchema.index({ orderId: 1 });
+orderSchema.index({ paidAt : 1 });
 
 orderSchema.index(
   { createdAt: 1 },
