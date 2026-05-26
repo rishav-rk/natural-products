@@ -1,9 +1,16 @@
 import { OperationalError } from "./error.js";
 import { STATUS_CODES, ERROR_MESSAGES } from "../config/appConstants.js";
-const calculateGrandTotal = (products, tax) => {
+const calculateGrandTotal = (products, tax, shippingFee) => {
   const itemTotal = products.reduce((sum, p) => sum + p.price * p.quantity, 0);
   const taxAmount = (itemTotal * tax) / 100;
-  const grandTotalAmount = (itemTotal + taxAmount).toFixed(2);
+  let grandTotalAmount = itemTotal + taxAmount;
+
+  grandTotalAmount += parseFloat(shippingFee)
+  grandTotalAmount = grandTotalAmount.toFixed(2)
+  // const grandTotalInCents = Math.round(grandTotalWithShipping * 100); // ✓ safe integer
+
+  
+
   return {
     itemTotal,
     grandTotalAmount
@@ -38,13 +45,13 @@ const validateAndGetCart = async (user, cart) => {
     (a) => a._id.toString() === cart.deliveryAddress.toString(),
   );
 
-  if(!shippingAddress){
+  if (!shippingAddress) {
     cart.deliveryAddress = null;
-        throw new OperationalError(
+    throw new OperationalError(
       STATUS_CODES.ACTION_FAILED,
       ERROR_MESSAGES.ADDRESS_REQUIRED,
     );
-    cart.deliveryAddress = null
+    cart.deliveryAddress = null;
   }
 
   return shippingAddress;

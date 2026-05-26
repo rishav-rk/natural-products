@@ -3,8 +3,9 @@ import {JOI} from "../../config/appConstants.js"
 
 export const updateConstants = {
     body: Joi.object({
-        tax: Joi.string().example("4.2"), 
-        video: Joi.string().uri()
+        tax: Joi.number().example(4.2), 
+        video: Joi.string().uri(),
+        shippingFee: Joi.number().example(100)
     }).required()
 }
 

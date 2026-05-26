@@ -147,7 +147,7 @@ export const deleteAddress = async (addressId, token) => {
 // cart
 
 const recalculateCharges = async (cart) => {
-  const { tax } = await ADC.findOne({}).lean();
+  const { tax, shippingFee } = await ADC.findOne({}).lean();
 
   const itemTotal = cart.products.reduce(
     (sum, p) => sum + p.price * p.quantity,
@@ -155,6 +155,7 @@ const recalculateCharges = async (cart) => {
   );
 
   cart.tax = parseFloat(tax).toFixed(2);
+  cart.shippingFee = parseFloat(shippingFee).toFixed(2)
   cart.itemTotal = itemTotal;
 };
 
@@ -237,11 +238,6 @@ export const getCart = async (token) => {
   if (!cart || cart.products.length === 0) {
     throw new OperationalError(STATUS_CODES.ACTION_FAILED, "Cart is empty");
   }
-
-  const totalWeightOfCartItems = cart.products.reduce(
-    (sum, p) => sum + p.weight * p.quantity,
-    0,
-  );
   const isValidAddress = user.addresses.id(cart.deliveryAddress);
 
   if (isValidAddress) {
@@ -254,20 +250,12 @@ export const getCart = async (token) => {
       cart.selectedAddress = user.addresses.find(
         (a) => a._id.toString() === cart.deliveryAddress.toString(),
       );
-      cart.shippingFee = await checkShippingRate({
-        destinationPin: selectedAddress?.pincode,
-        weight: totalWeightOfCartItems,
-      });
     } else {
       cart.deliveryAddress = null;
     }
   }
   user.cart.deliveryAddress = cart.deliveryAddress;
-  user.cart.shippingFee = cart?.shippingFee;
-
-  cart.itemTotal = parseFloat(
-    cart.products.reduce((sum, p) => sum + p.price * p.quantity, 0),
-  ).toFixed(2);
+  // user.cart.shippingFee = cart?.shippingFee;
 
   await user.save();
 
@@ -324,15 +312,6 @@ export const updateCart = async (cartData, token) => {
       );
     }
     user.cart.deliveryAddress = addressExists._id;
-    const totalWeightOfCartItems = cart.products.reduce(
-      (sum, p) => sum + p.weight * p.quantity,
-      0,
-    );
-
-    user.cart.shippingFee = await checkShippingRate({
-      destinationPin: addressExists?.pincode,
-      weight: totalWeightOfCartItems,
-    });
   }
 
   await recalculateCharges(user.cart);
@@ -353,16 +332,6 @@ export const deleteFromCart = async (productId, token) => {
       "Product not in cart",
     );
   }
-      const totalWeightOfCartItems = cart.products.reduce(
-      (sum, p) => sum + p.weight * p.quantity,
-      0,
-    );
-
-    user.cart.shippingFee = await checkShippingRate({
-      destinationPin: addressExists?.pincode,
-      weight: totalWeightOfCartItems,
-    });
-
   await recalculateCharges(user.cart);
   await user.save();
   return await populateCart(user);

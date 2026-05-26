@@ -5,7 +5,6 @@ import { STATUS_CODES, SUCCESS_MESSAGES } from "../../config/appConstants.js";
 
 export const createOrder = catchAsync(async (req, res) => {
   const { razorpayOrder } = await orderService.createOrder(req.body, req.token);
-  // console.log(razorpayOrder);
   return successResponse(
     req,
     res,

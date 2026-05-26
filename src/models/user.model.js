@@ -67,6 +67,9 @@ const userSchema = new mongoose.Schema(
         pincode: {
           type: String,
         },
+        warehouse: {
+          type: String
+        },
         location: {
           type: {
             type: String,
@@ -106,7 +109,7 @@ const userSchema = new mongoose.Schema(
       tax: { type: String, default: 0 },
       shippingFee: {
         type: String,
-        default: "0",
+        default: "100.00",
       },
       //   couponCode:      { type: String },
       //   discountAmount:  { type: Number, default: 0 },

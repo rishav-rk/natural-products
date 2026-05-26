@@ -5,6 +5,10 @@ const additionalChargesSchema = new mongoose.Schema({
         type: String, 
         default: "4.2"
     }, 
+    shippingFee : {
+        type: String, 
+        default: "100.00"
+    },
     video: {
         type: String, 
         default: "https://youtu.be/dQw4w9WgXcQ?si=Ra2nYfm9iKK2c5j-"

@@ -188,5 +188,6 @@
 	"addressLabel is required": "addressLabel is required",
 	"weight must be a number, discount must be a number": "weight must be a number, discount must be a number",
 	"data must be one of [yearly, month, weekly]": "data must be one of [yearly, month, weekly]",
-	"data must be one of [yearly, monthly, weekly], data is not allowed to be empty": "data must be one of [yearly, monthly, weekly], data is not allowed to be empty"
+	"data must be one of [yearly, monthly, weekly], data is not allowed to be empty": "data must be one of [yearly, monthly, weekly], data is not allowed to be empty",
+	"quantity must be greater than or equal to 1": "quantity must be greater than or equal to 1"
 }

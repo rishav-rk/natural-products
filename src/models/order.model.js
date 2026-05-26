@@ -58,6 +58,10 @@ const orderSchema = new mongoose.Schema(
     tax: {
       type: String,
     },
+    shippingFees: {
+      type: String, 
+      default: "100.00"
+    },
     grandTotalAmount: {
       type: String,
       required: [true, "Please provide total amount"],
@@ -76,10 +80,6 @@ const orderSchema = new mongoose.Schema(
         required: [true, "Razorpay order ID is required"],
       },
       razorpayPaymentId: {
-        type: String,
-        default: null,
-      },
-      razorpaySignature: {
         type: String,
         default: null,
       },

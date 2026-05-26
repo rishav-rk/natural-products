@@ -77,7 +77,7 @@ export const createOrder = async (orderData, token) => {
   }
 
   const shippingAddress = await validateAndGetCart(user, user.cart);
-  const { tax } = await ADC.findOne({}).lean();
+  const { tax, shippingFee } = await ADC.findOne({}).lean();
 
   const productIds = user.cart.products.map((p) => p.product);
   const productMap = await getProductsWithPrices(productIds);
@@ -89,12 +89,14 @@ export const createOrder = async (orderData, token) => {
   const { itemTotal, grandTotalAmount } = calculateGrandTotal(
     updatedProducts,
     tax,
+    shippingFee
   );
   const orderId = generateOrderId(user.name);
 
+
   // Create Razorpay order first to get the razorpayOrderId
   const razorpayOrder = await razorpay.orders.create({
-    amount: grandTotalAmount * 100, // in paise
+    amount: Math.round(grandTotalAmount * 100), // in paise
     currency: "INR",
     receipt: orderId,
   });
