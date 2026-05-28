@@ -28,14 +28,27 @@ const envVarsSchema = Joi.object()
     RAZORPAY_KEY_SECRET: Joi.string()
       .required()
       .description("Razorpay secret key required"),
-    MESSAGE91_AUTH_KEY: Joi.string().required().description("MSG91 secret key"), 
-    BREVO_API_KEY: Joi.string().required().description('Brevo api key is required'), 
-    SENDER_EMAIL: Joi.string().required().description('sender email address'),
-    DELHIVERY_API_TOKEN: Joi.string().required().description('Delhivery api token required'), 
-    DELHIVERY_BASE_URL: Joi.string().required().description('Delhivery production url is required'),
-    DELHIVERY_BASE_TEST_URL: Joi.string().description('Delhivery testing url'), 
-    WAREHOUSE_NAME: Joi.string().required().description('warehouse name is required'),
-    WAREHOUSE_PINCODE: Joi.string().required().description('warehouse pincode is required')
+    MESSAGE91_AUTH_KEY: Joi.string().required().description("MSG91 secret key"),
+    BREVO_API_KEY: Joi.string()
+      .required()
+      .description("Brevo api key is required"),
+    SENDER_EMAIL: Joi.string().required().description("sender email address"),
+    TEST_MAIL: Joi.string()
+      .required()
+      .description("test mail address for development environment"),
+    DELHIVERY_API_TOKEN: Joi.string()
+      .required()
+      .description("Delhivery api token required"),
+    DELHIVERY_BASE_URL: Joi.string()
+      .required()
+      .description("Delhivery production url is required"),
+    DELHIVERY_BASE_TEST_URL: Joi.string().description("Delhivery testing url"),
+    WAREHOUSE_NAME: Joi.string()
+      .required()
+      .description("warehouse name is required"),
+    WAREHOUSE_PINCODE: Joi.string()
+      .required()
+      .description("warehouse pincode is required"),
   })
   .unknown();
 
@@ -63,20 +76,21 @@ export default {
   baseurl: envVars.HOST_URL,
   projectName: envVars.PROJECT_NAME,
   environment: envVars.ENVIRONMENT,
-  razorpay:{
-    id: envVars.RAZORPAY_KEY_ID, 
-    secret: envVars.RAZORPAY_KEY_SECRET
-  }, 
-  msg91Secret: envVars.MESSAGE91_AUTH_KEY, 
-  brevo : {
-    apiKey: envVars.BREVO_API_KEY, 
+  razorpay: {
+    id: envVars.RAZORPAY_KEY_ID,
+    secret: envVars.RAZORPAY_KEY_SECRET,
+  },
+  msg91Secret: envVars.MESSAGE91_AUTH_KEY,
+  brevo: {
+    apiKey: envVars.BREVO_API_KEY,
     senderEmail: envVars.SENDER_EMAIL,
+    testMail: envVars.TEST_MAIL,
   },
   delhivery: {
-    secret: envVars.DELHIVERY_API_TOKEN, 
-    baseUrl : envVars.DELHIVERY_BASE_URL, 
+    secret: envVars.DELHIVERY_API_TOKEN,
+    baseUrl: envVars.DELHIVERY_BASE_URL,
     testUrl: envVars.DELHIVERY_BASE_TEST_URL,
-    warehouseName: envVars.WAREHOUSE_NAME, 
-    warehousePincode: envVars.WAREHOUSE_PINCODE
-  }
+    warehouseName: envVars.WAREHOUSE_NAME,
+    warehousePincode: envVars.WAREHOUSE_PINCODE,
+  },
 };

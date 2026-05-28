@@ -5,12 +5,17 @@ const templates = {
   templateForContactUs: 1,
 };
 
+const sendTo = [
+      { email: config.brevo.senderEmail, name: "Nature Lap Contact Form" },
+    ]
+if(config.environment === "development"){
+  sendTo.push({ email: config.brevo.testMail, name: "Test Mail" })
+}
+
 export const sendMail = async (info = {}) => {
   const result = await brevoClient.transactionalEmails.sendTransacEmail({
-    to: [
-      { email: config.senderEmail, name: "Nature Lap Contact Form" },
-      // { email: "hasiv41424@marineso.com", name: "Testing purpose" },
-    ],
+
+    to: sendTo,
     templateId: templates.templateForContactUs,
     params: {
       name: info.name,

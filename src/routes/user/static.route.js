@@ -12,7 +12,7 @@ router.post(
   "/contact-us",
   auth(USER_TYPE.USER),
   validate(validateContactUs),
-  staticController.getContactUs,
+  staticController.submitContactUs,
 );
 router.get("/about-us", auth(USER_TYPE.USER), staticController.getAboutUs);
 router.get(

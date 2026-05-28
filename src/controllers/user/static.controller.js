@@ -2,7 +2,7 @@ import { STATUS_CODES, SUCCESS_MESSAGES } from "../../config/appConstants.js";
 import { successResponse } from "../../utils/response.js";
 import { sendMail } from "../../utils/sendMail.js";
 
-export const getContactUs = (req, res) => {
+export const submitContactUs = (req, res) => {
   const info = req.body;
   info.phoneNumber = req.token.user.phoneNumber;
 
