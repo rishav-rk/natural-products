@@ -155,7 +155,7 @@ const recalculateCharges = async (cart) => {
   );
 
   cart.tax = parseFloat(tax).toFixed(2);
-  cart.shippingFee = parseFloat(shippingFee).toFixed(2)
+  cart.shippingFee = parseFloat(shippingFee).toFixed(2);
   cart.itemTotal = itemTotal;
 };
 
@@ -256,9 +256,12 @@ export const getCart = async (token) => {
   }
   user.cart.deliveryAddress = cart.deliveryAddress;
   // user.cart.shippingFee = cart?.shippingFee;
+  cart.itemTotal = parseFloat(
+    cart.products.reduce((sum, p) => sum + p.price * p.quantity, 0),
+  ).toFixed(2);
 
   await user.save();
-
+  console.log("Cart", cart);
   return cart;
 };
 
