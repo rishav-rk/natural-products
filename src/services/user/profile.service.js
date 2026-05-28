@@ -147,7 +147,7 @@ export const deleteAddress = async (addressId, token) => {
 // cart
 
 const recalculateCharges = async (cart) => {
-  const { tax, shippingFee } = await ADC.findOne({}).lean();
+  const { tax, shippingFee } = await ADC.findOne({}, {tax : 1, shippingFee: 1}).lean();
 
   const itemTotal = cart.products.reduce(
     (sum, p) => sum + p.price * p.quantity,

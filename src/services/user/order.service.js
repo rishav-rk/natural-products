@@ -77,7 +77,7 @@ export const createOrder = async (orderData, token) => {
   }
 
   const shippingAddress = await validateAndGetCart(user, user.cart);
-  const { tax, shippingFee } = await ADC.findOne({}).lean();
+  const { tax, shippingFee } = await ADC.findOne({}, {tax : 1, shippingFee : 1}).lean();
 
   const productIds = user.cart.products.map((p) => p.product);
   const productMap = await getProductsWithPrices(productIds);
