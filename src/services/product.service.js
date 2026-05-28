@@ -13,7 +13,7 @@ export const getProducts = async (query, token) => {
   };
 
   // Fix: assign object, not property on undefined
-  if (token.role === USER_TYPE.USER) {
+  if (token.type === USER_TYPE.USER) {
     filter.stock = { $gt: 0 };
   }
 

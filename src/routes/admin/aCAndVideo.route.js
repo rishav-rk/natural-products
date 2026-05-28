@@ -9,6 +9,4 @@ const router = Router()
 
 router.put('/', auth(USER_TYPE.ADMIN), validate(updateConstants), constantsController.updateConstants)
 
-router.get('/', auth(USER_TYPE.ADMIN), validate())
-
 export default router
