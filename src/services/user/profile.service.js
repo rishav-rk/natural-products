@@ -261,7 +261,6 @@ export const getCart = async (token) => {
   ).toFixed(2);
 
   await user.save();
-  console.log("Cart", cart);
   return cart;
 };
 
