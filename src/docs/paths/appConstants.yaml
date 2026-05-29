@@ -106,6 +106,22 @@ components:
           format: uri
           example: "https://youtu.be/dQw4w9WgXcQ?si=Ra2nYfm9iKK2c5j-"
           description: Promotional video URL for app display
+        shippingFee:
+          type: number
+          example: 5.0
+          description: Standard shipping fee amount
+        privacyAndPolicy: 
+          type: string
+          example: "We respect your privacy and we do not share your data with third parties."
+          description: Privacy and policy statement for the application
+        termsAndConditions:
+          type: string
+          example: "By using this application, you agree to our terms and conditions."
+          description: Terms and conditions statement for the application
+        aboutUs:
+          type: string
+          example: "We are a company that sells nature products."
+          description: About us statement for the application
 
     constantsResponse:
       type: object
@@ -132,6 +148,18 @@ components:
           format: uri
           example: "https://youtu.be/dQw4w9WgXcQ?si=Ra2nYfm9iKK2c5j-"
           description: Promotional video URL for app display
+        privacyAndPolicy:
+          type: string
+          example: "We respect your privacy and we do not share your data with third parties."
+          description: Privacy and policy statement for the application
+        termsAndConditions:
+          type: string
+          example: "By using this application, you agree to our terms and conditions."
+          description: Terms and conditions statement for the application
+        aboutUs:
+          type: string          
+          example: "We are a company that sells nature products."
+          description: About us statement for the application
         createdAt:
           type: string
           format: date-time
