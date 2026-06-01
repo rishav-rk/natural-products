@@ -59,8 +59,8 @@ const orderSchema = new mongoose.Schema(
       type: String,
     },
     shippingFee: {
-      type: String, 
-      default: "100.00"
+      type: String,
+      default: "100.00",
     },
     grandTotalAmount: {
       type: String,
@@ -73,6 +73,17 @@ const orderSchema = new mongoose.Schema(
       type: String,
       enum: [...Object.values(ORDER_STATUS)],
       default: ORDER_STATUS.INPROGRESS,
+    },
+    userName: {
+      type: String,
+    },
+    userPhone: {
+      type: String,
+    },
+    shipment: {
+      waybillNumber: { type: String, default: null },
+      courierName: { type: String, default: null },
+      warehouseId: { type: mongoose.Schema.Types.ObjectId, ref: "Warehouse", default: null },
     },
     payment: {
       razorpayOrderId: {
@@ -110,7 +121,7 @@ const orderSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-orderSchema.index({ paidAt : 1 });
+orderSchema.index({ paidAt: 1 });
 
 orderSchema.index(
   { createdAt: 1 },

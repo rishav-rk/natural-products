@@ -76,7 +76,6 @@ const errorResponse = (error, req, res) => {
       // data: {},
     });
   }
-  console.log(error);
   const message =
     error instanceof NotFoundError ||
     error instanceof ValidationError ||

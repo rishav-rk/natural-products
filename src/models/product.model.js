@@ -15,16 +15,15 @@ const productSchema = new mongoose.Schema(
       required: [true, "Please provide product benefits"],
     },
     price: {
-      type: String, // ← change from String to Number
+      type: String,
       required: [true, "Please provide product price"],
     },
     discountedPrice: {
       type: String,
-      // required: [true, "Please provide product MRP"],
     },
     discount: {
       type: String,
-      default: 0, // in percentage
+      default: "0",
     },
     stock: {
       type: Number,
@@ -37,15 +36,16 @@ const productSchema = new mongoose.Schema(
     ],
     weight: {
       type: Number,
-      default: 300, // ! must be in grams
+      default: 300,
     },
     isOutOfStock: {
       type: Boolean,
       default: false,
     },
     backgroundColor: {
-      type: String, 
+      type: String,
     },
+    storeIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "Warehouse" }],
     details: {
       manufacturer: {
         type: String,
@@ -63,7 +63,7 @@ const productSchema = new mongoose.Schema(
       },
       useBefore: {
         type: String,
-        required: [true, "Please provide product user before date"],
+        required: [true, "Please provide product use before date"],
       },
       approvedName: {
         type: String,
@@ -83,6 +83,8 @@ const productSchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
+
+productSchema.index({ isDeleted: 1, storeIds: 1 }); // compound: most queries filter both
 
 const Product = mongoose.model("Product", productSchema);
 

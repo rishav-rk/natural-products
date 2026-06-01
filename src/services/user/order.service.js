@@ -17,6 +17,7 @@ import {
   updateProductsWithPrices,
   orderFilter,
 } from "../../utils/orderUtils.js";
+import { createDelhiveryShipment } from "../../utils/delivery.js"
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -62,12 +63,71 @@ const sendOrderConfirmationEmail = async (user, order) => {
 // ─── Create Razorpay Order ────────────────────────────────────────────────────
 // Saves a pending Order in DB so verifyPayment doesn't need to refetch everything
 
+// export const createOrder = async (orderData, token) => {
+//   const user = await User.findById(
+//     token.user._id,
+//     { cart: 1, name: 1 },
+//     { lean: true },
+//   )
+
+//   if (!user.cart.deliveryAddress) {
+//     throw new OperationalError(
+//       STATUS_CODES.ACTION_FAILED,
+//       ERROR_MESSAGES.ADDRESS_REQUIRED,
+//     );
+//   }
+
+//   const shippingAddress = await validateAndGetCart(user, user.cart);
+//   const { tax, shippingFee } = await ADC.findOne({}, {tax : 1, shippingFee : 1}).lean();
+
+//   const productIds = user.cart.products.map((p) => p.product);
+//   const productMap = await getProductsWithPrices(productIds);
+//   const updatedProducts = updateProductsWithPrices(
+//     user.cart.products,
+//     productMap,
+//   );
+
+//   const { itemTotal, grandTotalAmount } = calculateGrandTotal(
+//     updatedProducts,
+//     tax,
+//     shippingFee
+//   );
+//   const orderId = generateOrderId(user.name);
+
+
+//   // Create Razorpay order first to get the razorpayOrderId
+//   const razorpayOrder = await razorpay.orders.create({
+//     amount: Math.round(grandTotalAmount * 100), // in paise
+//     currency: "INR",
+//     receipt: orderId,
+//   });
+
+//   // Persist as pending — verifyPayment will promote this to completed
+//   await Order.create({
+//     orderId,
+//     placedOn: new Date(),
+//     user: token.user._id,
+//     products: updatedProducts,
+//     tax,
+//     itemTotal,
+//     grandTotalAmount,
+//     shippingAddress,
+//     payment: {
+//       razorpayOrderId: razorpayOrder.id,
+//       status: PAYMENT_STATUS.PENDING,
+//       amount: grandTotalAmount,
+//       currency: "INR",
+//     },
+//   });
+
+//   return { razorpayOrder };
+// };
+
 export const createOrder = async (orderData, token) => {
   const user = await User.findById(
     token.user._id,
-    { cart: 1, addresses: 1, name: 1 },
-    { lean: true },
-  );
+    { cart: 1, name: 1, phoneNumber: 1, addresses: 1 },  // ✅ added addresses + phoneNumber
+  ).lean();
 
   if (!user.cart.deliveryAddress) {
     throw new OperationalError(
@@ -77,40 +137,37 @@ export const createOrder = async (orderData, token) => {
   }
 
   const shippingAddress = await validateAndGetCart(user, user.cart);
-  const { tax, shippingFee } = await ADC.findOne({}, {tax : 1, shippingFee : 1}).lean();
+  const { tax, shippingFee } = await ADC.findOne({}, { tax: 1, shippingFee: 1 }).lean();
 
   const productIds = user.cart.products.map((p) => p.product);
   const productMap = await getProductsWithPrices(productIds);
-  const updatedProducts = updateProductsWithPrices(
-    user.cart.products,
-    productMap,
-  );
+  const updatedProducts = updateProductsWithPrices(user.cart.products, productMap);
 
   const { itemTotal, grandTotalAmount } = calculateGrandTotal(
     updatedProducts,
     tax,
-    shippingFee
+    shippingFee,
   );
   const orderId = generateOrderId(user.name);
 
-
-  // Create Razorpay order first to get the razorpayOrderId
   const razorpayOrder = await razorpay.orders.create({
-    amount: Math.round(grandTotalAmount * 100), // in paise
+    amount: Math.round(grandTotalAmount * 100),
     currency: "INR",
     receipt: orderId,
   });
 
-  // Persist as pending — verifyPayment will promote this to completed
   await Order.create({
     orderId,
     placedOn: new Date(),
     user: token.user._id,
+    userName: user.name,                
+    userPhone: user.phoneNumber,        
     products: updatedProducts,
     tax,
+    shippingFee,
     itemTotal,
     grandTotalAmount,
-    shippingAddress,
+    shippingAddress,                    
     payment: {
       razorpayOrderId: razorpayOrder.id,
       status: PAYMENT_STATUS.PENDING,
@@ -288,6 +345,78 @@ export const handleRazorpayWebhook = async (req) => {
   }
 };
 
+// const handlePaymentCaptured = async (payment) => {
+//   // 1. Idempotency check
+//   const alreadyProcessed = await Order.findOne({
+//     "payment.razorpayPaymentId": payment.id,
+//     "payment.status": PAYMENT_STATUS.COMPLETED,
+//   }).lean();
+
+//   if (alreadyProcessed) {
+//     console.log("[WEBHOOK] Payment already processed:", payment.id);
+//     return;
+//   }
+
+//   // 2. Fetch pending order
+//   const pendingOrder = await Order.findOne({
+//     "payment.razorpayOrderId": payment.order_id,
+//     "payment.status": PAYMENT_STATUS.PENDING,
+//   });
+
+//   if (!pendingOrder) {
+//     console.error("[WEBHOOK] No pending order found for:", payment.order_id);
+//     return;
+//   }
+
+//   // 3. Atomic transaction — same as verifyPayment
+//   const session = await mongoose.startSession();
+//   session.startTransaction();
+
+//   try {
+//     pendingOrder.payment.razorpayPaymentId = payment.id;
+//     pendingOrder.payment.status = PAYMENT_STATUS.COMPLETED;
+//     pendingOrder.payment.method = payment.method;
+//     pendingOrder.payment.paidAt = new Date(payment.created_at * 1000);
+//     await pendingOrder.save({ session });
+
+//     const bulkOps = pendingOrder.products.map((product) => ({
+//       updateOne: {
+//         filter: {
+//           _id: product.product,
+//           stock: { $gte: product.quantity },
+//         },
+//         update: { $inc: { stock: -product.quantity } },
+//       },
+//     }));
+
+//     const result = await Product.bulkWrite(bulkOps, { session });
+
+//     if (result.modifiedCount !== pendingOrder.products.length) {
+//       throw new OperationalError(
+//         STATUS_CODES.ACTION_FAILED,
+//         ERROR_MESSAGES.OUT_OF_STOCK,
+//       );
+//     }
+
+//     await clearUserCart(pendingOrder.user, session);
+
+//     await session.commitTransaction();
+//   } catch (err) {
+//     await session.abortTransaction();
+//     throw err;
+//   } finally {
+//     session.endSession();
+//   }
+
+//   // 4. Send confirmation email — non-blocking
+//   const user = await User.findById(pendingOrder.user, { name: 1, email: 1 }).lean();
+//   sendOrderConfirmationEmail(user, pendingOrder).catch((err) =>
+//     console.error("[EMAIL] Order confirmation failed:", err),
+//   );
+
+//   console.log("[WEBHOOK] Payment captured and order fulfilled:", pendingOrder.orderId);
+// };
+
 const handlePaymentCaptured = async (payment) => {
   // 1. Idempotency check
   const alreadyProcessed = await Order.findOne({
@@ -311,7 +440,7 @@ const handlePaymentCaptured = async (payment) => {
     return;
   }
 
-  // 3. Atomic transaction — same as verifyPayment
+  // 3. Atomic transaction
   const session = await mongoose.startSession();
   session.startTransaction();
 
@@ -342,7 +471,6 @@ const handlePaymentCaptured = async (payment) => {
     }
 
     await clearUserCart(pendingOrder.user, session);
-
     await session.commitTransaction();
   } catch (err) {
     await session.abortTransaction();
@@ -351,7 +479,45 @@ const handlePaymentCaptured = async (payment) => {
     session.endSession();
   }
 
-  // 4. Send confirmation email — non-blocking
+  // 4. Find nearest warehouse from address location.coordinates [lng, lat]
+  const [longitude, latitude] = pendingOrder.shippingAddress?.location?.coordinates ?? [];
+
+  if (!longitude || !latitude) {
+    console.error("[SHIPMENT] Missing coordinates on shippingAddress for order:", pendingOrder.orderId);
+  } else {
+    const nearestWarehouse = await Warehouse.findOne({
+      location: {
+        $nearSphere: {
+          $geometry: {
+            type: "Point",
+            coordinates: [longitude, latitude],
+          },
+          $maxDistance: 1500000, // 1,500 km
+        },
+      },
+    }).lean();
+
+    if (!nearestWarehouse) {
+      console.error("[SHIPMENT] No warehouse found for order:", pendingOrder.orderId);
+    } else {
+      // 5. Create Delhivery shipment — non-blocking
+      createDelhiveryShipment({ order: pendingOrder, warehouse: nearestWarehouse })
+        .then(async (shipment) => {
+          await Order.findByIdAndUpdate(pendingOrder._id, {
+            "shipment.waybillNumber": shipment.waybillNumber,
+            "shipment.courierName":   shipment.courierName,
+            "shipment.warehouseId":   nearestWarehouse._id,
+            status: ORDER_STATUS.CONFIRMED,
+          });
+          console.log("[SHIPMENT] Created successfully:", shipment.waybillNumber);
+        })
+        .catch((err) =>
+          console.error("[SHIPMENT] Creation failed for order:", pendingOrder.orderId, err.message)
+        );
+    }
+  }
+
+  // 6. Send confirmation email — non-blocking
   const user = await User.findById(pendingOrder.user, { name: 1, email: 1 }).lean();
   sendOrderConfirmationEmail(user, pendingOrder).catch((err) =>
     console.error("[EMAIL] Order confirmation failed:", err),

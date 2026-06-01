@@ -67,9 +67,6 @@ const userSchema = new mongoose.Schema(
         pincode: {
           type: String,
         },
-        warehouse: {
-          type: String
-        },
         location: {
           type: {
             type: String,

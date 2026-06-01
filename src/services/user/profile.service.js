@@ -5,7 +5,7 @@ import {
   SUCCESS_MESSAGES,
 } from "../../config/appConstants.js";
 import { OperationalError } from "../../utils/error.js";
-import { User, Product, ADC } from "../../models/index.js";
+import { User, Product, ADC, Warehouse } from "../../models/index.js";
 
 // profile
 import { deletePreviousToken } from "../token.service.js";
