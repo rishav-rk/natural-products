@@ -126,7 +126,7 @@ const sendOrderConfirmationEmail = async (user, order) => {
 export const createOrder = async (orderData, token) => {
   const user = await User.findById(
     token.user._id,
-    { cart: 1, name: 1, phoneNumber: 1, addresses: 1 },  // ✅ added addresses + phoneNumber
+    { cart: 1, name: 1, phoneNumber: 1, addresses: 1 }, 
   ).lean();
 
   if (!user.cart.deliveryAddress) {
@@ -492,7 +492,7 @@ const handlePaymentCaptured = async (payment) => {
             type: "Point",
             coordinates: [longitude, latitude],
           },
-          $maxDistance: 1500000, // 1,500 km
+          $maxDistance: 1500000, 
         },
       },
     }).lean();

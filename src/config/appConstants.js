@@ -120,7 +120,7 @@ export const SUCCESS_MESSAGES = {
   LOGOUT: "User successfully logged out",
   REQUEST_SENT: "Request has been sent to the admin",
   USER_CREATED: "User created successfully",
-  COMPANY_CREATED: "Account for company created successfully",
+  WAREHOUSE_CREATED: "Warehouse created successfully",
   ORDER_CREATED: "Order created successfully, Please proceed to payment",
 };
 

@@ -1,6 +1,8 @@
 import axios from "axios";
 import config from "../config/config.js";
 import { successResponse } from "./response.js";
+import { OperationalError } from "./error.js";
+import { STATUS_CODES } from "../config/appConstants.js";
 
 export const checkPincodeServiceability = async (pincode) => {
   const options = {
@@ -30,10 +32,7 @@ export const checkPincodeServiceability = async (pincode) => {
   };
 };
 
-export const checkShippingRate = async ({
-  destinationPin,
-  weight
-}) => {
+export const checkShippingRate = async ({ destinationPin, weight }) => {
   const options = {
     method: "GET",
     url: `${config.delhivery.baseUrl}/api/kinko/v1/invoice/charges/.json`,
@@ -64,36 +63,36 @@ export const checkShippingRate = async ({
 
 export const createWarehouse = async () => {
   const response = await axios.post(
-  `${config.delhivery.baseUrl}/api/backend/clientwarehouse/create/`,
-  {
-    name: 'Delhi WH',
-    email: 'delhi-wh@yourcompany.com',
-    address: '123 Warehouse Road, Okhla Phase II',
-    phone: "9876543210",
-    city: 'New Delhi',
-    country: 'India',
-    pin: '110020',
-    return_address: '123 Warehouse Road, Okhla Phase II',
-    return_pin: '110020',
-    return_city: 'New Delhi',
-    return_state: 'Delhi',
-    return_country: 'India',
-  },
-  {
-    headers: {
-      Authorization: `Token ${config.delhivery.secret}`,
-      'Content-Type': 'application/json',
+    `${config.delhivery.baseUrl}/api/backend/clientwarehouse/create/`,
+    {
+      name: "Delhi WH",
+      email: "delhi-wh@yourcompany.com",
+      address: "123 Warehouse Road, Okhla Phase II",
+      phone: "9876543210",
+      city: "New Delhi",
+      country: "India",
+      pin: "110020",
+      return_address: "123 Warehouse Road, Okhla Phase II",
+      return_pin: "110020",
+      return_city: "New Delhi",
+      return_state: "Delhi",
+      return_country: "India",
     },
-  }
-)
+    {
+      headers: {
+        Authorization: `Token ${config.delhivery.secret}`,
+        "Content-Type": "application/json",
+      },
+    },
+  );
 
-console.log('Warehouse created:', response.data);
-return response.data;
-}
-
+  console.log("Warehouse created:", response.data);
+  return response.data;
+};
 
 const delhiveryHeaders = {
   "Content-Type": "application/json",
+  Accept: "application/json",
   Authorization: `Token ${config.delhivery.secret}`,
 };
 
@@ -118,41 +117,41 @@ export const createDelhiveryShipment = async ({ order, warehouse }) => {
     shipments: [
       {
         // ── Delivery address ──────────────────────────────
-        name:    order.userName || "Customer",
-        add:     fullAddress,
-        city:    address.city,
-        state:   address.state,
+        name: order.userName || "Customer",
+        add: fullAddress,
+        city: address.city,
+        state: address.state,
         country: address.country || "India",
-        pin:     String(address.pincode),
-        phone:   order.userPhone || "",
+        pin: String(address.pincode),
+        phone: order.userPhone || "",
 
         // ── Order info ────────────────────────────────────
-        order:         order.orderId,
-        payment_mode:  "Prepaid",
-        cod_amount:    0,
-        total_amount:  parseFloat(order.grandTotalAmount),
-        weight:        calculateTotalWeight(order.products),
+        order: order.orderId,
+        payment_mode: "Prepaid",
+        cod_amount: 0,
+        total_amount: parseFloat(order.grandTotalAmount),
+        weight: calculateTotalWeight(order.products),
         products_desc: order.products.map((p) => p.name).join(", "),
-        quantity:      order.products.reduce((sum, p) => sum + p.quantity, 0),
+        quantity: order.products.reduce((sum, p) => sum + p.quantity, 0),
         shipping_mode: "Surface",
-        address_type:  address.type?.toLowerCase() || "home",
+        address_type: address.type?.toLowerCase() || "home",
 
         // ── Pickup / seller (from warehouse schema) ───────
-        seller_name:    warehouse.name,
-        seller_add:     warehouse.address,
-        seller_city:    warehouse.city,
-        seller_state:   warehouse.state,
-        seller_pin:     String(warehouse.pin),
-        seller_phone:   String(warehouse.phone),
+        seller_name: warehouse.name,
+        seller_add: warehouse.address,
+        seller_city: warehouse.city,
+        seller_state: warehouse.state,
+        seller_pin: String(warehouse.pin),
+        seller_phone: String(warehouse.phone),
         seller_gst_tin: warehouse.gstNumber || "",
 
         // ── Return address (falls back to warehouse) ──────
-        rto_name:    warehouse.name,
-        rto_add:     warehouse.return_address || warehouse.address,
-        rto_city:    warehouse.return_city    || warehouse.city,
-        rto_state:   warehouse.return_state   || warehouse.state,
-        rto_pin:     String(warehouse.return_pin || warehouse.pin),
-        rto_phone:   String(warehouse.phone),
+        rto_name: warehouse.name,
+        rto_add: warehouse.return_address || warehouse.address,
+        rto_city: warehouse.return_city || warehouse.city,
+        rto_state: warehouse.return_state || warehouse.state,
+        rto_pin: String(warehouse.return_pin || warehouse.pin),
+        rto_phone: String(warehouse.phone),
         rto_country: warehouse.return_country || "India",
       },
     ],
@@ -166,19 +165,21 @@ export const createDelhiveryShipment = async ({ order, warehouse }) => {
   const { data: result } = await axios.post(
     `${config.delhivery.baseUrl}/api/cmu/create.json`,
     body,
-    { headers: delhiveryHeadersForShipmentCreation }
+    { headers: delhiveryHeadersForShipmentCreation },
   );
 
   const shipment = result.packages?.[0];
 
   if (!shipment || shipment.status === "Error") {
-    throw new Error(`[DELHIVERY] ${shipment?.remarks || "Unknown error from Delhivery"}`);
+    throw new Error(
+      `[DELHIVERY] ${shipment?.remarks || "Unknown error from Delhivery"}`,
+    );
   }
 
   return {
     waybillNumber: shipment.waybill,
-    courierName:   "Delhivery",
-    status:        shipment.status,
+    courierName: "Delhivery",
+    status: shipment.status,
   };
 };
 
@@ -192,37 +193,61 @@ export const calculateTotalWeight = (products) => {
 export const createDelhiveryWarehouse = async (warehouse) => {
   const payload = {
     // ── Identity ───────────────────────────────────────
-    name:             warehouse.name,
-    registered_name:  warehouse.registeredName || warehouse.name,
-    contact_person:   warehouse.contactPerson,
-    email:            warehouse.email,
+    name: warehouse.name,
+    registered_name: warehouse.registeredName || warehouse.name,
+    email: warehouse.email,
 
     // ── Address ────────────────────────────────────────
-    address:          warehouse.address,
-    city:             warehouse.city,
-    state:            warehouse.state,
-    country:          warehouse.country || "India",
-    pin:              String(warehouse.pin),
+    address: warehouse.address,
+    city: warehouse.city,
+    state: warehouse.state,
+    country: warehouse.country || "India",
+    pin: String(warehouse.pin),
 
     // ── Contact ────────────────────────────────────────
-    phone:            String(warehouse.phone),
+    phone: String(warehouse.phone),
+
+    return_address: warehouse.return_address || warehouse.address,
+    return_city: warehouse.return_city || warehouse.city,
+    return_state: warehouse.return_state || warehouse.state,
+    return_country: warehouse.return_country || warehouse.country || "India",
+    return_pin: String(warehouse.return_pin || warehouse.pin),
+
+    // ── GST (optional) ─────────────────────────────────
+    gst_number: warehouse.gstNumber || "",
   };
 
-  const { data: result } = await axios.post(
-    `${config.delhivery.baseUrl}/api/backend/clientwarehouse/create/`,
-    payload,
-    { headers: delhiveryHeaders }
-  );
+  try {
+    const { data: result } = await axios.post(
+      `${config.delhivery.baseUrl}/api/backend/clientwarehouse/create/`,
+      payload,
+      { headers: delhiveryHeaders },
+    );
 
-  if (!result.success) {
-    throw new Error(`[DELHIVERY] Warehouse creation failed: ${result.message || "Unknown error"}`);
+    console.log(result);
+
+    if (!result.success) {
+      throw new OperationalError(
+        STATUS_CODES.ACTION_FAILED,
+        `[DELHIVERY] Warehouse creation failed: ${result.message || "Unknown error"}`,
+      );
+    }
+
+    return {
+      warehouseName: result.data?.name || warehouse.name,
+      city: result.data?.city || warehouse.city,
+      state: result.data?.state || warehouse.state,
+      pin: result.data?.pin || String(warehouse.pin),
+      phone: result.data?.phone || String(warehouse.phone),
+    };
+  } catch (error) {
+    const errorMsg = error.response?.data?.error?.[0] || 
+                     error.response?.data?.message || 
+                     error.message ||
+                     "Unknown error";
+    throw new OperationalError(
+      STATUS_CODES.ACTION_FAILED,
+      `[DELHIVERY] Warehouse creation failed: ${errorMsg}`,
+    );
   }
-
-  return {
-    warehouseName:   result.data?.name    || warehouse.name,
-    city:            result.data?.city    || warehouse.city,
-    state:           result.data?.state   || warehouse.state,
-    pin:             result.data?.pin     || String(warehouse.pin),
-    phone:           result.data?.phone   || String(warehouse.phone),
-  };
 };

@@ -53,6 +53,14 @@ const warehouseSchema = new mongoose.Schema(
       type: String,
       default: "India",
     },
+    isActive: {
+      type: Boolean, 
+      default: true,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },  
     location: {
       type: {
         type: String,

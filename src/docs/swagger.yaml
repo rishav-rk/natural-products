@@ -42,6 +42,8 @@ components:
       description: Static pages - Contact Us, About Us, Privacy Policy, Terms & Conditions
     - name: Order
       description: Order creation and payment verification endpoints
+    - name: Admin Warehouse Operations
+      description: Admin warehouse management endpoints
 
 
 paths:
@@ -204,5 +206,19 @@ paths:
   /order/my-orders/{orderId}:
     get:
       $ref: "./paths/orderUser.yaml#/getMyOrderById"
+
+  /admin/warehouses:
+    get:
+      $ref: "./paths/adminWarehouseOperations.yaml#/getWarehouses"
+    post:
+      $ref: "./paths/adminWarehouseOperations.yaml#/addWarehouse"
+
+  /admin/warehouses/{id}:
+    get:
+      $ref: "./paths/adminWarehouseOperations.yaml#/getWarehouseById"
+    put:
+      $ref: "./paths/adminWarehouseOperations.yaml#/updateWarehouse"
+    delete:
+      $ref: "./paths/adminWarehouseOperations.yaml#/deleteWarehouse"
 
 

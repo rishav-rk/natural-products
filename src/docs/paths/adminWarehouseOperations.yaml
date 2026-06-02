@@ -1,0 +1,443 @@
+addWarehouse:
+  summary: Create a new warehouse
+  description: Adds a new warehouse location with address, contact details, and geographic coordinates. The warehouse is created in both MongoDB and the Delhivery system for delivery integration.
+  tags:
+    - Admin Warehouse Operations
+  security:
+    - bearerAuth: []
+  requestBody:
+    required: true
+    description: Warehouse details to create a new warehouse
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/addWarehouseRequest'
+  responses:
+    201:
+      description: Warehouse created successfully
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/warehouseResponse'
+    400:
+      description: Validation failed or invalid input
+    401:
+      description: Unauthorized - Invalid or missing authentication token
+    403:
+      description: Forbidden - User does not have admin privileges
+
+getWarehouses:
+  summary: Retrieve all warehouses
+  description: Get a paginated list of all warehouses with optional filtering by city and state. Admin only endpoint.
+  tags:
+    - Admin Warehouse Operations
+  security:
+    - bearerAuth: []
+  parameters:
+    - in: query
+      name: search
+      schema:
+        type: string
+      description: Search by city or state name
+    - in: query
+      name: page
+      schema:
+        type: integer
+        default: 0
+      description: Page number for pagination
+    - in: query
+      name: limit
+      schema:
+        type: integer
+        default: 10
+      description: Number of records per page
+  responses:
+    200:
+      description: Warehouses retrieved successfully
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/warehousesListResponse'
+    401:
+      description: Unauthorized - Invalid or missing authentication token
+    403:
+      description: Forbidden - User does not have admin privileges
+
+getWarehouseById:
+  summary: Retrieve a specific warehouse
+  description: Get detailed information about a specific warehouse by its ID.
+  tags:
+    - Admin Warehouse Operations
+  security:
+    - bearerAuth: []
+  parameters:
+    - in: path
+      name: id
+      required: true
+      schema:
+        type: string
+      description: Warehouse ID (MongoDB ObjectId)
+  responses:
+    200:
+      description: Warehouse retrieved successfully
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/warehouseResponse'
+    401:
+      description: Unauthorized - Invalid or missing authentication token
+    403:
+      description: Forbidden - User does not have admin privileges
+    404:
+      description: Warehouse not found
+
+updateWarehouse:
+  summary: Update warehouse details
+  description: Update an existing warehouse's information. At least one field must be provided for update. Location coordinates can be updated independently.
+  tags:
+    - Admin Warehouse Operations
+  security:
+    - bearerAuth: []
+  parameters:
+    - in: path
+      name: id
+      required: true
+      schema:
+        type: string
+      description: Warehouse ID (MongoDB ObjectId)
+  requestBody:
+    required: true
+    description: Updated warehouse details (all fields optional)
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/updateWarehouseRequest'
+  responses:
+    200:
+      description: Warehouse updated successfully
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/warehouseResponse'
+    400:
+      description: Validation failed or invalid input
+    401:
+      description: Unauthorized - Invalid or missing authentication token
+    403:
+      description: Forbidden - User does not have admin privileges
+    404:
+      description: Warehouse not found
+
+deleteWarehouse:
+  summary: Delete a warehouse
+  description: Soft delete a warehouse (marks as deleted but keeps the record). This is reversible.
+  tags:
+    - Admin Warehouse Operations
+  security:
+    - bearerAuth: []
+  parameters:
+    - in: path
+      name: id
+      required: true
+      schema:
+        type: string
+      description: Warehouse ID (MongoDB ObjectId)
+  responses:
+    204:
+      description: Warehouse deleted successfully
+    401:
+      description: Unauthorized - Invalid or missing authentication token
+    403:
+      description: Forbidden - User does not have admin privileges
+    404:
+      description: Warehouse not found
+
+components:
+  schemas:
+    addWarehouseRequest:
+      type: object
+      required:
+        - name
+        - phone
+        - email
+        - address
+        - city
+        - state
+        - pin
+        - latitude
+        - longitude
+      properties:
+        name:
+          type: string
+          example: "Mumbai Central Warehouse"
+          description: Warehouse name/location identifier
+        phone:
+          type: string
+          example: "9876543210"
+          description: Contact phone number with country code
+        email:
+          type: string
+          format: email
+          example: "warehouse@example.com"
+          description: Contact email address
+        address:
+          type: string
+          example: "123 Industrial Area, Near Port"
+          description: Full warehouse address
+        city:
+          type: string
+          example: "Mumbai"
+          description: City where warehouse is located
+        state:
+          type: string
+          example: "Maharashtra"
+          description: State where warehouse is located
+        country:
+          type: string
+          default: "India"
+          example: "India"
+          description: Country where warehouse is located
+        pin:
+          type: string
+          example: "400001"
+          description: Postal/PIN code of warehouse location
+        gstNumber:
+          type: string
+          example: "18AABCT0000A1Z0"
+          description: GST registration number (optional)
+        latitude:
+          type: number
+          format: double
+          example: 19.0760
+          description: Latitude coordinate for warehouse location
+        longitude:
+          type: number
+          format: double
+          example: 72.8777
+          description: Longitude coordinate for warehouse location
+        return_address:
+          type: string
+          example: "456 Return Center, Same City"
+          description: Address for returns processing (optional)
+        return_pin:
+          type: string
+          example: "400002"
+          description: PIN code for returns address (optional)
+        return_city:
+          type: string
+          example: "Mumbai"
+          description: City for returns processing (optional)
+        return_state:
+          type: string
+          example: "Maharashtra"
+          description: State for returns processing (optional)
+        return_country:
+          type: string
+          default: "India"
+          example: "India"
+          description: Country for returns processing (optional)
+
+    updateWarehouseRequest:
+      type: object
+      description: All fields are optional - provide only fields that need updating
+      properties:
+        name:
+          type: string
+          example: "Mumbai Central Warehouse"
+          description: Warehouse name/location identifier
+        phone:
+          type: string
+          pattern: '^\+?[0-9]{10,}$'
+          example: "+919876543210"
+          description: Contact phone number with country code
+        email:
+          type: string
+          format: email
+          example: "warehouse@example.com"
+          description: Contact email address
+        address:
+          type: string
+          example: "123 Industrial Area, Near Port"
+          description: Full warehouse address
+        city:
+          type: string
+          example: "Mumbai"
+          description: City where warehouse is located
+        state:
+          type: string
+          example: "Maharashtra"
+          description: State where warehouse is located
+        country:
+          type: string
+          example: "India"
+          description: Country where warehouse is located
+        pin:
+          type: string
+          example: "400001"
+          description: Postal/PIN code of warehouse location
+        gstNumber:
+          type: string
+          example: "18AABCT0000A1Z0"
+          description: GST registration number
+        latitude:
+          type: number
+          format: double
+          example: 19.0760
+          description: Latitude coordinate for warehouse location
+        longitude:
+          type: number
+          format: double
+          example: 72.8777
+          description: Longitude coordinate for warehouse location
+        return_address:
+          type: string
+          example: "456 Return Center, Same City"
+          description: Address for returns processing
+        return_pin:
+          type: string
+          example: "400002"
+          description: PIN code for returns address
+        return_city:
+          type: string
+          example: "Mumbai"
+          description: City for returns processing
+        return_state:
+          type: string
+          example: "Maharashtra"
+          description: State for returns processing
+        return_country:
+          type: string
+          example: "India"
+          description: Country for returns processing
+
+    warehouseResponse:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "60c72b2f9b1d8e5a5c8f9b1a"
+          description: Unique warehouse identifier (MongoDB ObjectId)
+        name:
+          type: string
+          example: "Mumbai Central Warehouse"
+          description: Warehouse name
+        phone:
+          type: string
+          example: "+919876543210"
+          description: Contact phone number
+        email:
+          type: string
+          example: "warehouse@example.com"
+          description: Contact email address
+        address:
+          type: string
+          example: "123 Industrial Area, Near Port"
+          description: Warehouse address
+        city:
+          type: string
+          example: "Mumbai"
+          description: City
+        state:
+          type: string
+          example: "Maharashtra"
+          description: State
+        country:
+          type: string
+          example: "India"
+          description: Country
+        pin:
+          type: string
+          example: "400001"
+          description: Postal code
+        gstNumber:
+          type: string
+          example: "18AABCT0000A1Z0"
+          description: GST registration number
+        return_address:
+          type: string
+          example: "456 Return Center, Same City"
+          description: Returns address
+        return_pin:
+          type: string
+          example: "400002"
+          description: Returns postal code
+        return_city:
+          type: string
+          example: "Mumbai"
+          description: Returns city
+        return_state:
+          type: string
+          example: "Maharashtra"
+          description: Returns state
+        return_country:
+          type: string
+          example: "India"
+          description: Returns country
+        isActive:
+          type: boolean
+          example: true
+          description: Whether warehouse is active
+        isDeleted:
+          type: boolean
+          example: false
+          description: Whether warehouse is soft-deleted
+        location:
+          type: object
+          properties:
+            type:
+              type: string
+              enum: ["Point"]
+              example: "Point"
+              description: GeoJSON type (always Point)
+            coordinates:
+              type: array
+              items:
+                type: number
+              example: [72.8777, 19.0760]
+              description: Geographic coordinates [longitude, latitude]
+        delhiveryResponse:
+          type: object
+          description: Response from Delhivery integration API
+          example:
+            {
+              "success": true,
+              "warehouseId": "DLV123456"
+            }
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+          description: Warehouse creation timestamp
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+          description: Last update timestamp
+
+    warehousesListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/warehouseResponse'
+          description: Array of warehouse objects
+        pagination:
+          type: object
+          properties:
+            total:
+              type: integer
+              example: 50
+              description: Total number of warehouses
+            page:
+              type: integer
+              example: 1
+              description: Current page number
+            limit:
+              type: integer
+              example: 10
+              description: Records per page
+            pages:
+              type: integer
+              example: 5
+              description: Total number of pages

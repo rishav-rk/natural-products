@@ -189,5 +189,10 @@
 	"weight must be a number, discount must be a number": "weight must be a number, discount must be a number",
 	"data must be one of [yearly, month, weekly]": "data must be one of [yearly, month, weekly]",
 	"data must be one of [yearly, monthly, weekly], data is not allowed to be empty": "data must be one of [yearly, monthly, weekly], data is not allowed to be empty",
-	"quantity must be greater than or equal to 1": "quantity must be greater than or equal to 1"
+	"quantity must be greater than or equal to 1": "quantity must be greater than or equal to 1",
+	"phone with value +918310440848 fails to match the required pattern": " /^\\d+$/, gstNumber is not allowed to be empty",
+	"gstNumber is not allowed to be empty": "gstNumber is not allowed to be empty",
+	"Warehouse created in database but failed in Delhivery": " [DELHIVERY] Warehouse creation failed: return_address: return_address is required",
+	"phone with value +919876543210 fails to match the required pattern": " /^\\d+$/",
+	"Warehouse created successfully": "Warehouse created successfully"
 }

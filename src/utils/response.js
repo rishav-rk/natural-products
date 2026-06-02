@@ -44,10 +44,15 @@ const createResponse = (
 
 const errorResponse = (error, req, res) => {
   let statusCode =
-    error.code ||
-    error.statusCode ||
     error.response?.status ||
+    error.statusCode ||
+    error.code ||
     STATUS_CODES.ERROR;
+
+  // Ensure statusCode is a number
+  if (typeof statusCode !== 'number') {
+    statusCode = STATUS_CODES.ERROR;
+  }
 
   const logError = error.logError ?? true;
 
@@ -76,6 +81,7 @@ const errorResponse = (error, req, res) => {
       // data: {},
     });
   }
+  console.log(error)
   const message =
     error instanceof NotFoundError ||
     error instanceof ValidationError ||
