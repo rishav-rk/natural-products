@@ -20,22 +20,21 @@ export const PAYMENT_METHOD = {
 };
 
 export const DATA_FILTER = {
-  YEARLY: 'yearly', 
-  MONTHLY: 'monthly', 
-  WEEKLY: 'weekly'
-}
+  YEARLY: "yearly",
+  MONTHLY: "monthly",
+  WEEKLY: "weekly",
+};
 
 export const PAYMENT_STATUS = {
   PENDING: "pending",
   COMPLETED: "completed",
-  FAILED: "failed"
+  FAILED: "failed",
 };
 
 export const ORDER_STATUS = {
-  INPROGRESS: 'In Progress',
-  OTW: 'On the Way', 
-  DELIVERED: 'Delivered'
-
+  INPROGRESS: "In Progress",
+  OTW: "On the Way",
+  DELIVERED: "Delivered",
 };
 
 export const USER_TYPE = {
@@ -124,11 +123,18 @@ export const SUCCESS_MESSAGES = {
   ORDER_CREATED: "Order created successfully, Please proceed to payment",
 };
 
+export const REFERRAL_CONSTANTS = {
+  BASE_AMOUNT: 500,
+  AMOUNT_DECREMENT: 100,
+  MAX_LEVEL: 5,
+  MAX_USES: 10,
+};
+
 export const ERROR_MESSAGES = {
   NOT_SERVICEABLE: "This pincode is not serviceable by our delivery partner",
-  OUT_OF_STOCK: "Sorry, this product is temporarily out of stock" , 
-  NO_SUCH_ORDER: 'No such order',
-  INVALID_SIGNATURE: 'Invalid payment signature',
+  OUT_OF_STOCK: "Sorry, this product is temporarily out of stock",
+  NO_SUCH_ORDER: "No such order",
+  INVALID_SIGNATURE: "Invalid payment signature",
   ADDRESS_REQUIRED: "Address is required",
   ADDRESS_NOT_FOUND: "Address not found",
   PRODUCT_ALREADY_EXISTS: "Product already exists. Try updating it",
