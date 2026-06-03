@@ -49,6 +49,10 @@ const orderSchema = new mongoose.Schema(
           type: Number,
           required: [true, "Please provide product price"],
         },
+        weight: {
+          type: Number,
+          required: [true, "Please provide product weight"],
+        }
       },
     ],
     itemTotal: {
