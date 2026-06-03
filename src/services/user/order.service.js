@@ -5,8 +5,9 @@ import {
   ERROR_MESSAGES,
   PAYMENT_STATUS,
   STATUS_CODES,
+  ORDER_STATUS,
 } from "../../config/appConstants.js";
-import { ADC, Product, Order, User } from "../../models/index.js";
+import { ADC, Product, Order, User, Warehouse } from "../../models/index.js";
 import { OperationalError } from "../../utils/error.js";
 import config from "../../config/config.js";
 import { paginationOptions } from "../../utils/universalFunctions.js";
@@ -274,7 +275,45 @@ export const verifyPayment = async (paymentInfo, token) => {
     session.endSession();
   }
 
-  // 5. Send confirmation email — non-blocking, failure won't affect response
+  // 5. Find nearest warehouse from address location.coordinates [lng, lat]
+  const [longitude, latitude] = pendingOrder.shippingAddress?.location?.coordinates ?? [];
+
+  if (!longitude || !latitude) {
+    console.error("[SHIPMENT] Missing coordinates on shippingAddress for order:", pendingOrder.orderId);
+  } else {
+    const nearestWarehouse = await Warehouse.findOne({
+      location: {
+        $nearSphere: {
+          $geometry: {
+            type: "Point",
+            coordinates: [longitude, latitude],
+          },
+          $maxDistance: 1500000,
+        },
+      },
+    }).lean();
+
+    if (!nearestWarehouse) {
+      console.error("[SHIPMENT] No warehouse found for order:", pendingOrder.orderId);
+    } else {
+      // 6. Create Delhivery shipment — non-blocking
+      createDelhiveryShipment({ order: pendingOrder, warehouse: nearestWarehouse })
+        .then(async (shipment) => {
+          await Order.findByIdAndUpdate(pendingOrder._id, {
+            "shipment.waybillNumber": shipment.waybillNumber,
+            "shipment.courierName":   shipment.courierName,
+            "shipment.warehouseId":   nearestWarehouse._id,
+            status: ORDER_STATUS.CONFIRMED,
+          });
+          console.log("[SHIPMENT] Created successfully:", shipment.waybillNumber);
+        })
+        .catch((err) =>
+          console.error("[SHIPMENT] Creation failed for order:", pendingOrder.orderId, err.message)
+        );
+    }
+  }
+
+  // 7. Send confirmation email — non-blocking, failure won't affect response
   const user = await User.findById(token.user._id, {
     name: 1,
     email: 1,

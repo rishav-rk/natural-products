@@ -28,23 +28,23 @@ router.post(
   createOrder,
 ); 
 
-router.get("/test", async (req, res) => {
-  const id = "69f1e37b6df72aa60ebeca27";
-  const user = await User.findById(id, { cart: 1 }, { lean: true });
-  const itemTotal = user.cart.products.reduce(
-    (sum, p) => sum + p.price * p.quantity,
-    0,
-  );
+// router.get("/test", async (req, res) => {
+//   const id = "69f1e37b6df72aa60ebeca27";
+//   const user = await User.findById(id, { cart: 1 }, { lean: true });
+//   const itemTotal = user.cart.products.reduce(
+//     (sum, p) => sum + p.price * p.quantity,
+//     0,
+//   );
 
-  const amount = (
-    itemTotal +
-    (parseFloat(user.cart.tax) / 100) * itemTotal
-  ).toFixed(2);
-  // console.log(amount)
-  return res.render("payment-test", {
-    amount: amount,
-  });
-});
+//   const amount = (
+//     itemTotal +
+//     (parseFloat(user.cart.tax) / 100) * itemTotal
+//   ).toFixed(2);
+//   // console.log(amount)
+//   return res.render("payment-test", {
+//     amount: amount,
+//   });
+// });
 
 router.post(
   "/verify-payment",
