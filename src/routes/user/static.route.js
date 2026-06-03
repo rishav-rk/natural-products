@@ -56,6 +56,8 @@ router.post(
       throw new OperationalError(400, "INVALID CODE");
     }
 
+    // same person is not allowed to use the same referral code more than once, but can use it once (to prevent fake referrals)
+
     if (
       referral.user.toString() === token.user._id.toString() &&
       referral.hasUsedItsOwnCode
