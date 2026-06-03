@@ -25,7 +25,7 @@ import { createDelhiveryShipment } from "../../utils/delivery.js"
 const getProductsWithPrices = async (productIds) => {
   const dbProducts = await Product.find(
     { _id: { $in: productIds }, isDeleted: false },
-    { name: 1, price: 1, images: 1 },
+    { name: 1, price: 1, images: 1, weight: 1 },
   ).lean();
 
   if (dbProducts.length !== productIds.length) {
