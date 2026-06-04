@@ -46,12 +46,12 @@ router.post(
 //   });
 // });
 
-router.post(
-  "/verify-payment",
-  auth(USER_TYPE.USER),
-  validate(verifyPaymentValidator),
-  verifyPayment,
-);
+// router.post(
+//   "/verify-payment",
+//   auth(USER_TYPE.USER),
+//   validate(verifyPaymentValidator),
+//   verifyPayment,
+// );
 
 router.get(
   "/my-orders",

@@ -64,6 +64,7 @@ const updateProductsWithPrices = (cartProducts, productMap) => {
     price: productMap[cartItem.product].price,
     name: productMap[cartItem.product].name,
     images: productMap[cartItem.product].images,
+    weight: productMap[cartItem.product].weight,
   }));
 };
 
