@@ -531,7 +531,7 @@ const handlePaymentCaptured = async (payment) => {
             type: "Point",
             coordinates: [longitude, latitude],
           },
-          $maxDistance: 1500000, 
+          $maxDistance: 3215000, // covering whole india
         },
       },
     }).lean();
