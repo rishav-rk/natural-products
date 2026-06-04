@@ -16,14 +16,14 @@ export const submitContactUs = catchAsync((req, res) => {
     STATUS_CODES.ACTION_COMPLETE,
     SUCCESS_MESSAGES.SUCCESS,
   );
-})
+});
 
 export const getAboutUs = catchAsync(async (req, res) => {
   const aboutUs = await constantsService.getAboutInfo();
   res.render("about-us", {
     title: "About Us",
     activePage: "About",
-    aboutUs: aboutUs
+    aboutUs: aboutUs,
   });
 });
 
@@ -32,7 +32,7 @@ export const getPrivacyPolicy = catchAsync(async (req, res) => {
   res.render("privacy-policy", {
     title: "Privacy Policy",
     activePage: "Privacy",
-    privacyPolicy: privacyPolicy
+    privacyPolicy: privacyPolicy,
   });
 });
 
@@ -41,6 +41,37 @@ export const getTermsAndConditions = catchAsync(async (req, res) => {
   res.render("terms-and-conditions", {
     title: "Term & Conditions",
     activePage: "Terms & Conditions",
-    termsAndConditions: termsAndConditions
+    termsAndConditions: termsAndConditions,
   });
-})
+});
+
+export const getReferralCodes = catchAsync(async (req, res) => {
+  const data = await constantsService.getReferralCodes(
+    req.token.user._id,
+    req.query.page,
+    req.query.limit,
+  );
+  return successResponse(
+    req,
+    res,
+    STATUS_CODES.SUCCESS,
+    SUCCESS_MESSAGES.SUCCESS,
+    data,
+  );
+});
+
+export const getReferralById = catchAsync(async (req, res) => {
+  const data = await constantsService.getReferralById(
+    req.params.codeId,
+    req.query.level,
+    req.query.page,
+    req.query.limit,
+  );
+  return successResponse(
+    req,
+    res,
+    STATUS_CODES.SUCCESS,
+    SUCCESS_MESSAGES.SUCCESS,
+    data,
+  );
+});

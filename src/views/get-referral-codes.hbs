@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Referral Codes</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>User Name</th>
+                <th>User Phone Number</th>
+                <th>Parent Name</th>
+                <th>Transactions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each referralCodes}}
+            <tr>
+                <td>{{this.user.name}}</td>
+                <td>{{this.user.phoneNumber}}</td>
+                <td>{{this.parent}}</td>
+                <td>
+                    {{#each this.transactions}}
+                        <div>
+                            Paid By: {{this.paidBy.name}} | Amount: {{this.amount}} | Level: {{this.level}}
+                        </div>
+                    {{/each}}
+                </td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+    <script>
+        console.log({{referralCodes}});
+    </script>
+</body>
+</html>
