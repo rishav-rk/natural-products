@@ -1,4 +1,4 @@
-import { JOI } from "../../config/appConstants.js";
+import { JOI, REFERRAL_CONSTANTS } from "../../config/appConstants.js";
 import Joi from "joi";
 
 export const getProfileValidator = {
@@ -138,7 +138,7 @@ export const referralDetailsValidator = {
     codeId: Joi.string().required()
   }).required(),
   query: Joi.object({
-    level: Joi.number().integer().min(1).max(4).required(),
+    level: Joi.number().integer().valid(...REFERRAL_CONSTANTS.VALID_LEVELS).required(),
     page: JOI.PAGE, 
     limit: JOI.LIMIT
   }).required()

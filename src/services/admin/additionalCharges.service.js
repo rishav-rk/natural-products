@@ -1,6 +1,11 @@
+import mongoose from "mongoose";
 import { ADC, Referral } from "../../models/index.js";
 import { OperationalError } from "../../utils/error.js";
-import { ERROR_MESSAGES, STATUS_CODES } from "../../config/appConstants.js";
+import {
+  ERROR_MESSAGES,
+  STATUS_CODES,
+  REFERRAL_CONSTANTS,
+} from "../../config/appConstants.js";
 import { paginationOptions } from "../../utils/universalFunctions.js";
 
 export const getConstants = async () => {
@@ -74,16 +79,16 @@ export const getPrivacyPolicy = async () => {
 };
 
 const createFrequencyTable = (transactions) => {
-  const frequencyTable = {
-    1: 0,
-    2: 0,
-    3: 0,
-    4: 0,
-  };
+  const frequencyTable = {};
+  REFERRAL_CONSTANTS.VALID_LEVELS.forEach((level) => {
+    frequencyTable[level] = 0;
+  });
   let totalEarnings = 0;
   transactions.forEach((transaction) => {
-    frequencyTable[transaction.level] = frequencyTable[transaction.level] + 1;
-    totalEarnings += transaction.amount;
+    if (frequencyTable[transaction.level] !== undefined) {
+      frequencyTable[transaction.level] += 1;
+      totalEarnings += transaction.amount;
+    }
   });
   return { frequencyTable, totalEarnings };
 };
@@ -98,12 +103,57 @@ export const getReferralCodes = async (userId, page, limit) => {
     codeId: code._id,
     code: code.code,
     totalReferrals: code.transactions.length,
-    ...createFrequencyTable(code.transactions)
+    ...createFrequencyTable(code.transactions),
   }));
-  
+
   return data;
 };
 
 export const getReferralById = async (codeId, level, page, limit) => {
-  const details = await Referral.find({_id: codeId, "transactions.level" : {$eq : level}})
-}
+  const parsedLevel = parseInt(level);
+
+  // Validate level
+  if (!REFERRAL_CONSTANTS.VALID_LEVELS.includes(parsedLevel)) {
+    throw new OperationalError(
+      STATUS_CODES.ACTION_FAILED,
+      `Invalid level. Valid levels are: ${REFERRAL_CONSTANTS.VALID_LEVELS.join(", ")}`,
+    );
+  }
+
+  const skip = parseInt(page) * parseInt(limit);
+
+  const result = await Referral.aggregate([
+    { $match: { _id: new mongoose.Types.ObjectId(codeId) } },
+    {
+      $project: {
+        code: 1,
+        filteredTransactions: {
+          $filter: {
+            input: "$transactions",
+            as: "txn",
+            cond: { $eq: ["$$txn.level", parsedLevel] },
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        code: 1,
+        total: { $size: "$filteredTransactions" },
+        transactions: {
+          $slice: ["$filteredTransactions", skip, parseInt(limit)],
+        },
+      },
+    },
+  ]);
+
+  if (!result.length) {
+    return {
+      code: null,
+      total: 0,
+      transactions: [],
+    };
+  }
+
+  return result[0];
+};

@@ -198,5 +198,7 @@
 	"INVALID CODE": "INVALID CODE",
 	"YOU CANNOT USE YOUR OWN REFERRAL CODE": "YOU CANNOT USE YOUR OWN REFERRAL CODE",
 	"codeId is required, level is required": "codeId is required, level is required",
-	"limit must be a number": "limit must be a number"
+	"limit must be a number": "limit must be a number",
+	"level is required": "level is required",
+	"level must be one of [1, 2, 3, 4]": "level must be one of [1, 2, 3, 4]"
 }

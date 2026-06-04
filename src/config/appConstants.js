@@ -126,8 +126,9 @@ export const SUCCESS_MESSAGES = {
 export const REFERRAL_CONSTANTS = {
   BASE_AMOUNT: 500,
   AMOUNT_DECREMENT: 100,
-  MAX_LEVEL: 5,
+  MAX_LEVEL: 4,
   MAX_USES: 10,
+  VALID_LEVELS: [1, 2, 3, 4],
 };
 
 export const ERROR_MESSAGES = {
