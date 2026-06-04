@@ -194,5 +194,9 @@
 	"gstNumber is not allowed to be empty": "gstNumber is not allowed to be empty",
 	"Warehouse created in database but failed in Delhivery": " [DELHIVERY] Warehouse creation failed: return_address: return_address is required",
 	"phone with value +919876543210 fails to match the required pattern": " /^\\d+$/",
-	"Warehouse created successfully": "Warehouse created successfully"
+	"Warehouse created successfully": "Warehouse created successfully",
+	"INVALID CODE": "INVALID CODE",
+	"YOU CANNOT USE YOUR OWN REFERRAL CODE": "YOU CANNOT USE YOUR OWN REFERRAL CODE",
+	"codeId is required, level is required": "codeId is required, level is required",
+	"limit must be a number": "limit must be a number"
 }
