@@ -125,3 +125,21 @@ export const validateContactUs = {
     message: Joi.string().required().example('Thank you for your service')
   }).required()
 }
+
+export const getReferralCodesValidator = {
+  query : Joi.object({
+    page: JOI.PAGE, 
+    limit: JOI.LIMIT
+  }).required()
+}
+
+export const referralDetailsValidator = {
+  params: Joi.object({
+    codeId: Joi.string().required()
+  }).required(),
+  query: Joi.object({
+    level: Joi.number().integer().min(1).max(4).required(),
+    page: JOI.PAGE, 
+    limit: JOI.LIMIT
+  }).required()
+}

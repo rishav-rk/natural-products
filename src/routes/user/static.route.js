@@ -4,7 +4,11 @@ import { validate } from "../../middlewares/validate.js";
 import * as staticController from "../../controllers/user/static.controller.js";
 import TaskRouterCapability from "twilio/lib/jwt/taskrouter/TaskRouterCapability.js";
 import { USER_TYPE } from "../../config/appConstants.js";
-import { validateContactUs } from "../../validators/user/profile.validator.js";
+import {
+  getReferralCodesValidator,
+  referralDetailsValidator,
+  validateContactUs,
+} from "../../validators/user/profile.validator.js";
 
 import { OperationalError } from "../../utils/error.js";
 import Referral from "../../models/referral.model.js";
@@ -30,13 +34,19 @@ router.get(
   staticController.getTermsAndConditions,
 );
 
-router.get("/test-referral", async (req, res) => {
-  return res.render("get-referral-codes", {
-    referralCodes: await Referral.find()
-      .populate("user", "name phoneNumber")
-      .populate("transactions.paidBy", "name"),
-  });
-});
+router.get(
+  "/my-referral-codes",
+  auth(USER_TYPE.USER),
+  validate(getReferralCodesValidator),
+  staticController.getReferralCodes,
+);
+
+router.get(
+  "/referral-by-id/:codeId",
+  auth(USER_TYPE.USER),
+  validate(referralDetailsValidator),
+  staticController.getReferralById,
+);
 
 router.post(
   "/use-code",
@@ -62,7 +72,10 @@ router.post(
       referral.user.toString() === token.user._id.toString() &&
       referral.hasUsedItsOwnCode
     ) {
-      throw new OperationalError(400, "YOU CANNOT USE YOUR OWN REFERRAL CODE TWICE");
+      throw new OperationalError(
+        400,
+        "YOU CANNOT USE YOUR OWN REFERRAL CODE TWICE",
+      );
     } else if (referral.user.toString() === token.user._id.toString()) {
       referral.hasUsedItsOwnCode = true;
     }
@@ -82,6 +95,8 @@ router.post(
     });
 
     referral.timesUsed += 1;
+    referral.l1.earnings += amount;
+    referral.l1.referrals += 1;
 
     let parent = referral.parent;
     while (parent && level < 5) {
@@ -95,7 +110,11 @@ router.post(
         amount: amount,
         level: level,
       });
-      parentReferral.save();
+      
+      parentReferral[`l${level}`].earnings += amount;
+      parentReferral[`l${level}`].referrals += 1;
+
+      await parentReferral.save();
       parent = parentReferral.parent;
     }
 
