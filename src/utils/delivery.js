@@ -168,6 +168,8 @@ export const createDelhiveryShipment = async ({ order, warehouse }) => {
     { headers: delhiveryHeadersForShipmentCreation },
   );
 
+  console.log("Delhivery response : ", result)
+
   const shipment = result.packages?.[0];
 
   if (!shipment || shipment.status === "Error") {

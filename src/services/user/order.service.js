@@ -358,6 +358,8 @@ export const handleRazorpayWebhook = async (req) => {
     .update(req.body) // raw Buffer — express.raw() required
     .digest("hex");
 
+    console.log("Recieved: ", signature, "\nExpected: ", expected)
+
   if (expected !== signature) {
     throw new OperationalError(
       STATUS_CODES.ACTION_FAILED,

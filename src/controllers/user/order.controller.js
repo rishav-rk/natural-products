@@ -52,7 +52,7 @@ export const handleRazorpayWebhook = catchAsync(async (req, res) => {
   return successResponse(
     req,
     res,
-    STATUS_CODES.ACTION_COMPLETE,
+    STATUS_CODES.SUCCESS,
     SUCCESS_MESSAGES.SUCCESS,
   );
 });
