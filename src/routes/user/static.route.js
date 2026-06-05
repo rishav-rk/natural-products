@@ -57,7 +57,7 @@ router.get(
   staticController.getReferralTree,
 );
 
-router.get(
+router.post(
   "/next-level/:codeId",
   auth(USER_TYPE.USER),
   validate(getNextLevelValidator),
