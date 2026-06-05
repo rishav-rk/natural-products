@@ -73,6 +73,10 @@ const referralSchema = new mongoose.Schema(
           type: Number,
           required: [true, "Please provide level for referral transaction"],
         },
+        parent: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User"
+        }
       },
     ],
   },

@@ -6,6 +6,7 @@ import TaskRouterCapability from "twilio/lib/jwt/taskrouter/TaskRouterCapability
 import { USER_TYPE } from "../../config/appConstants.js";
 import {
   getReferralCodesValidator,
+  getReferralTreeValidator,
   referralDetailsValidator,
   validateContactUs,
 } from "../../validators/user/profile.validator.js";
@@ -46,6 +47,13 @@ router.get(
   auth(USER_TYPE.USER),
   validate(referralDetailsValidator),
   staticController.getReferralById,
+);
+
+router.get(
+  "/referral-tree/:codeId",
+  auth(USER_TYPE.USER),
+  validate(getReferralTreeValidator),
+  staticController.getReferralTree,
 );
 
 router.post(
@@ -110,7 +118,7 @@ router.post(
         amount: amount,
         level: level,
       });
-      
+
       parentReferral[`l${level}`].earnings += amount;
       parentReferral[`l${level}`].referrals += 1;
 

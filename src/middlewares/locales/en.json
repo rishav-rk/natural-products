@@ -200,5 +200,6 @@
 	"codeId is required, level is required": "codeId is required, level is required",
 	"limit must be a number": "limit must be a number",
 	"level is required": "level is required",
-	"level must be one of [1, 2, 3, 4]": "level must be one of [1, 2, 3, 4]"
+	"level must be one of [1, 2, 3, 4]": "level must be one of [1, 2, 3, 4]",
+	"parent is required, level is required": "parent is required, level is required"
 }

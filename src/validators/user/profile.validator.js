@@ -135,11 +135,21 @@ export const getReferralCodesValidator = {
 
 export const referralDetailsValidator = {
   params: Joi.object({
-    codeId: Joi.string().required()
+    codeId: JOI.OBJECTID
   }).required(),
   query: Joi.object({
     level: Joi.number().integer().valid(...REFERRAL_CONSTANTS.VALID_LEVELS).required(),
     page: JOI.PAGE, 
     limit: JOI.LIMIT
   }).required()
+}
+
+export const getReferralTreeValidator = {
+  params: Joi.object({
+    codeId: JOI.OBJECTID
+  }),
+  body: Joi.object({
+    parent: JOI.OBJECTID,
+    level: Joi.number().integer().valid(...REFERRAL_CONSTANTS.VALID_LEVELS).required().default(1)
+  })
 }

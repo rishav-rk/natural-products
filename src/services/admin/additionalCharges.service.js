@@ -78,38 +78,86 @@ export const getPrivacyPolicy = async () => {
   return privacyAndPolicy;
 };
 
-const createFrequencyTable = (transactions) => {
-  const frequencyTable = {};
-  REFERRAL_CONSTANTS.VALID_LEVELS.forEach((level) => {
-    frequencyTable[level] = 0;
-  });
-  let totalEarnings = 0;
-  transactions.forEach((transaction) => {
-    if (frequencyTable[transaction.level] !== undefined) {
-      frequencyTable[transaction.level] += 1;
-      totalEarnings += transaction.amount;
-    }
-  });
-  return { frequencyTable, totalEarnings };
-};
-
 export const getReferralCodes = async (userId, page, limit) => {
-  const referralCodes = await Referral.find(
-    { user: userId },
-    {},
-    paginationOptions(page, limit),
-  ).lean();
-  const data = referralCodes.map((code) => ({
-    codeId: code._id,
-    code: code.code,
-    totalReferrals: code.transactions.length,
-    ...createFrequencyTable(code.transactions),
-  }));
+  const skip = parseInt(page) * parseInt(limit);
+  
+  const result = await Referral.aggregate([
+    {
+      $match: { user: new mongoose.Types.ObjectId(userId) }
+    },
+    {
+      $facet: {
+        metadata: [
+          { $count: "total" }
+        ],
+        data: [
+          { $skip: skip },
+          { $limit: parseInt(limit) },
+          {
+            $project: {
+              codeId: "$_id",
+              code: 1,
+              totalReferrals: { $size: "$transactions" },
+              frequencyTable: {
+                "1": {
+                  $size: {
+                    $filter: {
+                      input: "$transactions",
+                      as: "txn",
+                      cond: { $eq: ["$$txn.level", 1] }
+                    }
+                  }
+                },
+                "2": {
+                  $size: {
+                    $filter: {
+                      input: "$transactions",
+                      as: "txn",
+                      cond: { $eq: ["$$txn.level", 2] }
+                    }
+                  }
+                },
+                "3": {
+                  $size: {
+                    $filter: {
+                      input: "$transactions",
+                      as: "txn",
+                      cond: { $eq: ["$$txn.level", 3] }
+                    }
+                  }
+                },
+                "4": {
+                  $size: {
+                    $filter: {
+                      input: "$transactions",
+                      as: "txn",
+                      cond: { $eq: ["$$txn.level", 4] }
+                    }
+                  }
+                }
+              },
+              totalEarnings: { $sum: "$transactions.amount" },
+              _id: 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      $project: {
+        totalCount: { $arrayElemAt: ["$metadata.total", 0] },
+        data: 1
+      }
+    }
+  ]);
 
-  return data;
+  return {
+    data: result[0].data,
+    totalCount: result[0].totalCount || 0
+  };
 };
 
-export const getReferralById = async (codeId, level, page, limit) => {
+export const getReferralById = async (codeId, userId, level, page, limit) => {
   const parsedLevel = parseInt(level);
 
   // Validate level
@@ -123,11 +171,26 @@ export const getReferralById = async (codeId, level, page, limit) => {
   const skip = parseInt(page) * parseInt(limit);
 
   const result = await Referral.aggregate([
-    { $match: { _id: new mongoose.Types.ObjectId(codeId) } },
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(codeId),
+        user: new mongoose.Types.ObjectId(userId),
+      },
+    },
     {
       $project: {
         code: 1,
+        user: 1,
         [`l${level}`]: 1,
+        totalTransactions: {
+          $size: {
+            $filter: {
+              input: "$transactions",
+              as: "txn",
+              cond: { $eq: ["$$txn.level", parsedLevel] },
+            },
+          },
+        },
         transactions: {
           $slice: [
             {
@@ -146,11 +209,55 @@ export const getReferralById = async (codeId, level, page, limit) => {
   ]);
 
   if (!result.length) {
-    return {
-      code: null,
-      total: 0,
-      transactions: [],
-    };
+    throw new OperationalError(
+      STATUS_CODES.ACTION_FAILED,
+      ERROR_MESSAGES.NO_SUCH_CODE,
+    );
   }
-  return result[0];
+
+  if (result[0]) return result[0];
+};
+
+const formatTreeData = (transactions) => {
+  return REFERRAL_CONSTANTS.VALID_LEVELS.reduce((acc, level) => {
+    acc[level] = transactions.filter((txn) => txn.level === level);
+    return acc;
+  }, {});
+};
+
+export const getReferralTree = async (codeId, userId, filter) => {
+  console.log(filter)
+  const data = await Referral.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(codeId),
+        user: new mongoose.Types.ObjectId(userId),
+      },
+    },
+    {
+      $project: {
+        transactions: {
+          $filter: {
+            input: "$transactions",
+            as: "txn",
+            cond: {
+              $and: [
+                { $eq: ["$$txn.level", filter?.level] },
+                { $eq: ["$$txn.parent", filter?.parent ? new mongoose.Types.ObjectId(filter.parent) : null] },
+              ],
+            },
+          },
+        },
+      },
+    },
+  ]);
+
+  if (!data.length) {
+    throw new OperationalError(
+      STATUS_CODES.ACTION_FAILED,
+      ERROR_MESSAGES.NO_SUCH_CODE,
+    );
+  }
+
+  return data[0].transactions;
 };

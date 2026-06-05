@@ -132,6 +132,8 @@ export const REFERRAL_CONSTANTS = {
 };
 
 export const ERROR_MESSAGES = {
+  INVALID_CODE: "Invalid code",
+  NO_SUCH_CODE: "No such code exists",
   NOT_SERVICEABLE: "This pincode is not serviceable by our delivery partner",
   OUT_OF_STOCK: "Sorry, this product is temporarily out of stock",
   NO_SUCH_ORDER: "No such order",
