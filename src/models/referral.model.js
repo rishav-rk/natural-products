@@ -55,6 +55,12 @@ const referralSchema = new mongoose.Schema(
           type: mongoose.Schema.Types.ObjectId,
           ref: "User",
         },
+        paidByUsername: {
+          type: String,
+        },
+        paidByImage: {
+          type: String,
+        },
         paidOn: {
           type: Date,
           default: Date.now,

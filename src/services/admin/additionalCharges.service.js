@@ -127,21 +127,19 @@ export const getReferralById = async (codeId, level, page, limit) => {
     {
       $project: {
         code: 1,
-        filteredTransactions: {
-          $filter: {
-            input: "$transactions",
-            as: "txn",
-            cond: { $eq: ["$$txn.level", parsedLevel] },
-          },
-        },
-      },
-    },
-    {
-      $project: {
-        code: 1,
-        total: { $size: "$filteredTransactions" },
+        [`l${level}`]: 1,
         transactions: {
-          $slice: ["$filteredTransactions", skip, parseInt(limit)],
+          $slice: [
+            {
+              $filter: {
+                input: "$transactions",
+                as: "txn",
+                cond: { $eq: ["$$txn.level", parsedLevel] },
+              },
+            },
+            skip,
+            parseInt(limit),
+          ],
         },
       },
     },
@@ -154,6 +152,5 @@ export const getReferralById = async (codeId, level, page, limit) => {
       transactions: [],
     };
   }
-
   return result[0];
 };
