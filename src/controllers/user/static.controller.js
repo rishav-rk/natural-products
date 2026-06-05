@@ -46,7 +46,7 @@ export const getTermsAndConditions = catchAsync(async (req, res) => {
 });
 
 export const getReferralCodes = catchAsync(async (req, res) => {
-  const {data, totalCount} = await constantsService.getReferralCodes(
+  const { data, totalCount } = await constantsService.getReferralCodes(
     req.token.user._id,
     req.query.page,
     req.query.limit,
@@ -56,7 +56,7 @@ export const getReferralCodes = catchAsync(async (req, res) => {
     res,
     STATUS_CODES.SUCCESS,
     SUCCESS_MESSAGES.SUCCESS,
-    {data, totalCount},
+    { data, totalCount },
   );
 });
 
@@ -78,7 +78,10 @@ export const getReferralById = catchAsync(async (req, res) => {
 });
 
 export const getReferralTree = catchAsync(async (req, res) => {
-  const treeData = await constantsService.getReferralTree(req.params.codeId, req.token.user._id,req.body);
+  const treeData = await constantsService.getReferralTree(
+    req.params.codeId,
+    req.token,
+  );
   return successResponse(
     req,
     res,
@@ -86,4 +89,19 @@ export const getReferralTree = catchAsync(async (req, res) => {
     SUCCESS_MESSAGES.SUCCESS,
     treeData,
   );
+});
+
+export const getNextLevel = catchAsync(async (req, res) => {
+  const nextLevelData = await constantsService.getNextLevel(
+    req.params.codeId,
+    req.token.user._id,
+    req.body,
+  );
+  return successResponse(
+    req,
+    res,
+    STATUS_CODES.SUCCESS,
+    SUCCESS_MESSAGES.SUCCESS,
+    nextLevelData,
+  )
 });

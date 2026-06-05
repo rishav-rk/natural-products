@@ -5,6 +5,7 @@ import * as staticController from "../../controllers/user/static.controller.js";
 import TaskRouterCapability from "twilio/lib/jwt/taskrouter/TaskRouterCapability.js";
 import { USER_TYPE } from "../../config/appConstants.js";
 import {
+  getNextLevelValidator,
   getReferralCodesValidator,
   getReferralTreeValidator,
   referralDetailsValidator,
@@ -54,6 +55,13 @@ router.get(
   auth(USER_TYPE.USER),
   validate(getReferralTreeValidator),
   staticController.getReferralTree,
+);
+
+router.get(
+  "/next-level/:codeId",
+  auth(USER_TYPE.USER),
+  validate(getNextLevelValidator),
+  staticController.getNextLevel,
 );
 
 router.post(

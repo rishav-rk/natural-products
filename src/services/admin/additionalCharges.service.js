@@ -225,9 +225,8 @@ const formatTreeData = (transactions) => {
   }, {});
 };
 
-export const getReferralTree = async (codeId, userId, filter) => {
-  console.log(filter)
-  const data = await Referral.aggregate([
+export const getNextLevel = async (codeId, userId, filter) => {
+const data = await Referral.aggregate([
     {
       $match: {
         _id: new mongoose.Types.ObjectId(codeId),
@@ -260,4 +259,36 @@ export const getReferralTree = async (codeId, userId, filter) => {
   }
 
   return data[0].transactions;
+}
+
+export const getReferralTree = async (codeId, token) => {
+  const data = await Referral.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(codeId),
+        user: new mongoose.Types.ObjectId(token.user._id),
+      },
+    },
+    {
+      $project: {
+        code: 1, 
+        name : {$literal: token.user.name},
+        image: {$literal : token.user.image},
+        transactions: {
+          $filter: {
+            input: "$transactions",
+            as: "txn",
+            cond: {
+              $and: [
+                { $eq: ["$$txn.level", 1] },
+                { $eq: ["$$txn.parent", new mongoose.Types.ObjectId(token.user._id)] },
+              ],
+            },
+          },
+        },
+      },
+    },
+  ]);
+
+  return data[0]
 };
