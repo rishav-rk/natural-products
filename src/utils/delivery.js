@@ -104,63 +104,77 @@ const delhiveryHeadersForShipmentCreation = {
 export const createDelhiveryShipment = async ({ order, warehouse }) => {
   const address = order.shippingAddress;
 
-  // build full address string from split fields
+  // ── Sanitize helper ──────────────────────────────────────
+  const clean = (val) => {
+    if (val === null || val === undefined) return "";
+    return String(val)
+      .replace(/[\r\n\t]/g, " ")   // strip newlines/tabs
+      .replace(/['"]/g, "")         // remove quotes entirely (safest for Delhivery)
+      .trim();
+  };
+
   const fullAddress = [
     address.houseNumberAndFloor,
     address.buildingAndBlock,
     address.landMarkAndArea,
   ]
     .filter(Boolean)
+    .map(clean)      // ← sanitize each segment before joining
     .join(", ");
 
   const shipmentData = {
     shipments: [
       {
-        // ── Delivery address ──────────────────────────────
-        name: order.userName || "Customer",
-        add: fullAddress,
-        city: address.city,
-        state: address.state,
-        country: address.country || "India",
-        pin: String(address.pincode),
-        phone: order.userPhone || "",
+        name:         clean(order.userName) || "Customer",
+        add:          fullAddress,
+        city:         clean(address.city),
+        state:        clean(address.state),
+        country:      clean(address.country) || "India",
+        pin:          String(address.pincode),
+        phone:        clean(order.userPhone),
 
-        // ── Order info ────────────────────────────────────
-        order: order.orderId,
+        order:        order.orderId,
         payment_mode: "Prepaid",
-        cod_amount: 0,
+        cod_amount:   0,
         total_amount: parseFloat(order.grandTotalAmount),
-        weight: calculateTotalWeight(order.products),
-        products_desc: order.products.map((p) => p.name).join(", "),
-        quantity: order.products.reduce((sum, p) => sum + p.quantity, 0),
+        weight:       calculateTotalWeight(order.products),
+        products_desc: clean(order.products.map((p) => p.name).join(" | ")), // ← avoid commas in desc
+        quantity:     order.products.reduce((sum, p) => sum + p.quantity, 0),
         shipping_mode: "Surface",
-        address_type: address.type?.toLowerCase() || "home",
+        address_type: clean(address.type?.toLowerCase()) || "home",
 
-        // ── Pickup / seller (from warehouse schema) ───────
-        seller_name: warehouse.name,
-        seller_add: warehouse.address,
-        seller_city: warehouse.city,
-        seller_state: warehouse.state,
-        seller_pin: String(warehouse.pin),
-        seller_phone: String(warehouse.phone),
-        seller_gst_tin: warehouse.gstNumber || "",
+        seller_name:    clean(warehouse.name),
+        seller_add:     clean(warehouse.address),
+        seller_city:    clean(warehouse.city),
+        seller_state:   clean(warehouse.state),
+        seller_pin:     String(warehouse.pin),
+        seller_phone:   String(warehouse.phone),
+        seller_gst_tin: clean(warehouse.gstNumber),
 
-        // ── Return address (falls back to warehouse) ──────
-        rto_name: warehouse.name,
-        rto_add: warehouse.return_address || warehouse.address,
-        rto_city: warehouse.return_city || warehouse.city,
-        rto_state: warehouse.return_state || warehouse.state,
-        rto_pin: String(warehouse.return_pin || warehouse.pin),
-        rto_phone: String(warehouse.phone),
-        rto_country: warehouse.return_country || "India",
+        rto_name:    clean(warehouse.name),
+        rto_add:     clean(warehouse.return_address || warehouse.address),
+        rto_city:    clean(warehouse.return_city    || warehouse.city),
+        rto_state:   clean(warehouse.return_state   || warehouse.state),
+        rto_pin:     String(warehouse.return_pin    || warehouse.pin),
+        rto_phone:   String(warehouse.phone),
+        rto_country: clean(warehouse.return_country) || "India",
       },
     ],
     pickup_location: {
-      name: warehouse.name,
+      name: clean(warehouse.name),
     },
   };
 
-  const body = `format=json&data=${JSON.stringify(shipmentData)}`;
+  // ── Debug: confirm JSON is valid & inspect char 37 ──────
+  const jsonString = JSON.stringify(shipmentData);
+  console.log("[Delhivery] Payload char 30-50:", jsonString.substring(30, 50));
+  try {
+    JSON.parse(jsonString); // sanity check
+  } catch (e) {
+    throw new Error(`[DELHIVERY] Malformed payload: ${e.message}`);
+  }
+
+  const body = `format=json&data=${jsonString}`;
 
   const { data: result } = await axios.post(
     `${config.delhivery.baseUrl}/api/cmu/create.json`,
@@ -168,20 +182,20 @@ export const createDelhiveryShipment = async ({ order, warehouse }) => {
     { headers: delhiveryHeadersForShipmentCreation },
   );
 
-  console.log("Delhivery response : ", result)
+  console.log("Delhivery response:", result);
 
   const shipment = result.packages?.[0];
 
   if (!shipment || shipment.status === "Error") {
     throw new Error(
-      `[DELHIVERY] ${shipment?.remarks || "Unknown error from Delhivery"}`,
+      `[DELHIVERY] ${shipment?.remarks || result?.rmk || "Unknown error from Delhivery"}`,
     );
   }
 
   return {
     waybillNumber: shipment.waybill,
-    courierName: "Delhivery",
-    status: shipment.status,
+    courierName:   "Delhivery",
+    status:        shipment.status,
   };
 };
 

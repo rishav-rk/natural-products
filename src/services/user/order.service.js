@@ -7,7 +7,14 @@ import {
   STATUS_CODES,
   ORDER_STATUS,
 } from "../../config/appConstants.js";
-import { ADC, Product, Order, User, Warehouse } from "../../models/index.js";
+import {
+  ADC,
+  Product,
+  Order,
+  User,
+  Warehouse,
+  Referral,
+} from "../../models/index.js";
 import { OperationalError } from "../../utils/error.js";
 import config from "../../config/config.js";
 import { paginationOptions } from "../../utils/universalFunctions.js";
@@ -18,7 +25,7 @@ import {
   updateProductsWithPrices,
   orderFilter,
 } from "../../utils/orderUtils.js";
-import { createDelhiveryShipment } from "../../utils/delivery.js"
+import { createDelhiveryShipment } from "../../utils/delivery.js";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -95,7 +102,6 @@ const sendOrderConfirmationEmail = async (user, order) => {
 //   );
 //   const orderId = generateOrderId(user.name);
 
-
 //   // Create Razorpay order first to get the razorpayOrderId
 //   const razorpayOrder = await razorpay.orders.create({
 //     amount: Math.round(grandTotalAmount * 100), // in paise
@@ -124,11 +130,37 @@ const sendOrderConfirmationEmail = async (user, order) => {
 //   return { razorpayOrder };
 // };
 
-export const createOrder = async (orderData, token) => {
-  const user = await User.findById(
-    token.user._id,
-    { cart: 1, name: 1, phoneNumber: 1, addresses: 1 }, 
-  ).lean();
+export const createOrder = async (orderBody, token) => {
+
+  let codeDetails = null;
+
+  if (orderBody?.code) {
+    const referral = await Referral.findOne({
+      code: orderBody.code,
+      timesUsed: { $lt: 10 },
+    },{code: 1, user : 1}).populate("user", "name image").lean();
+
+    if (!referral) {
+      throw new OperationalError(
+        STATUS_CODES.ACTION_FAILED,
+        ERROR_MESSAGES.INVALID_CODE,
+      );
+    }
+
+    codeDetails = {
+      codeId: referral._id,
+      code: referral.code,
+      referralUserName: referral.user.name,
+      referralUserImage: referral.user.image
+    }
+  }
+
+  const user = await User.findById(token.user._id, {
+    cart: 1,
+    name: 1,
+    phoneNumber: 1,
+    addresses: 1,
+  }).lean();
 
   if (!user.cart.deliveryAddress) {
     throw new OperationalError(
@@ -138,11 +170,17 @@ export const createOrder = async (orderData, token) => {
   }
 
   const shippingAddress = await validateAndGetCart(user, user.cart);
-  const { tax, shippingFee } = await ADC.findOne({}, { tax: 1, shippingFee: 1 }).lean();
+  const { tax, shippingFee } = await ADC.findOne(
+    {},
+    { tax: 1, shippingFee: 1 },
+  ).lean();
 
   const productIds = user.cart.products.map((p) => p.product);
   const productMap = await getProductsWithPrices(productIds);
-  const updatedProducts = updateProductsWithPrices(user.cart.products, productMap);
+  const updatedProducts = updateProductsWithPrices(
+    user.cart.products,
+    productMap,
+  );
 
   const { itemTotal, grandTotalAmount } = calculateGrandTotal(
     updatedProducts,
@@ -161,14 +199,15 @@ export const createOrder = async (orderData, token) => {
     orderId,
     placedOn: new Date(),
     user: token.user._id,
-    userName: user.name,                
-    userPhone: user.phoneNumber,        
+    referral: codeDetails,
+    userName: user.name,
+    userPhone: user.phoneNumber,
     products: updatedProducts,
     tax,
     shippingFee,
     itemTotal,
     grandTotalAmount,
-    shippingAddress,                    
+    shippingAddress,
     payment: {
       razorpayOrderId: razorpayOrder.id,
       status: PAYMENT_STATUS.PENDING,
@@ -276,10 +315,14 @@ export const verifyPayment = async (paymentInfo, token) => {
   }
 
   // 5. Find nearest warehouse from address location.coordinates [lng, lat]
-  const [longitude, latitude] = pendingOrder.shippingAddress?.location?.coordinates ?? [];
+  const [longitude, latitude] =
+    pendingOrder.shippingAddress?.location?.coordinates ?? [];
 
   if (!longitude || !latitude) {
-    console.error("[SHIPMENT] Missing coordinates on shippingAddress for order:", pendingOrder.orderId);
+    console.error(
+      "[SHIPMENT] Missing coordinates on shippingAddress for order:",
+      pendingOrder.orderId,
+    );
   } else {
     const nearestWarehouse = await Warehouse.findOne({
       location: {
@@ -294,21 +337,34 @@ export const verifyPayment = async (paymentInfo, token) => {
     }).lean();
 
     if (!nearestWarehouse) {
-      console.error("[SHIPMENT] No warehouse found for order:", pendingOrder.orderId);
+      console.error(
+        "[SHIPMENT] No warehouse found for order:",
+        pendingOrder.orderId,
+      );
     } else {
       // 6. Create Delhivery shipment — non-blocking
-      createDelhiveryShipment({ order: pendingOrder, warehouse: nearestWarehouse })
+      createDelhiveryShipment({
+        order: pendingOrder,
+        warehouse: nearestWarehouse,
+      })
         .then(async (shipment) => {
           await Order.findByIdAndUpdate(pendingOrder._id, {
             "shipment.waybillNumber": shipment.waybillNumber,
-            "shipment.courierName":   shipment.courierName,
-            "shipment.warehouseId":   nearestWarehouse._id,
+            "shipment.courierName": shipment.courierName,
+            "shipment.warehouseId": nearestWarehouse._id,
             status: ORDER_STATUS.CONFIRMED,
           });
-          console.log("[SHIPMENT] Created successfully:", shipment.waybillNumber);
+          console.log(
+            "[SHIPMENT] Created successfully:",
+            shipment.waybillNumber,
+          );
         })
         .catch((err) =>
-          console.error("[SHIPMENT] Creation failed for order:", pendingOrder.orderId, err.message)
+          console.error(
+            "[SHIPMENT] Creation failed for order:",
+            pendingOrder.orderId,
+            err.message,
+          ),
         );
     }
   }
@@ -327,14 +383,17 @@ export const verifyPayment = async (paymentInfo, token) => {
 
 export const getMyOrders = async (token, query) => {
   return await Order.find(
-    { user: token.user._id, "payment.status" : PAYMENT_STATUS.COMPLETED },
+    { user: token.user._id, "payment.status": PAYMENT_STATUS.COMPLETED },
     orderFilter,
     paginationOptions(query.page, query.limit),
   );
 };
 
 export const getMyOrderById = async (orderId) => {
-  const order = await Order.findOne({ _id: orderId, "payment.status": PAYMENT_STATUS.COMPLETED }, orderFilter);
+  const order = await Order.findOne(
+    { _id: orderId, "payment.status": PAYMENT_STATUS.COMPLETED },
+    orderFilter,
+  );
   if (!order) {
     throw new OperationalError(
       STATUS_CODES.ACTION_FAILED,
@@ -350,7 +409,7 @@ export const getMyOrderById = async (orderId) => {
 
 export const handleRazorpayWebhook = async (req) => {
   // 1. Verify webhook signature
-  console.log("processing payment")
+  console.log("processing payment");
   const signature = req.headers["x-razorpay-signature"];
 
   const expected = crypto
@@ -358,7 +417,7 @@ export const handleRazorpayWebhook = async (req) => {
     .update(req.body) // raw Buffer — express.raw() required
     .digest("hex");
 
-    console.log("Recieved: ", signature, "\nExpected: ", expected)
+  console.log("Recieved: ", signature, "\nExpected: ", expected);
 
   if (expected !== signature) {
     throw new OperationalError(
@@ -370,7 +429,7 @@ export const handleRazorpayWebhook = async (req) => {
   const event = JSON.parse(req.body.toString());
   const payment = event.payload.payment.entity;
 
-  console.log(event)
+  console.log(event);
 
   switch (event.event) {
     case "payment.captured":
@@ -521,10 +580,14 @@ const handlePaymentCaptured = async (payment) => {
   }
 
   // 4. Find nearest warehouse from address location.coordinates [lng, lat]
-  const [longitude, latitude] = pendingOrder.shippingAddress?.location?.coordinates ?? [];
+  const [longitude, latitude] =
+    pendingOrder.shippingAddress?.location?.coordinates ?? [];
 
   if (!longitude || !latitude) {
-    console.error("[SHIPMENT] Missing coordinates on shippingAddress for order:", pendingOrder.orderId);
+    console.error(
+      "[SHIPMENT] Missing coordinates on shippingAddress for order:",
+      pendingOrder.orderId,
+    );
   } else {
     const nearestWarehouse = await Warehouse.findOne({
       location: {
@@ -539,32 +602,51 @@ const handlePaymentCaptured = async (payment) => {
     }).lean();
 
     if (!nearestWarehouse) {
-      console.error("[SHIPMENT] No warehouse found for order:", pendingOrder.orderId);
+      console.error(
+        "[SHIPMENT] No warehouse found for order:",
+        pendingOrder.orderId,
+      );
     } else {
       // 5. Create Delhivery shipment — non-blocking
-      createDelhiveryShipment({ order: pendingOrder, warehouse: nearestWarehouse })
+      createDelhiveryShipment({
+        order: pendingOrder,
+        warehouse: nearestWarehouse,
+      })
         .then(async (shipment) => {
           await Order.findByIdAndUpdate(pendingOrder._id, {
             "shipment.waybillNumber": shipment.waybillNumber,
-            "shipment.courierName":   shipment.courierName,
-            "shipment.warehouseId":   nearestWarehouse._id,
+            "shipment.courierName": shipment.courierName,
+            "shipment.warehouseId": nearestWarehouse._id,
             status: ORDER_STATUS.CONFIRMED,
           });
-          console.log("[SHIPMENT] Created successfully:", shipment.waybillNumber);
+          console.log(
+            "[SHIPMENT] Created successfully:",
+            shipment.waybillNumber,
+          );
         })
         .catch((err) =>
-          console.error("[SHIPMENT] Creation failed for order:", pendingOrder.orderId, err.message)
+          console.error(
+            "[SHIPMENT] Creation failed for order:",
+            pendingOrder.orderId,
+            err.message,
+          ),
         );
     }
   }
 
   // 6. Send confirmation email — non-blocking
-  const user = await User.findById(pendingOrder.user, { name: 1, email: 1 }).lean();
+  const user = await User.findById(pendingOrder.user, {
+    name: 1,
+    email: 1,
+  }).lean();
   sendOrderConfirmationEmail(user, pendingOrder).catch((err) =>
     console.error("[EMAIL] Order confirmation failed:", err),
   );
 
-  console.log("[WEBHOOK] Payment captured and order fulfilled:", pendingOrder.orderId);
+  console.log(
+    "[WEBHOOK] Payment captured and order fulfilled:",
+    pendingOrder.orderId,
+  );
 };
 
 const handlePaymentFailed = async (payment) => {
@@ -577,7 +659,10 @@ const handlePaymentFailed = async (payment) => {
   );
 
   if (!order) {
-    console.error("[WEBHOOK] No pending order found to mark failed:", payment.order_id);
+    console.error(
+      "[WEBHOOK] No pending order found to mark failed:",
+      payment.order_id,
+    );
     return;
   }
 

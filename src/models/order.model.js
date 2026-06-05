@@ -16,19 +16,18 @@ const orderSchema = new mongoose.Schema(
       default: Date.now,
     },
     user: {
-      type: mongoose.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: [true, "Please provide user reference"],
     },
-    referralUser: {
-      type: mongoose.Types.ObjectId,
-      ref: "User",
+    referral: {
+      type: Object,
       default: null,
     },
     products: [
       {
         product: {
-          type: mongoose.Types.ObjectId,
+          type:mongoose.Schema.Types.ObjectId,
           ref: "Product",
           required: [true, "Product id is required"],
         },

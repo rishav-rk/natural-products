@@ -131,6 +131,11 @@ export const REFERRAL_CONSTANTS = {
   VALID_LEVELS: [1, 2, 3, 4],
 };
 
+export const WALLET_TRANSAC_TYPE = {
+  CREDIT: "credit", 
+  WITHDRAWAL: "withdrawal"
+}
+
 export const ERROR_MESSAGES = {
   INVALID_CODE: "Invalid code",
   NO_SUCH_CODE: "No such code exists",
