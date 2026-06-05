@@ -281,7 +281,6 @@ export const getReferralTree = async (codeId, token) => {
             cond: {
               $and: [
                 { $eq: ["$$txn.level", 1] },
-                { $eq: ["$$txn.parent", new mongoose.Types.ObjectId(token.user._id)] },
               ],
             },
           },
