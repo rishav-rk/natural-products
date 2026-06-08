@@ -1,24 +1,26 @@
-// wallet.service.js — creditWallet as a reusable function
-import {Wallet, WalletTransaction} from "../../models/index.js"
-import { TRANSACTION_STATUS, TRANSACTION_TYPES } from "../../config/appConstants.js";
+import { Wallet, WalletTransaction } from "../../models/index.js";
+import {
+  TRANSACTION_STATUS,
+  TRANSACTION_TYPES,
+} from "../../config/appConstants.js";
 
 export const creditWallet = async ({
   userId,
   amount,
   type,
-  note       = null,
+  note = null,
   referralId = null,
   session,
 }) => {
   // Find or create wallet
-  console.log("Crediting : ", userId, amount, type, note, referralId)
+  console.log("Crediting : ", userId, amount, type, note, referralId);
   let wallet = await Wallet.findOne({ user: userId }).session(session);
   if (!wallet) {
     [wallet] = await Wallet.create([{ user: userId }], { session });
   }
 
   const balanceBefore = wallet.balance;
-  const balanceAfter  = balanceBefore + amount;
+  const balanceAfter = balanceBefore + amount;
 
   // Increment balance
   await Wallet.updateOne(
@@ -31,14 +33,14 @@ export const creditWallet = async ({
   await WalletTransaction.create(
     [
       {
-        wallet:    wallet._id,
-        user:      userId,
+        wallet: wallet._id,
+        user: userId,
         type,
-        status:    TRANSACTION_STATUS.SUCCESS,
+        status: TRANSACTION_STATUS.SUCCESS,
         amount,
         balanceBefore,
         balanceAfter,
-        referral:  referralId,
+        referral: referralId,
         note,
       },
     ],

@@ -98,7 +98,7 @@ export const useReferralCode = async ({ order, user, session }) => {
         },
         { session },
       ),
-      Referral.create([{ user: userId, code: newCode, parent: null }], { session })
+      Referral.create([{ user: userId, code: await generateReferralCode(), parent: null }], { session })
     ]);
   }
 
