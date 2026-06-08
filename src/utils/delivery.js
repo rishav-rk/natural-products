@@ -104,6 +104,8 @@ const delhiveryHeadersForShipmentCreation = {
 export const createDelhiveryShipment = async ({ order, warehouse }) => {
   const address = order.shippingAddress;
 
+  console.log("order: ", order)
+  console.log("warehouse: ", warehouse)
   // ── Sanitize helper ──────────────────────────────────────
   const clean = (val) => {
     if (val === null || val === undefined) return "";
@@ -164,6 +166,8 @@ export const createDelhiveryShipment = async ({ order, warehouse }) => {
       name: clean(warehouse.name),
     },
   };
+
+  console.log("shipment data: ", shipmentData)
 
   // ── Debug: confirm JSON is valid & inspect char 37 ──────
   const jsonString = JSON.stringify(shipmentData);

@@ -42,7 +42,6 @@ const getProductsWithPrices = async (productIds) => {
       ERROR_MESSAGES.NO_SUCH_PRODUCT,
     );
   }
-
   return Object.fromEntries(dbProducts.map((p) => [p._id, p]));
 };
 
@@ -221,6 +220,7 @@ export const createOrder = async (orderBody, token) => {
     tax,
     shippingFee,
   );
+
   const orderId = generateOrderId(user.name);
 
   const razorpayOrder = await razorpay.orders.create({
