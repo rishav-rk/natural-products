@@ -100,6 +100,7 @@ export const useReferralCode = async ({ order, user, session }) => {
       ),
       Referral.create([{ user: userId, code: await generateReferralCode(), parent: null }], { session })
     ]);
+    return ;
   }
 
   // 3. Regular referral code — existing chain distribution logic

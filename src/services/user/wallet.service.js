@@ -18,6 +18,7 @@ export const creditWallet = async ({
   if (!wallet) {
     [wallet] = await Wallet.create([{ user: userId }], { session });
   }
+  console.log(wallet)
 
   const balanceBefore = wallet.balance;
   const balanceAfter = balanceBefore + amount;
