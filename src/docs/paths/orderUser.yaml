@@ -10,9 +10,13 @@ createOrder:
       application/json:
         schema:
           type: object
-          properties: {}
-          description: Empty body - uses user's cart and delivery address
-          example: {}
+          required:
+            - code
+          properties:
+            code:
+              type: number
+              description: Referral code
+              example: 123456789
   responses:
     201:
       description: Order created successfully

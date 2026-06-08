@@ -28,5 +28,11 @@ router.put(
   userController.enableDisableUser,
 );
 
+router.post(
+  "/create-code",
+  auth(USER_TYPE.ADMIN),
+  validate(userValidator.createCode),
+  userController.createReferralCode,
+);
 
 export default router;

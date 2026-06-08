@@ -5,18 +5,15 @@ import { formatUser } from "../../utils/formatResponse.js";
 import { catchAsync } from "../../utils/universalFunctions.js";
 
 export const getUsers = catchAsync(async (req, res) => {
-  const {users, totalUsers} = await userService.getUsers(req.query);
+  const { users, totalUsers } = await userService.getUsers(req.query);
   const formattedUsers = users.map((user) => {
-    delete user.password
-    delete user.__v
+    delete user.password;
+    delete user.__v;
   });
-  successResponse(
-    req,
-    res,
-    STATUS_CODES.SUCCESS,
-    SUCCESS_MESSAGES.SUCCESS,
-    {users, totalUsers},
-  );
+  successResponse(req, res, STATUS_CODES.SUCCESS, SUCCESS_MESSAGES.SUCCESS, {
+    users,
+    totalUsers,
+  });
 });
 
 export const getUserById = catchAsync(async (req, res) => {
@@ -32,7 +29,7 @@ export const getUserById = catchAsync(async (req, res) => {
     res,
     STATUS_CODES.SUCCESS,
     SUCCESS_MESSAGES.SUCCESS,
-    user
+    user,
   );
 });
 
@@ -44,6 +41,20 @@ export const enableDisableUser = catchAsync(async (req, res) => {
     res,
     STATUS_CODES.SUCCESS,
     SUCCESS_MESSAGES.SUCCESS,
-    updatedUser
+    updatedUser,
   );
 });
+
+export const createReferralCode = catchAsync(async (req, res) => {
+  const code = await userService.createReferralCode(
+    req.body.userId,
+    req.token.admin._id,
+  );
+  return successResponse(
+    req,
+    res,
+    STATUS_CODES.SUCCESS,
+    SUCCESS_MESSAGES.SUCCESS, 
+    code,
+  );
+})

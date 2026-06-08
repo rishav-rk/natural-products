@@ -203,5 +203,7 @@
 	"level must be one of [1, 2, 3, 4]": "level must be one of [1, 2, 3, 4]",
 	"parent is required, level is required": "parent is required, level is required",
 	"parent is not allowed to be empty, level is required": "parent is not allowed to be empty, level is required",
-	"level must be one of [1, 2, 3, 4], level must be a number": "level must be one of [1, 2, 3, 4], level must be a number"
+	"level must be one of [1, 2, 3, 4], level must be a number": "level must be one of [1, 2, 3, 4], level must be a number",
+	"userId is required": "userId is required",
+	"code is required": "code is required"
 }

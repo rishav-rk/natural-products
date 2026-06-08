@@ -21,13 +21,20 @@ const orderSchema = new mongoose.Schema(
       required: [true, "Please provide user reference"],
     },
     referral: {
-      type: Object,
-      default: null,
+      codeId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Referral",
+        default: null,
+      },
+      code: { type: String, default: null },
+      referralUserName: { type: String, default: null },
+      referralUserImage: { type: String, default: null },
+      isActivated: { type: Boolean, default: false }, 
     },
     products: [
       {
         product: {
-          type:mongoose.Schema.Types.ObjectId,
+          type: mongoose.Schema.Types.ObjectId,
           ref: "Product",
           required: [true, "Product id is required"],
         },
@@ -51,7 +58,7 @@ const orderSchema = new mongoose.Schema(
         weight: {
           type: Number,
           required: [true, "Please provide product weight"],
-        }
+        },
       },
     ],
     itemTotal: {
@@ -86,7 +93,11 @@ const orderSchema = new mongoose.Schema(
     shipment: {
       waybillNumber: { type: String, default: null },
       courierName: { type: String, default: null },
-      warehouseId: { type: mongoose.Schema.Types.ObjectId, ref: "Warehouse", default: null },
+      warehouseId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Warehouse",
+        default: null,
+      },
     },
     payment: {
       razorpayOrderId: {

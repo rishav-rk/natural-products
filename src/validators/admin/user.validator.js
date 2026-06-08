@@ -20,3 +20,9 @@ export const enableDisableUser = {
     userId: JOI.OBJECTID,
   }).required(),
 };
+
+export const createCode = {
+  body: Joi.object({
+    userId: JOI.OBJECTID
+  }).required()
+}

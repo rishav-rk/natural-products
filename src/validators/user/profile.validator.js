@@ -160,3 +160,9 @@ export const getNextLevelValidator = {
     level: Joi.number().integer().valid(...REFERRAL_CONSTANTS.VALID_LEVELS).required().default(1)
   }).required()
 }
+
+export const applyCodeValidator = {
+  body: Joi.object({
+    code: Joi.number().integer().required()
+  }).required()
+}

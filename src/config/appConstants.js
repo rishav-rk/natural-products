@@ -124,11 +124,15 @@ export const SUCCESS_MESSAGES = {
 };
 
 export const REFERRAL_CONSTANTS = {
-  BASE_AMOUNT: 500,
-  AMOUNT_DECREMENT: 100,
-  MAX_LEVEL: 4,
-  MAX_USES: 10,
   VALID_LEVELS: [1, 2, 3, 4],
+  MAX_LEVEL: 4,
+  LEVEL_AMOUNTS: {
+    1: 500,
+    2: 400,
+    3: 300,
+    4: 200,
+  },
+  MAX_USES: 10
 };
 
 export const WALLET_TRANSAC_TYPE = {
@@ -137,6 +141,7 @@ export const WALLET_TRANSAC_TYPE = {
 }
 
 export const ERROR_MESSAGES = {
+  ALREADY_USED_THIS_CODE: "You have already used this referral code",
   INVALID_CODE: "Invalid code",
   NO_SUCH_CODE: "No such code exists",
   NOT_SERVICEABLE: "This pincode is not serviceable by our delivery partner",

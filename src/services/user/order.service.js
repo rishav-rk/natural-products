@@ -131,29 +131,57 @@ const sendOrderConfirmationEmail = async (user, order) => {
 // };
 
 export const createOrder = async (orderBody, token) => {
-
   let codeDetails = null;
 
-  if (orderBody?.code) {
-    const referral = await Referral.findOne({
-      code: orderBody.code,
-      timesUsed: { $lt: 10 },
-    },{code: 1, user : 1}).populate("user", "name image").lean();
+  // order.service.js — createOrder
+if (orderBody?.code) {
+  const code = orderBody.code.replace("#", "").trim();
 
-    if (!referral) {
-      throw new OperationalError(
-        STATUS_CODES.ACTION_FAILED,
-        ERROR_MESSAGES.INVALID_CODE,
-      );
-    }
+  const alreadyUsed = await Order.exists({
+    user:                   token.user._id,
+    "referral.code":        code,
+    "referral.isActivated": true,
+  });
 
-    codeDetails = {
-      codeId: referral._id,
-      code: referral.code,
-      referralUserName: referral.user.name,
-      referralUserImage: referral.user.image
-    }
+  if (alreadyUsed) {
+    throw new OperationalError(
+      STATUS_CODES.ACTION_FAILED,
+      ERROR_MESSAGES.ALREADY_USED_THIS_CODE,
+    );
   }
+
+  const referral = await Referral.findOne(
+    {
+      code,
+      isActive: true,
+      $expr: { $lt: ["$timesUsed", "$maxUses"] },
+    },
+    { code: 1, user: 1, hasUsedItsOwnCode: 1 },
+  ).populate("user", "name image").lean();
+
+  if (!referral) {
+    throw new OperationalError(STATUS_CODES.ACTION_FAILED, ERROR_MESSAGES.INVALID_CODE);
+  }
+
+  const isOwnCode = referral.user?._id.toString() === token.user._id.toString();
+  if (isOwnCode && referral.hasUsedItsOwnCode) {
+    throw new OperationalError(STATUS_CODES.ACTION_FAILED, ERROR_MESSAGES.INVALID_CODE);
+  }
+
+  // Reserve the slot atomically — increment now, rollback if payment fails
+  await Referral.updateOne(
+    { _id: referral._id },
+    { $inc: { timesUsed: 1 } },
+  );
+
+  codeDetails = {
+    codeId:            referral._id,
+    code:              referral.code,
+    referralUserName:  referral.user.name,
+    referralUserImage: referral.user.image,
+    isActivated:       false,
+  };
+}
 
   const user = await User.findById(token.user._id, {
     cart: 1,
@@ -517,11 +545,144 @@ export const handleRazorpayWebhook = async (req) => {
 //   console.log("[WEBHOOK] Payment captured and order fulfilled:", pendingOrder.orderId);
 // };
 
+// const handlePaymentCaptured = async (payment) => {
+//   // 1. Idempotency check
+//   const alreadyProcessed = await Order.findOne({
+//     "payment.razorpayPaymentId": payment.id,
+//     "payment.status": PAYMENT_STATUS.COMPLETED,
+//   }).lean();
+
+//   if (alreadyProcessed) {
+//     console.log("[WEBHOOK] Payment already processed:", payment.id);
+//     return;
+//   }
+
+//   // 2. Fetch pending order
+//   const pendingOrder = await Order.findOne({
+//     "payment.razorpayOrderId": payment.order_id,
+//     "payment.status": PAYMENT_STATUS.PENDING,
+//   });
+
+//   if (!pendingOrder) {
+//     console.error("[WEBHOOK] No pending order found for:", payment.order_id);
+//     return;
+//   }
+
+//   // 3. Atomic transaction
+//   const session = await mongoose.startSession();
+//   session.startTransaction();
+
+//   try {
+//     pendingOrder.payment.razorpayPaymentId = payment.id;
+//     pendingOrder.payment.status = PAYMENT_STATUS.COMPLETED;
+//     pendingOrder.payment.method = payment.method;
+//     pendingOrder.payment.paidAt = new Date(payment.created_at * 1000);
+//     await pendingOrder.save({ session });
+
+//     const bulkOps = pendingOrder.products.map((product) => ({
+//       updateOne: {
+//         filter: {
+//           _id: product.product,
+//           stock: { $gte: product.quantity },
+//         },
+//         update: { $inc: { stock: -product.quantity } },
+//       },
+//     }));
+
+//     const result = await Product.bulkWrite(bulkOps, { session });
+
+//     if (result.modifiedCount !== pendingOrder.products.length) {
+//       throw new OperationalError(
+//         STATUS_CODES.ACTION_FAILED,
+//         ERROR_MESSAGES.OUT_OF_STOCK,
+//       );
+//     }
+
+//     await clearUserCart(pendingOrder.user, session);
+//     await session.commitTransaction();
+//   } catch (err) {
+//     await session.abortTransaction();
+//     throw err;
+//   } finally {
+//     session.endSession();
+//   }
+
+//   // 4. Find nearest warehouse from address location.coordinates [lng, lat]
+//   const [longitude, latitude] =
+//     pendingOrder.shippingAddress?.location?.coordinates ?? [];
+
+//   if (!longitude || !latitude) {
+//     console.error(
+//       "[SHIPMENT] Missing coordinates on shippingAddress for order:",
+//       pendingOrder.orderId,
+//     );
+//   } else {
+//     const nearestWarehouse = await Warehouse.findOne({
+//       location: {
+//         $nearSphere: {
+//           $geometry: {
+//             type: "Point",
+//             coordinates: [longitude, latitude],
+//           },
+//           $maxDistance: 3215000, // covering whole india
+//         },
+//       },
+//     }).lean();
+
+//     if (!nearestWarehouse) {
+//       console.error(
+//         "[SHIPMENT] No warehouse found for order:",
+//         pendingOrder.orderId,
+//       );
+//     } else {
+//       // 5. Create Delhivery shipment — non-blocking
+//       createDelhiveryShipment({
+//         order: pendingOrder,
+//         warehouse: nearestWarehouse,
+//       })
+//         .then(async (shipment) => {
+//           await Order.findByIdAndUpdate(pendingOrder._id, {
+//             "shipment.waybillNumber": shipment.waybillNumber,
+//             "shipment.courierName": shipment.courierName,
+//             "shipment.warehouseId": nearestWarehouse._id,
+//             status: ORDER_STATUS.CONFIRMED,
+//           });
+//           console.log(
+//             "[SHIPMENT] Created successfully:",
+//             shipment.waybillNumber,
+//           );
+//         })
+//         .catch((err) =>
+//           console.error(
+//             "[SHIPMENT] Creation failed for order:",
+//             pendingOrder.orderId,
+//             err.message,
+//           ),
+//         );
+//     }
+//   }
+
+//   // 6. Send confirmation email — non-blocking
+//   const user = await User.findById(pendingOrder.user, {
+//     name: 1,
+//     email: 1,
+//   }).lean();
+//   sendOrderConfirmationEmail(user, pendingOrder).catch((err) =>
+//     console.error("[EMAIL] Order confirmation failed:", err),
+//   );
+
+//   console.log(
+//     "[WEBHOOK] Payment captured and order fulfilled:",
+//     pendingOrder.orderId,
+//   );
+// };
+
+// webhook.js
 const handlePaymentCaptured = async (payment) => {
   // 1. Idempotency check
   const alreadyProcessed = await Order.findOne({
     "payment.razorpayPaymentId": payment.id,
-    "payment.status": PAYMENT_STATUS.COMPLETED,
+    "payment.status":            PAYMENT_STATUS.COMPLETED,
   }).lean();
 
   if (alreadyProcessed) {
@@ -532,7 +693,7 @@ const handlePaymentCaptured = async (payment) => {
   // 2. Fetch pending order
   const pendingOrder = await Order.findOne({
     "payment.razorpayOrderId": payment.order_id,
-    "payment.status": PAYMENT_STATUS.PENDING,
+    "payment.status":          PAYMENT_STATUS.PENDING,
   });
 
   if (!pendingOrder) {
@@ -540,130 +701,137 @@ const handlePaymentCaptured = async (payment) => {
     return;
   }
 
-  // 3. Atomic transaction
+  // 3. Fetch user upfront — needed for both referral and email
+  const user = await User.findById(pendingOrder.user, { name: 1, email: 1, image: 1 }).lean();
+  if (!user) {
+    console.error("[WEBHOOK] User not found for order:", pendingOrder.orderId);
+    return;
+  }
+
+  // 4. Atomic transaction — payment + stock + cart + referral all or nothing
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
+    // 4a. Mark payment complete
     pendingOrder.payment.razorpayPaymentId = payment.id;
-    pendingOrder.payment.status = PAYMENT_STATUS.COMPLETED;
-    pendingOrder.payment.method = payment.method;
-    pendingOrder.payment.paidAt = new Date(payment.created_at * 1000);
+    pendingOrder.payment.status            = PAYMENT_STATUS.COMPLETED;
+    pendingOrder.payment.method            = payment.method;
+    pendingOrder.payment.paidAt            = new Date(payment.created_at * 1000);
     await pendingOrder.save({ session });
 
+    // 4b. Decrement stock atomically
     const bulkOps = pendingOrder.products.map((product) => ({
       updateOne: {
-        filter: {
-          _id: product.product,
-          stock: { $gte: product.quantity },
-        },
+        filter: { _id: product.product, stock: { $gte: product.quantity } },
         update: { $inc: { stock: -product.quantity } },
       },
     }));
 
     const result = await Product.bulkWrite(bulkOps, { session });
-
     if (result.modifiedCount !== pendingOrder.products.length) {
-      throw new OperationalError(
-        STATUS_CODES.ACTION_FAILED,
-        ERROR_MESSAGES.OUT_OF_STOCK,
+      throw new OperationalError(STATUS_CODES.ACTION_FAILED, ERROR_MESSAGES.OUT_OF_STOCK);
+    }
+
+    // 4c. Clear cart
+    await clearUserCart(pendingOrder.user, session);
+
+    // 4d. Activate referral if code was applied
+    if (pendingOrder.referral?.codeId && !pendingOrder.referral.isActivated) {
+      await useReferralCode({ order: pendingOrder, user, session });
+
+      await Order.updateOne(
+        { _id: pendingOrder._id },
+        { $set: { "referral.isActivated": true } },
+        { session },
       );
     }
 
-    await clearUserCart(pendingOrder.user, session);
     await session.commitTransaction();
   } catch (err) {
     await session.abortTransaction();
+
+    // Roll back the reserved timesUsed slot if referral processing failed
+    if (pendingOrder.referral?.codeId && !pendingOrder.referral.isActivated) {
+      await Referral.updateOne(
+        { _id: pendingOrder.referral.codeId },
+        { $inc: { timesUsed: -1 } },
+      ).catch((rollbackErr) =>
+        console.error("[REFERRAL] Rollback failed:", rollbackErr.message),
+      );
+    }
+
     throw err;
   } finally {
     session.endSession();
   }
 
-  // 4. Find nearest warehouse from address location.coordinates [lng, lat]
-  const [longitude, latitude] =
-    pendingOrder.shippingAddress?.location?.coordinates ?? [];
+  // 5. Find nearest warehouse — outside transaction (read-only, non-critical)
+  const [longitude, latitude] = pendingOrder.shippingAddress?.location?.coordinates ?? [];
 
   if (!longitude || !latitude) {
-    console.error(
-      "[SHIPMENT] Missing coordinates on shippingAddress for order:",
-      pendingOrder.orderId,
-    );
+    console.error("[SHIPMENT] Missing coordinates for order:", pendingOrder.orderId);
   } else {
     const nearestWarehouse = await Warehouse.findOne({
       location: {
         $nearSphere: {
-          $geometry: {
-            type: "Point",
-            coordinates: [longitude, latitude],
-          },
-          $maxDistance: 3215000, // covering whole india
+          $geometry:   { type: "Point", coordinates: [longitude, latitude] },
+          $maxDistance: 3215000,
         },
       },
     }).lean();
 
     if (!nearestWarehouse) {
-      console.error(
-        "[SHIPMENT] No warehouse found for order:",
-        pendingOrder.orderId,
-      );
+      console.error("[SHIPMENT] No warehouse found for order:", pendingOrder.orderId);
     } else {
-      // 5. Create Delhivery shipment — non-blocking
-      createDelhiveryShipment({
-        order: pendingOrder,
-        warehouse: nearestWarehouse,
-      })
+      // 6. Create Delhivery shipment — non-blocking
+      createDelhiveryShipment({ order: pendingOrder, warehouse: nearestWarehouse })
         .then(async (shipment) => {
           await Order.findByIdAndUpdate(pendingOrder._id, {
             "shipment.waybillNumber": shipment.waybillNumber,
-            "shipment.courierName": shipment.courierName,
-            "shipment.warehouseId": nearestWarehouse._id,
-            status: ORDER_STATUS.CONFIRMED,
+            "shipment.courierName":   shipment.courierName,
+            "shipment.warehouseId":   nearestWarehouse._id,
+            status:                   ORDER_STATUS.CONFIRMED,
           });
-          console.log(
-            "[SHIPMENT] Created successfully:",
-            shipment.waybillNumber,
-          );
+          console.log("[SHIPMENT] Created successfully:", shipment.waybillNumber);
         })
         .catch((err) =>
-          console.error(
-            "[SHIPMENT] Creation failed for order:",
-            pendingOrder.orderId,
-            err.message,
-          ),
+          console.error("[SHIPMENT] Creation failed for order:", pendingOrder.orderId, err.message),
         );
     }
   }
 
-  // 6. Send confirmation email — non-blocking
-  const user = await User.findById(pendingOrder.user, {
-    name: 1,
-    email: 1,
-  }).lean();
+  // 7. Send confirmation email — non-blocking
   sendOrderConfirmationEmail(user, pendingOrder).catch((err) =>
     console.error("[EMAIL] Order confirmation failed:", err),
   );
 
-  console.log(
-    "[WEBHOOK] Payment captured and order fulfilled:",
-    pendingOrder.orderId,
-  );
+  console.log("[WEBHOOK] Payment captured and order fulfilled:", pendingOrder.orderId);
 };
 
 const handlePaymentFailed = async (payment) => {
   const order = await Order.findOneAndUpdate(
     {
       "payment.razorpayOrderId": payment.order_id,
-      "payment.status": PAYMENT_STATUS.PENDING, // only update if still pending
+      "payment.status":          PAYMENT_STATUS.PENDING,
     },
     { "payment.status": PAYMENT_STATUS.FAILED },
+    { new: false }, // return the original doc so we can read referral before update
   );
 
   if (!order) {
-    console.error(
-      "[WEBHOOK] No pending order found to mark failed:",
-      payment.order_id,
-    );
+    console.error("[WEBHOOK] No pending order found to mark failed:", payment.order_id);
     return;
+  }
+
+  // Roll back the reserved timesUsed slot if a code was applied but never activated
+  if (order.referral?.codeId && !order.referral.isActivated) {
+    await Referral.updateOne(
+      { _id: order.referral.codeId },
+      { $inc: { timesUsed: -1 } },
+    ).catch((err) =>
+      console.error("[REFERRAL] timesUsed rollback failed for order:", order.orderId, err.message),
+    );
   }
 
   console.log("[WEBHOOK] Payment failed, order marked:", order.orderId);
