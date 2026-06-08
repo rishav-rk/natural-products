@@ -96,23 +96,24 @@ const delhiveryHeaders = {
   Authorization: `Token ${config.delhivery.secret}`,
 };
 
+// ── Shipment creation uses form-encoded despite what docs say ─────────────
+// Delhivery's /api/cmu/create.json expects format=json&data=<encoded JSON>
+// Sending application/json causes "format key missing in POST" error
 const delhiveryHeadersForShipmentCreation = {
-  "Content-Type": "application/json",
-  Authorization: `Token ${config.delhivery.secret}`,
-  Accept: 'application/json'
+  "Content-Type": "application/x-www-form-urlencoded", // ← fixed
+  Authorization:  `Token ${config.delhivery.secret}`,
+  Accept:         "application/json",
 };
 
 export const createDelhiveryShipment = async ({ order, warehouse }) => {
   const address = order.shippingAddress;
 
-  console.log("order: ", order)
-  console.log("warehouse: ", warehouse)
   // ── Sanitize helper ──────────────────────────────────────
   const clean = (val) => {
     if (val === null || val === undefined) return "";
     return String(val)
-      .replace(/[\r\n\t]/g, " ")   // strip newlines/tabs
-      .replace(/['"]/g, "")         // remove quotes entirely (safest for Delhivery)
+      .replace(/[\r\n\t]/g, " ")
+      .replace(/['"]/g, "")
       .trim();
   };
 
@@ -122,29 +123,29 @@ export const createDelhiveryShipment = async ({ order, warehouse }) => {
     address.landMarkAndArea,
   ]
     .filter(Boolean)
-    .map(clean)      // ← sanitize each segment before joining
+    .map(clean)
     .join(", ");
 
   const shipmentData = {
     shipments: [
       {
-        name:         clean(order.userName) || "Customer",
-        add:          fullAddress,
-        city:         clean(address.city),
-        state:        clean(address.state),
-        country:      clean(address.country) || "India",
-        pin:          String(address.pincode),
-        phone:        clean(order.userPhone),
+        name:          clean(order.userName) || "Customer",
+        add:           fullAddress,
+        city:          clean(address.city),
+        state:         clean(address.state),
+        country:       clean(address.country) || "India",
+        pin:           String(address.pincode),
+        phone:         clean(order.userPhone),
 
-        order:        clean(order.orderId),
-        payment_mode: "Prepaid",
-        cod_amount:   0,
-        total_amount: parseFloat(order.grandTotalAmount),
-        weight:       calculateTotalWeight(order.products),
-        products_desc: clean(order.products.map((p) => p.name).join(" | ")), // ← avoid commas in desc
-        quantity:     order.products.reduce((sum, p) => sum + p.quantity, 0),
+        order:         clean(order.orderId),
+        payment_mode:  "Prepaid",
+        cod_amount:    0,
+        total_amount:  parseFloat(order.grandTotalAmount),
+        weight:        calculateTotalWeight(order.products),
+        products_desc: clean(order.products.map((p) => p.name).join(" | ")),
+        quantity:      order.products.reduce((sum, p) => sum + p.quantity, 0),
         shipping_mode: "Surface",
-        address_type: clean(address.type?.toLowerCase()) || "home",
+        address_type:  clean(address.type?.toLowerCase()) || "home",
 
         seller_name:    clean(warehouse.name),
         seller_add:     clean(warehouse.address),
@@ -168,18 +169,17 @@ export const createDelhiveryShipment = async ({ order, warehouse }) => {
     },
   };
 
-  console.log("shipment data: ", shipmentData)
-
-  // ── Debug: confirm JSON is valid & inspect char 37 ──────
   const jsonString = JSON.stringify(shipmentData);
-  console.log("[Delhivery] Payload char 30-50:", jsonString.substring(30, 50));
+
+  // Sanity check before sending
   try {
-    JSON.parse(jsonString); // sanity check
+    JSON.parse(jsonString);
   } catch (e) {
     throw new Error(`[DELHIVERY] Malformed payload: ${e.message}`);
   }
 
-  const body = `format=json&data=${jsonString}`;
+  // encodeURIComponent is required — JSON contains {, ", : which break form encoding
+  const body = `format=json&data=${encodeURIComponent(jsonString)}`; // ← fixed
 
   const { data: result } = await axios.post(
     `${config.delhivery.baseUrl}/api/cmu/create.json`,
@@ -187,13 +187,23 @@ export const createDelhiveryShipment = async ({ order, warehouse }) => {
     { headers: delhiveryHeadersForShipmentCreation },
   );
 
-  console.log("Delhivery response:", result);
+  console.log("Delhivery response:", JSON.stringify(result, null, 2));
 
   const shipment = result.packages?.[0];
 
-  if (!shipment || shipment.status === "Error") {
+  // Log remarks array so actual error reason is always visible
+  if (shipment?.remarks?.length) {
+    console.error("[DELHIVERY] Remarks:", JSON.stringify(shipment.remarks));
+  }
+
+  // Fixed: Delhivery returns "Fail" not "Error", also guard empty waybill
+  if (!shipment || shipment.status === "Fail" || !shipment.waybill) {
+    const remarks = Array.isArray(shipment?.remarks)
+      ? shipment.remarks.join(", ")
+      : shipment?.remarks;
+
     throw new Error(
-      `[DELHIVERY] ${shipment?.remarks || result?.rmk || "Unknown error from Delhivery"}`,
+      `[DELHIVERY] ${remarks || result?.rmk || "Unknown error from Delhivery"}`,
     );
   }
 
