@@ -97,8 +97,9 @@ const delhiveryHeaders = {
 };
 
 const delhiveryHeadersForShipmentCreation = {
-  "Content-Type": "application/x-www-form-urlencoded",
+  "Content-Type": "application/json",
   Authorization: `Token ${config.delhivery.secret}`,
+  Accept: 'application/json'
 };
 
 export const createDelhiveryShipment = async ({ order, warehouse }) => {
