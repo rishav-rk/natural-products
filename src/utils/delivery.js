@@ -135,7 +135,7 @@ export const createDelhiveryShipment = async ({ order, warehouse }) => {
         pin:          String(address.pincode),
         phone:        clean(order.userPhone),
 
-        order:        order.orderId,
+        order:        clean(order.orderId),
         payment_mode: "Prepaid",
         cod_amount:   0,
         total_amount: parseFloat(order.grandTotalAmount),
