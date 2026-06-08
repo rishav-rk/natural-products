@@ -8,6 +8,7 @@ import {
   REFERRAL_CONSTANTS,
 } from "../config/appConstants.js";
 import { paginationOptions } from "../utils/universalFunctions.js";
+import {creditWallet} from "../services/user/wallet.service.js"
 
 const CODE_MIN = 1_000_000_000; // 1000000000
 const CODE_MAX = 9_999_999_999; // 9999999999 — 9 billion possible codes
@@ -78,7 +79,7 @@ export const useReferralCode = async ({ order, user, session }) => {
     await creditWallet({
       userId,
       amount: REFERRAL_CONSTANTS.LEVEL_AMOUNTS[1], // 500
-      type: TRANSACTION_TYPES.REFERRAL_CREDIT,
+      type: TRANSACTION_TYPES.BONUS,
       note: "Admin referral code bonus",
       referralId: codeId,
       session,

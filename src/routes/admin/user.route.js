@@ -4,6 +4,11 @@ import { USER_TYPE } from "../../config/appConstants.js";
 import * as userValidator from "../../validators/admin/user.validator.js";
 import auth from "../../middlewares/auth.js";
 import { validate } from "../../middlewares/validate.js";
+import {
+  getUserReferralsValidator,
+  getReferralByIdValidator,
+} from "../../validators/admin/referral.validator.js";
+import * as referralController from "../../controllers/admin/referral.controller.js";
 
 const router = Router();
 
@@ -33,6 +38,20 @@ router.post(
   auth(USER_TYPE.ADMIN),
   validate(userValidator.createCode),
   userController.createReferralCode,
+);
+
+router.get(
+  "/referral/:userId",
+  auth(USER_TYPE.ADMIN),
+  validate(getUserReferralsValidator),
+  referralController.getUserReferrals,
+);
+
+router.get(
+  "/referral/:userId/:codeId",
+  auth(USER_TYPE.ADMIN),
+  validate(getReferralByIdValidator),
+  referralController.getReferralById,
 );
 
 export default router;

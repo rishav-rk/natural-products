@@ -138,6 +138,12 @@ paths:
   /admin/users/enable-disable:
     put:
       $ref: "./paths/adminUserOperations.yaml#/enableDisableUser"
+  /admin/users/referral/{userId}:
+    get:
+      $ref: "./paths/adminUserOperations.yaml#/getUserReferrals"
+  /admin/users/referral/{userId}/{codeId}:
+    get: 
+      $ref: "./paths/adminUserOperations.yaml#/getReferralById"
 
   /admin/products/add-product:
     post:

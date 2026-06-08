@@ -77,3 +77,132 @@ enableDisableUser:
               type: object
       404:
         description: User not found
+
+getUserReferrals:
+  summary: Get all referral codes for a user
+  tags:
+    - Admin Referral Operations
+  security:
+    - bearerAuth: []
+  parameters:
+    - in: path
+      name: userId
+      required: true
+      schema:
+        type: string
+        pattern: '^[a-fA-F0-9]{24}$'
+      description: MongoDB ObjectId of the user
+    - in: query
+      name: page
+      schema:
+        type: integer
+        default: 0
+      description: Page number for pagination
+    - in: query
+      name: limit
+      schema:
+        type: integer
+        default: 10
+      description: Number of referral codes per page
+  responses:
+    200:
+      description: Referral stats retrieved successfully
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              referralStats:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    codeId:
+                      type: string
+                      description: Referral code ID (MongoDB ObjectId)
+                    code:
+                      type: string
+                      description: The referral code string
+                    timesUsed:
+                      type: integer
+                      description: Number of times this code has been used
+                    maxUses:
+                      type: integer
+                      description: Maximum allowed uses for this code
+                    isActive:
+                      type: boolean
+                      description: Whether the referral code is currently active
+                    totalEarnings:
+                      type: number
+                      description: Sum of earnings across all referral levels (L1 + L2 + L3 + L4)
+                    frequencyTable:
+                      type: object
+                      description: Number of referrals at each level
+                      properties:
+                        1:
+                          type: integer
+                          description: Level 1 referral count
+                        2:
+                          type: integer
+                          description: Level 2 referral count
+                        3:
+                          type: integer
+                          description: Level 3 referral count
+                        4:
+                          type: integer
+                          description: Level 4 referral count
+              totalCount:
+                type: integer
+                description: Total number of referral codes for the user
+
+getReferralById:
+  summary: Get a specific referral code details for a user
+  tags:
+    - Admin Referral Operations
+  security:
+    - bearerAuth: []
+  parameters:
+    - in: path
+      name: userId
+      required: true
+      schema:
+        type: string
+        pattern: '^[a-fA-F0-9]{24}$'
+      description: MongoDB ObjectId of the user
+    - in: path
+      name: codeId
+      required: true
+      schema:
+        type: string
+        pattern: '^[a-fA-F0-9]{24}$'
+      description: MongoDB ObjectId of the referral code
+    - in: query
+      name: page
+      schema:
+        type: integer
+        default: 0
+      description: Page number for pagination
+    - in: query
+      name: limit
+      schema:
+        type: integer
+        default: 10
+      description: Number of records per page
+  responses:
+    200:
+      description: Referral code details retrieved successfully
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              referrals:
+                type: array
+                items:
+                  type: object
+                description: List of referral records matching the given codeId and userId
+              totalCount:
+                type: integer
+                description: Total number of referral codes belonging to the user
+    404:
+      description: User not found
