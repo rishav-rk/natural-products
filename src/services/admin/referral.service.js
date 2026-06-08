@@ -54,7 +54,6 @@ export const getUserReferrals = async (userId, page, limit) => {
     },
   ]);
 
-  if (result.data.length)
     return { referralStats: result.data, totalCount: result.totalCount ?? 0 };
 };
 

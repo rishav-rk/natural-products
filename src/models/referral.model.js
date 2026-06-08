@@ -140,7 +140,11 @@ const referralSchema = new Schema(
     isActive: { type: Boolean, default: true },
     byAdmin: { type: Boolean, default: false },
 
-    timesUsed: { type: Number, default: 0 },
+    timesUsed: {
+      type: Number,
+      default: 0,
+      min: [0, "timesUsed cannot be negative"],
+    },
     maxUses: {
       type: Number,
       default: REFERRAL_CONSTANTS.MAX_USES,
