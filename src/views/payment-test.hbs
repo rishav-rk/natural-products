@@ -372,6 +372,11 @@ body::before{
       </div>
     </div>
     <div class="divider"></div>
+<div class="field">
+  <label>Code</label>
+  <input type="text" id="codeInput" placeholder="Enter code"/>
+</div>
+    <div class="divider"></div>
     <div class="field">
       <label>Request Body JSON</label>
       <textarea class="body-editor" id="createBody" rows="4">{
@@ -380,7 +385,7 @@ body::before{
     <div class="field">
       <label>Custom Headers (JSON)</label>
       <textarea class="body-editor" id="createHeaders" rows="2">{
-  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODMyNTgzODAsInR5cGUiOiJhY2Nlc3MiLCJpZCI6IjZhMjJkMDBjYjQ1MmMyZTRhOGQ0ZjMyOSIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzgwNjY2MzgwfQ.XTl4Hu9InSfb68HIrGPe6CWx-D6Drj4-OOEAs7C_m9Q"
+  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODM0OTQxNDQsInR5cGUiOiJhY2Nlc3MiLCJpZCI6IjZhMjY2OTAwMzQ3MzE0Y2VkMTk1YzgxZiIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzgwOTAyMTQ0fQ.TcUcHx8Ae7Ds4leEvwm586oLDDpm8mF4JfjFRVpciDo"
 }</textarea>
     </div>
     <div class="btn-row">
@@ -431,7 +436,7 @@ body::before{
     <div class="field">
       <label>Custom Headers (JSON)</label>
       <textarea class="body-editor" id="verifyHeaders" rows="2">{
-  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODMyNTgzODAsInR5cGUiOiJhY2Nlc3MiLCJpZCI6IjZhMjJkMDBjYjQ1MmMyZTRhOGQ0ZjMyOSIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzgwNjY2MzgwfQ.XTl4Hu9InSfb68HIrGPe6CWx-D6Drj4-OOEAs7C_m9Q"
+  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODM0OTQxNDQsInR5cGUiOiJhY2Nlc3MiLCJpZCI6IjZhMjY2OTAwMzQ3MzE0Y2VkMTk1YzgxZiIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzgwOTAyMTQ0fQ.TcUcHx8Ae7Ds4leEvwm586oLDDpm8mF4JfjFRVpciDo"
 }</textarea>
     </div>
     <div style="margin-bottom:8px;font-size:0.6rem;color:var(--muted);">
@@ -496,6 +501,7 @@ let state = {
 // ── Sync amount to body ────────────────────────────
 document.getElementById('amount').addEventListener('input', syncBody);
 document.getElementById('currency').addEventListener('change', syncBody);
+document.getElementById('codeInput').addEventListener('input', syncBody);
 function syncBody() {
   try {
     const body = JSON.parse(document.getElementById('createBody').value);

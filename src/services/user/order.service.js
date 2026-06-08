@@ -17,6 +17,7 @@ import {
 } from "../../models/index.js";
 import { OperationalError } from "../../utils/error.js";
 import config from "../../config/config.js";
+import {useReferralCode} from "../referral.service.js"
 import { paginationOptions } from "../../utils/universalFunctions.js";
 import {
   generateOrderId,
@@ -131,15 +132,15 @@ const sendOrderConfirmationEmail = async (user, order) => {
 // };
 
 export const createOrder = async (orderBody, token) => {
+  console.log(orderBody)
   let codeDetails = null;
 
   // order.service.js — createOrder
 if (orderBody?.code) {
-  const code = orderBody.code.replace("#", "").trim();
 
   const alreadyUsed = await Order.exists({
     user:                   token.user._id,
-    "referral.code":        code,
+    "referral.code":        orderBody.code,
     "referral.isActivated": true,
   });
 
@@ -152,7 +153,7 @@ if (orderBody?.code) {
 
   const referral = await Referral.findOne(
     {
-      code,
+      code: orderBody.code,
       isActive: true,
       $expr: { $lt: ["$timesUsed", "$maxUses"] },
     },
@@ -679,48 +680,44 @@ export const handleRazorpayWebhook = async (req) => {
 
 // webhook.js
 const handlePaymentCaptured = async (payment) => {
-  // 1. Idempotency check
-  const alreadyProcessed = await Order.findOne({
-    "payment.razorpayPaymentId": payment.id,
-    "payment.status":            PAYMENT_STATUS.COMPLETED,
-  }).lean();
 
-  if (alreadyProcessed) {
-    console.log("[WEBHOOK] Payment already processed:", payment.id);
-    return;
-  }
+  // 1. Atomic idempotency gate — only one webhook can flip PENDING → PROCESSING
+  //    If two webhooks arrive simultaneously, only one will match PENDING and proceed
+  const pendingOrder = await Order.findOneAndUpdate(
+    {
+      "payment.razorpayOrderId": payment.order_id,
+      "payment.status":          PAYMENT_STATUS.PENDING, // only matches once
+    },
+    {
+      $set: {
+        "payment.status":            PAYMENT_STATUS.PROCESSING, // intermediate lock state
+        "payment.razorpayPaymentId": payment.id,
+        "payment.method":            payment.method,
+        "payment.paidAt":            new Date(payment.created_at * 1000),
+      },
+    },
+    { new: true }, // return updated doc
+  );
 
-  // 2. Fetch pending order
-  const pendingOrder = await Order.findOne({
-    "payment.razorpayOrderId": payment.order_id,
-    "payment.status":          PAYMENT_STATUS.PENDING,
-  });
-
+  // Already processed or being processed — safe to ignore
   if (!pendingOrder) {
-    console.error("[WEBHOOK] No pending order found for:", payment.order_id);
+    console.log("[WEBHOOK] Order already processed or not found:", payment.order_id);
     return;
   }
 
-  // 3. Fetch user upfront — needed for both referral and email
+  // 2. Fetch user
   const user = await User.findById(pendingOrder.user, { name: 1, email: 1, image: 1 }).lean();
   if (!user) {
     console.error("[WEBHOOK] User not found for order:", pendingOrder.orderId);
     return;
   }
 
-  // 4. Atomic transaction — payment + stock + cart + referral all or nothing
+  // 3. Atomic transaction — stock + cart + referral
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    // 4a. Mark payment complete
-    pendingOrder.payment.razorpayPaymentId = payment.id;
-    pendingOrder.payment.status            = PAYMENT_STATUS.COMPLETED;
-    pendingOrder.payment.method            = payment.method;
-    pendingOrder.payment.paidAt            = new Date(payment.created_at * 1000);
-    await pendingOrder.save({ session });
-
-    // 4b. Decrement stock atomically
+    // 3a. Decrement stock — filter by stock >= quantity prevents going below 0
     const bulkOps = pendingOrder.products.map((product) => ({
       updateOne: {
         filter: { _id: product.product, stock: { $gte: product.quantity } },
@@ -733,10 +730,10 @@ const handlePaymentCaptured = async (payment) => {
       throw new OperationalError(STATUS_CODES.ACTION_FAILED, ERROR_MESSAGES.OUT_OF_STOCK);
     }
 
-    // 4c. Clear cart
+    // 3b. Clear cart
     await clearUserCart(pendingOrder.user, session);
 
-    // 4d. Activate referral if code was applied
+    // 3c. Activate referral
     if (pendingOrder.referral?.codeId && !pendingOrder.referral.isActivated) {
       await useReferralCode({ order: pendingOrder, user, session });
 
@@ -747,11 +744,26 @@ const handlePaymentCaptured = async (payment) => {
       );
     }
 
+    // 3d. Mark fully completed
+    await Order.updateOne(
+      { _id: pendingOrder._id },
+      { $set: { "payment.status": PAYMENT_STATUS.COMPLETED } },
+      { session },
+    );
+
     await session.commitTransaction();
   } catch (err) {
     await session.abortTransaction();
 
-    // Roll back the reserved timesUsed slot if referral processing failed
+    // Revert status back to PENDING so Razorpay retry can re-attempt
+    await Order.updateOne(
+      { _id: pendingOrder._id },
+      { $set: { "payment.status": PAYMENT_STATUS.PENDING } },
+    ).catch((revertErr) =>
+      console.error("[WEBHOOK] Status revert failed:", revertErr.message),
+    );
+
+    // Roll back timesUsed only if referral was not yet activated
     if (pendingOrder.referral?.codeId && !pendingOrder.referral.isActivated) {
       await Referral.updateOne(
         { _id: pendingOrder.referral.codeId },
@@ -766,7 +778,7 @@ const handlePaymentCaptured = async (payment) => {
     session.endSession();
   }
 
-  // 5. Find nearest warehouse — outside transaction (read-only, non-critical)
+  // 4. Find nearest warehouse
   const [longitude, latitude] = pendingOrder.shippingAddress?.location?.coordinates ?? [];
 
   if (!longitude || !latitude) {
@@ -775,7 +787,7 @@ const handlePaymentCaptured = async (payment) => {
     const nearestWarehouse = await Warehouse.findOne({
       location: {
         $nearSphere: {
-          $geometry:   { type: "Point", coordinates: [longitude, latitude] },
+          $geometry:    { type: "Point", coordinates: [longitude, latitude] },
           $maxDistance: 3215000,
         },
       },
@@ -784,7 +796,6 @@ const handlePaymentCaptured = async (payment) => {
     if (!nearestWarehouse) {
       console.error("[SHIPMENT] No warehouse found for order:", pendingOrder.orderId);
     } else {
-      // 6. Create Delhivery shipment — non-blocking
       createDelhiveryShipment({ order: pendingOrder, warehouse: nearestWarehouse })
         .then(async (shipment) => {
           await Order.findByIdAndUpdate(pendingOrder._id, {
@@ -801,7 +812,7 @@ const handlePaymentCaptured = async (payment) => {
     }
   }
 
-  // 7. Send confirmation email — non-blocking
+  // 5. Send confirmation email — non-blocking
   sendOrderConfirmationEmail(user, pendingOrder).catch((err) =>
     console.error("[EMAIL] Order confirmation failed:", err),
   );
