@@ -4,6 +4,7 @@ import { OperationalError } from "../utils/error.js";
 import {
   ERROR_MESSAGES,
   STATUS_CODES,
+  TRANSACTION_TYPES,
   REFERRAL_CONSTANTS,
 } from "../config/appConstants.js";
 import { paginationOptions } from "../utils/universalFunctions.js";
@@ -33,7 +34,7 @@ export async function generateReferralCode() {
   }
 }
 
-export const checkCodeAvailability = async ({code}, userId) => {
+export const checkCodeAvailability = async ({ code }, userId) => {
   const referral = await Referral.findOne({
     code,
     isActive: true,
@@ -57,38 +58,63 @@ export const checkCodeAvailability = async ({code}, userId) => {
   }
 };
 
+// referral.service.js
 export const useReferralCode = async ({ order, user, session }) => {
-  const { codeId, code, isActivated } = order.referral ?? {};
+  const { codeId, isActivated } = order.referral ?? {};
 
-  // Skip if no referral code was applied or already activated
   if (!codeId || isActivated) return;
 
-  const userId    = order.user;
-  const userName  = user.name;
-  const userImage = user.image;
+  const userId = order.user;
 
-  // 1. Fetch the referral — no need to re-validate since timesUsed
-  //    was already incremented and validated in createOrder
+  // 1. Fetch referral
   const referral = await Referral.findById(codeId).session(session).lean();
   if (!referral) {
     console.error("[REFERRAL] Referral not found for codeId:", codeId);
     return;
   }
 
+  // 2. Admin code — credit ₹500 to user's wallet directly, no chain distribution
+  if (referral.byAdmin) {
+    await creditWallet({
+      userId,
+      amount: REFERRAL_CONSTANTS.LEVEL_AMOUNTS[1], // 500
+      type: TRANSACTION_TYPES.REFERRAL_CREDIT,
+      note: "Admin referral code bonus",
+      referralId: codeId,
+      session,
+    });
+
+    // Mark L1 on the referral doc so admin can see it was used
+    await Promise.all([
+      Referral.updateOne(
+        { _id: codeId },
+        {
+          $inc: {
+            "l1.earnings": REFERRAL_CONSTANTS.LEVEL_AMOUNTS[1],
+            "l1.referrals": 1,
+          },
+          $set: { isActive: false }, // admin code is single use — deactivate immediately
+        },
+        { session },
+      ),
+      Referral.create([{ user: userId, code: newCode, parent: null }], { session })
+    ]);
+  }
+
+  // 3. Regular referral code — existing chain distribution logic
   const isOwnCode = referral.user?.toString() === userId.toString();
 
-  // 2. Fetch ancestor chain via $graphLookup in one query
   const [ancestorChain] = await Referral.aggregate([
     { $match: { _id: referral._id } },
     {
       $graphLookup: {
-        from:             "referrals",
-        startWith:        "$parent",
+        from: "referrals",
+        startWith: "$parent",
         connectFromField: "parent",
-        connectToField:   "_id",
-        as:               "ancestors",
-        maxDepth:         REFERRAL_CONSTANTS.MAX_LEVEL - 2,
-        depthField:       "depth",
+        connectToField: "_id",
+        as: "ancestors",
+        maxDepth: REFERRAL_CONSTANTS.MAX_LEVEL - 2,
+        depthField: "depth",
       },
     },
     {
@@ -102,37 +128,32 @@ export const useReferralCode = async ({ order, user, session }) => {
 
   const ancestors = ancestorChain?.ancestors ?? [];
 
-  // 3. Build bulk ops + transactions
-  const bulkReferralOps      = [];
+  const bulkReferralOps = [];
   const transactionsToInsert = [];
 
-  // L1 — earnings + referral count only, timesUsed already incremented in createOrder
+  // L1
   const l1Amount = REFERRAL_CONSTANTS.LEVEL_AMOUNTS[1];
-
   bulkReferralOps.push({
     updateOne: {
       filter: { _id: referral._id },
       update: {
-        $inc: {
-          "l1.earnings":  l1Amount,
-          "l1.referrals": 1,
-        },
+        $inc: { "l1.earnings": l1Amount, "l1.referrals": 1 },
         ...(isOwnCode && { $set: { hasUsedItsOwnCode: true } }),
       },
     },
   });
 
   transactionsToInsert.push({
-    referral:        referral._id,
-    paidBy:          userId,
-    paidByUsername:  userName,
-    paidByImage:     userImage,
-    amount:          l1Amount,
-    level:           1,
-    parent:          null,
+    referral: referral._id,
+    paidBy: userId,
+    paidByUsername: user.name,
+    paidByImage: user.image,
+    amount: l1Amount,
+    level: 1,
+    parent: null,
   });
 
-  // L2–L4 — ancestors
+  // L2–L4
   for (const ancestor of ancestors) {
     const level = ancestor.depth + 2;
     if (level > REFERRAL_CONSTANTS.MAX_LEVEL) break;
@@ -144,7 +165,7 @@ export const useReferralCode = async ({ order, user, session }) => {
         filter: { _id: ancestor._id },
         update: {
           $inc: {
-            [`l${level}.earnings`]:  amount,
+            [`l${level}.earnings`]: amount,
             [`l${level}.referrals`]: 1,
           },
         },
@@ -152,24 +173,24 @@ export const useReferralCode = async ({ order, user, session }) => {
     });
 
     transactionsToInsert.push({
-      referral:       ancestor._id,
-      paidBy:         userId,
-      paidByUsername: userName,
-      paidByImage:    userImage,
+      referral: ancestor._id,
+      paidBy: userId,
+      paidByUsername: user.name,
+      paidByImage: user.image,
       amount,
       level,
-      parent:         referral.user,
+      parent: referral.user,
     });
   }
 
-  // 4. Generate new referral code for the user who just used a code
   const newCode = await generateReferralCode();
 
-  // 5. Execute all referral writes — shares the caller's session
   await Promise.all([
     Referral.bulkWrite(bulkReferralOps, { session }),
     ReferralTransaction.insertMany(transactionsToInsert, { session }),
-    Referral.create([{ user: userId, code: newCode, parent: referral._id }], { session }),
+    Referral.create([{ user: userId, code: newCode, parent: referral._id }], {
+      session,
+    }),
   ]);
 };
 
@@ -180,7 +201,7 @@ export const getReferralCodes = async (userId, page, limit) => {
   const skip = parseInt(page) * parseInt(limit);
 
   const [result] = await Referral.aggregate([
-    { $match: { user: new mongoose.Types.ObjectId(userId) } },
+    { $match: { user: new mongoose.Types.ObjectId(userId), byAdmin: false } },
     {
       $facet: {
         metadata: [{ $count: "total" }],

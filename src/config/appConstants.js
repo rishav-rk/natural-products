@@ -12,6 +12,22 @@ export const ADDRESS_TYPE = {
   OTHER: "other",
 };
 
+export const TRANSACTION_TYPES = {
+  REFERRAL_CREDIT: "referral_credit",   // earned by sharing referral code
+  WITHDRAWAL:      "withdrawal",         // future: transfer to bank/UPI
+  REFUND:          "refund",             // future: refund to wallet
+  BONUS:           "bonus",              // admin manually credits
+  DEBIT:           "debit",             // generic debit
+};
+
+export const TRANSACTION_STATUS = {
+  PENDING:   "pending",    // initiated
+  SUCCESS:   "success",    // completed
+  FAILED:    "failed",     // failed
+  REVERSED:  "reversed",   // rolled back
+};
+
+
 export const PAYMENT_METHOD = {
   CARD: "card",
   UPI: "upi",

@@ -7,6 +7,8 @@ import Order from "./order.model.js";
 import Warehouse from "./warehouse.model.js";
 import Referral from "./referral.model.js";
 import ReferralTransaction from "./referralTransaction.model.js";
+import Wallet from "./wallet.model.js";
+import WalletTransaction from "./walletTransaction.model.js";
 
 export {
   User,
@@ -18,4 +20,6 @@ export {
   Warehouse,
   Referral,
   ReferralTransaction,
+  Wallet, 
+  WalletTransaction
 };

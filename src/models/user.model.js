@@ -111,14 +111,6 @@ const userSchema = new mongoose.Schema(
       //   couponCode:      { type: String },
       //   discountAmount:  { type: Number, default: 0 },
     },
-    walletBalance: {
-      type: Number, 
-      default: 0
-    }, 
-    totalReferrals: {
-      type: Number, 
-      default: 0
-    }
   },
   {
     timestamps: true,
