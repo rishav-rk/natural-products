@@ -375,7 +375,6 @@ export const getReferralTree = async (codeId, token) => {
 // GET /next-level/:codeId?level=2&parent=<userId>
 export const getNextLevel = async (codeId, userId, level, parentUserId) => {
   const parsedLevel = parseInt(level);
-  console.log(parsedLevel);
 
   if (!REFERRAL_CONSTANTS.VALID_LEVELS.includes(parsedLevel)) {
     throw new OperationalError(
@@ -398,7 +397,7 @@ export const getNextLevel = async (codeId, userId, level, parentUserId) => {
     level: parsedLevel,
     parent: parentUserId ? new mongoose.Types.ObjectId(parentUserId) : null,
   })
-    .select("paidBy paidByUsername paidByImage amount paidOn")
+    .select("paidBy paidByUsername paidByImage amount paidOn level")
     .lean();
 
   return children;
