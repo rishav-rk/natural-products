@@ -155,7 +155,7 @@ export const getNextLevelValidator = {
   params: Joi.object({
     codeId: JOI.OBJECTID
   }).required(),
-  body: Joi.object({
+  query: Joi.object({
     parent: JOI.OBJECTID,
     level: Joi.number().integer().valid(...REFERRAL_CONSTANTS.VALID_LEVELS).required().default(1)
   }).required()

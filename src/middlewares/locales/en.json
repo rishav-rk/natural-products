@@ -208,5 +208,9 @@
 	"code is required": "code is required",
 	"Invalid code": "Invalid code",
 	"No such code exists": "No such code exists",
-	"You have already used this referral code": "You have already used this referral code"
+	"You have already used this referral code": "You have already used this referral code",
+	"Invalid level": {
+		" Valid levels are": " 1, 2, 3, 4"
+	},
+	"page is required, limit is required": "page is required, limit is required"
 }

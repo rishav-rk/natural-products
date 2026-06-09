@@ -8,7 +8,7 @@ import {
   REFERRAL_CONSTANTS,
 } from "../config/appConstants.js";
 import { paginationOptions } from "../utils/universalFunctions.js";
-import {creditWallet} from "../services/user/wallet.service.js"
+import { creditWallet } from "../services/user/wallet.service.js";
 
 const CODE_MIN = 1_000_000_000; // 1000000000
 const CODE_MAX = 9_999_999_999; // 9999999999 — 9 billion possible codes
@@ -39,6 +39,7 @@ export const checkCodeAvailability = async ({ code }, userId) => {
   const referral = await Referral.findOne({
     code,
     isActive: true,
+    user: new mongoose.Types.ObjectId(userId),
     $expr: { $lt: ["$timesUsed", "$maxUses"] }, // respects the actual maxUses field
   });
 
@@ -74,19 +75,22 @@ export const useReferralCode = async ({ order, user, session }) => {
     return;
   }
 
-  // 2. Admin code — credit ₹500 to user's wallet directly, no chain distribution
+  // 2. Admin code — credit ₹500 to the user who USED the code, no chain
   if (referral.byAdmin) {
-    await creditWallet({
-      userId,
-      amount: REFERRAL_CONSTANTS.LEVEL_AMOUNTS[1], // 500
-      type: TRANSACTION_TYPES.BONUS,
-      note: "Admin referral code bonus",
-      referralId: codeId,
-      session,
-    });
-
-    // Mark L1 on the referral doc so admin can see it was used
     await Promise.all([
+      creditWallet({
+        userId,
+        amount: REFERRAL_CONSTANTS.LEVEL_AMOUNTS[1],
+        type: TRANSACTION_TYPES.BONUS,
+        level: null, // bonus — no level context
+        paidBy: null, // user credited themselves via admin code
+        paidByUsername: null,
+        orderRef: order.orderId, // ← add
+        note: "Admin referral code bonus",
+        referralId: codeId,
+        session,
+      }),
+
       Referral.updateOne(
         { _id: codeId },
         {
@@ -94,18 +98,24 @@ export const useReferralCode = async ({ order, user, session }) => {
             "l1.earnings": REFERRAL_CONSTANTS.LEVEL_AMOUNTS[1],
             "l1.referrals": 1,
           },
-          $set: { isActive: false }, // admin code is single use — deactivate immediately
+          $set: { isActive: false },
         },
         { session },
       ),
-      Referral.create([{ user: userId, code: await generateReferralCode(), parent: null }], { session })
+
+      Referral.create(
+        [{ user: userId, code: await generateReferralCode(), parent: null }],
+        { session },
+      ),
     ]);
-    return ;
+
+    return;
   }
 
-  // 3. Regular referral code — existing chain distribution logic
+  // 3. Regular referral code — distribute earnings across chain + credit wallets
   const isOwnCode = referral.user?.toString() === userId.toString();
 
+  // Fetch full ancestor chain in one query
   const [ancestorChain] = await Referral.aggregate([
     { $match: { _id: referral._id } },
     {
@@ -132,9 +142,11 @@ export const useReferralCode = async ({ order, user, session }) => {
 
   const bulkReferralOps = [];
   const transactionsToInsert = [];
+  const walletCredits = []; // collect all wallet credits to run in parallel
 
-  // L1
+  // ── L1 — the person whose code was used ──────────────────────────────────
   const l1Amount = REFERRAL_CONSTANTS.LEVEL_AMOUNTS[1];
+
   bulkReferralOps.push({
     updateOne: {
       filter: { _id: referral._id },
@@ -155,7 +167,23 @@ export const useReferralCode = async ({ order, user, session }) => {
     parent: null,
   });
 
-  // L2–L4
+  // Credit L1 owner's wallet
+  walletCredits.push(
+    creditWallet({
+      userId: referral.user,
+      amount: l1Amount,
+      type: TRANSACTION_TYPES.REFERRAL_CREDIT,
+      level: 1,
+      paidBy: userId,
+      paidByUsername: user.name,
+      orderRef: order.orderId,
+      referralId: referral._id,
+      note: `L1 referral earning from order ${order.orderId}`,
+      session,
+    }),
+  );
+
+  // ── L2–L4 — ancestors ────────────────────────────────────────────────────
   for (const ancestor of ancestors) {
     const level = ancestor.depth + 2;
     if (level > REFERRAL_CONSTANTS.MAX_LEVEL) break;
@@ -183,18 +211,35 @@ export const useReferralCode = async ({ order, user, session }) => {
       level,
       parent: referral.user,
     });
+
+    // Credit each ancestor's wallet
+    walletCredits.push(
+      creditWallet({
+        userId: ancestor.user,
+        amount,
+        type: TRANSACTION_TYPES.REFERRAL_CREDIT,
+        level,
+        paidBy: userId,
+        paidByUsername: user.name,
+        orderRef: order.orderId,
+        referralId: ancestor._id,
+        note: `L${level} referral earning from order ${order.orderId}`,
+        session,
+      }),
+    );
+
+    const newCode = await generateReferralCode();
+
+    // Execute everything in parallel
+    await Promise.all([
+      Referral.bulkWrite(bulkReferralOps, { session }),
+      ReferralTransaction.insertMany(transactionsToInsert, { session }),
+      Referral.create([{ user: userId, code: newCode, parent: referral._id }], {
+        session,
+      }),
+      ...walletCredits, // credit all wallets atomically with everything else
+    ]);
   }
-
-  const newCode = await generateReferralCode();
-
-  await Promise.all([
-    Referral.bulkWrite(bulkReferralOps, { session }),
-    ReferralTransaction.insertMany(transactionsToInsert, { session }),
-    Referral.create([{ user: userId, code: newCode, parent: referral._id }], {
-      session,
-    }),
-  ]);
-  return ;
 };
 
 // ─── Query Services ──────────────────────────────────────────────────────────
@@ -323,6 +368,7 @@ export const getReferralTree = async (codeId, token) => {
 // GET /next-level/:codeId?level=2&parent=<userId>
 export const getNextLevel = async (codeId, userId, level, parentUserId) => {
   const parsedLevel = parseInt(level);
+  console.log(parsedLevel);
 
   if (!REFERRAL_CONSTANTS.VALID_LEVELS.includes(parsedLevel)) {
     throw new OperationalError(

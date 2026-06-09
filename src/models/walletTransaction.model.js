@@ -8,57 +8,70 @@ const { Types: { ObjectId } } = Schema;
 const walletTransactionSchema = new Schema(
   {
     wallet: {
-      type: ObjectId,
-      ref: "Wallet",
+      type:     ObjectId,
+      ref:      "Wallet",
       required: true,
     },
     user: {
-      type: ObjectId,
-      ref: "User",
-      required: true, // denormalized for faster user-level queries
+      type:     ObjectId,
+      ref:      "User",
+      required: true,
     },
     type: {
-      type: String,
-      enum: Object.values(TRANSACTION_TYPES),
+      type:     String,
+      enum:     Object.values(TRANSACTION_TYPES),
       required: true,
     },
     status: {
-      type: String,
-      enum: Object.values(TRANSACTION_STATUS),
+      type:    String,
+      enum:    Object.values(TRANSACTION_STATUS),
       default: TRANSACTION_STATUS.SUCCESS,
     },
     amount: {
-      type: Number,
+      type:     Number,
       required: true,
-      min: [0.01, "Amount must be greater than 0"],
+      min:      [0.01, "Amount must be greater than 0"],
     },
     balanceBefore: {
-      type: Number,
-      required: true, // snapshot — critical for debugging & audits
+      type:     Number,
+      required: true,
     },
     balanceAfter: {
-      type: Number,
-      required: true, // snapshot
+      type:     Number,
+      required: true,
     },
 
-    // ── Referral context (populated for referral_credit type) ──
+    // ── Referral context ──────────────────────────────────────────────────
     referral: {
-      type: ObjectId,
-      ref: "Referral",
+      type:    ObjectId,
+      ref:     "Referral",
       default: null,
     },
-    referralTransaction: {
-      type: ObjectId,
-      ref: "ReferralTransaction",
-      default: null,
-    },
-    triggeredBy: {
-      type: ObjectId,
-      ref: "User",
-      default: null, // the user whose referral code was used
+    level: {
+      type:    Number,
+      default: null, // null for bonus/withdrawal, 1–4 for referral credits
+      min:     1,
+      max:     4,
     },
 
-    // ── Withdrawal context (for future payout support) ──
+    // Who triggered this earning (the user who made the purchase)
+    paidBy: {
+      type:    ObjectId,
+      ref:     "User",
+      default: null,
+    },
+    paidByUsername: {
+      type:    String,
+      default: null, // denormalized — shown directly in UI, no populate needed
+    },
+
+    // Order reference shown in UI as #12345678
+    orderRef: {
+      type:    String,
+      default: null,
+    },
+
+    // ── Withdrawal context (future payout support) ────────────────────────
     payout: {
       method:            { type: String, default: null }, // "upi" | "bank"
       accountIdentifier: { type: String, default: null }, // UPI ID or account no.
@@ -66,22 +79,23 @@ const walletTransactionSchema = new Schema(
       processedAt:       { type: Date,   default: null },
     },
 
-    note: { type: String, default: null }, // admin notes or reason
+    note: { type: String, default: null },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-// Primary: all transactions for a wallet, newest first
-walletTransactionSchema.index({ wallet: 1, createdAt: -1 });
+// ── Indexes ───────────────────────────────────────────────────────────────
 
-// User-level history
+// Primary: paginated history for a user, newest first
 walletTransactionSchema.index({ user: 1, createdAt: -1 });
 
-// Filter by type (e.g. fetch only withdrawals)
-walletTransactionSchema.index({ user: 1, type: 1 });
+// Level + date filter (earnings screen)
+walletTransactionSchema.index({ user: 1, level: 1, createdAt: -1 });
 
 // Admin: find pending withdrawals
 walletTransactionSchema.index({ type: 1, status: 1 });
+
+// ── Model ─────────────────────────────────────────────────────────────────
 
 export { TRANSACTION_TYPES, TRANSACTION_STATUS };
 const WalletTransaction = model("WalletTransaction", walletTransactionSchema);
