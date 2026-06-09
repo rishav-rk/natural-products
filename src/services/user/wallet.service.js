@@ -9,45 +9,44 @@ export const creditWallet = async ({
   userId,
   amount,
   type,
-  note = null,
-  referralId = null,
-  level      = null,
+  note           = null,
+  referralId     = null,
+  level          = null,
+  paidBy         = null,
+  paidByUsername = null,      
+  orderRef       = null,
   session,
 }) => {
-  // Find or create wallet
-  console.log("Crediting : ", userId, amount, type, note, referralId);
   let wallet = await Wallet.findOne({ user: userId }).session(session);
   if (!wallet) {
     [wallet] = await Wallet.create([{ user: userId }], { session });
   }
-  console.log(wallet);
 
   const balanceBefore = wallet.balance;
-  const balanceAfter = balanceBefore + amount;
+  const balanceAfter  = balanceBefore + amount;
 
-  // Increment balance
   await Wallet.updateOne(
     { _id: wallet._id },
     { $inc: { balance: amount, lifetimeEarnings: amount } },
     { session },
   );
 
-  // Create wallet transaction record
   await WalletTransaction.create(
-    [
-      {
-        wallet: wallet._id,
-        user: userId,
-        type,
-        status: TRANSACTION_STATUS.SUCCESS,
-        amount,
-        balanceBefore,
-        balanceAfter,
-        referral: referralId,
-        level,
-        note,
-      },
-    ],
+    [{
+      wallet:         wallet._id,
+      user:           userId,
+      type,
+      status:         TRANSACTION_STATUS.SUCCESS,
+      amount,
+      balanceBefore,
+      balanceAfter,
+      referral:       referralId,
+      level,
+      paidBy,
+      paidByUsername,
+      orderRef,
+      note,
+    }],
     { session },
   );
 };
@@ -100,7 +99,6 @@ export const getTransactions = async (userId, { page = 0, limit = 10, level, sta
       .skip(skip)
       .limit(parseInt(limit))
       .select("-wallet -__v")
-      .populate("user", "name image")
       .lean(),
     WalletTransaction.countDocuments(filter),
 
