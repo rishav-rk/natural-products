@@ -139,8 +139,8 @@ export const referralDetailsValidator = {
   }).required(),
   query: Joi.object({
     level: Joi.number().integer().valid(...REFERRAL_CONSTANTS.VALID_LEVELS).required(),
-    page: JOI.PAGE, 
-    limit: JOI.LIMIT
+    page: JOI.PAGE.required(), 
+    limit: JOI.LIMIT.required()
   }).required()
 }
 

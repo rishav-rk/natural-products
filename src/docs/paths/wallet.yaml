@@ -1,0 +1,388 @@
+getBalance:
+  summary: Get wallet balance and lifetime earnings
+  tags:
+    - Wallet
+  security:
+    - bearerAuth: []
+  responses:
+    200:
+      description: Wallet balance retrieved successfully
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Success"
+              data:
+                type: object
+                properties:
+                  balance:
+                    type: number
+                    example: 10000
+                    description: Current spendable wallet balance
+                  lifetimeEarnings:
+                    type: number
+                    example: 12000
+                    description: Total earned since account creation, never decrements
+                  currency:
+                    type: string
+                    example: "INR"
+    401:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Unauthorized access"
+    500:
+      description: Server error
+
+getTransactions:
+  summary: Get paginated wallet transaction history with optional filters
+  tags:
+    - Wallet
+  security:
+    - bearerAuth: []
+  parameters:
+    - in: query
+      name: page
+      required: true
+      schema:
+        type: integer
+        default: 0
+      description: Page number for pagination (0-indexed)
+      example: 0
+    - in: query
+      name: limit
+      required: true
+      schema:
+        type: integer
+        default: 10
+      description: Number of transactions per page
+      example: 10
+    - in: query
+      name: level
+      required: false
+      schema:
+        type: integer
+        enum: [1, 2, 3, 4]
+      description: Filter by referral level
+      example: 1
+    - in: query
+      name: startDate
+      required: false
+      schema:
+        type: string
+        format: date
+      description: Filter transactions from this date (inclusive). Format YYYY-MM-DD
+      example: "2024-01-01"
+    - in: query
+      name: endDate
+      required: false
+      schema:
+        type: string
+        format: date
+      description: Filter transactions until this date (inclusive). Must be >= startDate. Format YYYY-MM-DD
+      example: "2024-12-31"
+  responses:
+    200:
+      description: Transactions retrieved successfully
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Success"
+              data:
+                type: object
+                properties:
+                  totalCount:
+                    type: integer
+                    example: 25
+                    description: Total number of transactions matching the filter
+                  totalEarnings:
+                    type: number
+                    example: 12000
+                    description: Sum of all amounts matching the current filter
+                  transactions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                          example: "60c72b2f9b1d8e5a5c8f9b1a"
+                        user:
+                          type: string
+                          example: "60c72b2f9b1d8e5a5c8f9b2a"
+                        type:
+                          type: string
+                          enum: [referral_credit, bonus, withdrawal, refund, debit]
+                          example: "referral_credit"
+                        status:
+                          type: string
+                          enum: [pending, success, failed, reversed]
+                          example: "success"
+                        amount:
+                          type: number
+                          example: 500
+                        balanceBefore:
+                          type: number
+                          example: 9500
+                          description: Wallet balance before this transaction
+                        balanceAfter:
+                          type: number
+                          example: 10000
+                          description: Wallet balance after this transaction
+                        level:
+                          type: integer
+                          nullable: true
+                          example: 1
+                          description: Referral level (1-4). Null for bonus or withdrawal
+                        paidBy:
+                          type: string
+                          nullable: true
+                          example: "60c72b2f9b1d8e5a5c8f9b3a"
+                          description: User ID who triggered this earning
+                        paidByUsername:
+                          type: string
+                          nullable: true
+                          example: "rahul_sharma"
+                          description: Name of the user who triggered this earning
+                        orderRef:
+                          type: string
+                          nullable: true
+                          example: "PRO-1780920503261"
+                          description: Order ID that triggered this transaction
+                        referral:
+                          type: string
+                          nullable: true
+                          example: "60c72b2f9b1d8e5a5c8f9b4a"
+                          description: Referral document ID
+                        note:
+                          type: string
+                          nullable: true
+                          example: "L1 referral earning from order PRO-1780920503261"
+                        createdAt:
+                          type: string
+                          format: date-time
+                          example: "2024-03-15T10:00:00.000Z"
+    400:
+      description: Validation failed - invalid query parameters
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Invalid query parameters"
+    401:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Unauthorized access"
+    500:
+      description: Server error
+
+getEarnings:
+  summary: Get earnings breakdown grouped by transaction type
+  tags:
+    - Wallet
+  security:
+    - bearerAuth: []
+  parameters:
+    - in: query
+      name: page
+      required: true
+      schema:
+        type: integer
+        default: 0
+      description: Page number for pagination (0-indexed)
+      example: 0
+    - in: query
+      name: limit
+      required: true
+      schema:
+        type: integer
+        default: 10
+      description: Number of transactions per page
+      example: 10
+    - in: query
+      name: level
+      required: false
+      schema:
+        type: integer
+        enum: [1, 2, 3, 4]
+      description: Filter by referral level
+      example: 2
+    - in: query
+      name: startDate
+      required: false
+      schema:
+        type: string
+        format: date
+      description: Filter earnings from this date (inclusive). Format YYYY-MM-DD
+      example: "2024-01-01"
+    - in: query
+      name: endDate
+      required: false
+      schema:
+        type: string
+        format: date
+      description: Filter earnings until this date (inclusive). Must be >= startDate. Format YYYY-MM-DD
+      example: "2024-12-31"
+  responses:
+    200:
+      description: Earnings retrieved successfully
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Success"
+              data:
+                type: object
+                properties:
+                  balance:
+                    type: number
+                    example: 10000
+                    description: Current spendable wallet balance
+                  lifetimeEarnings:
+                    type: number
+                    example: 12000
+                    description: Total earned since account creation
+                  breakdown:
+                    type: array
+                    description: Earnings grouped by transaction type
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          enum: [referral_credit, bonus, withdrawal, refund, debit]
+                          example: "referral_credit"
+                        total:
+                          type: number
+                          example: 1400
+                          description: Total amount for this transaction type
+                        count:
+                          type: integer
+                          example: 3
+                          description: Number of transactions of this type
+                        lastEarned:
+                          type: string
+                          format: date-time
+                          example: "2024-03-15T10:00:00.000Z"
+                          description: Date of the most recent transaction of this type
+    400:
+      description: Validation failed - invalid query parameters
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Invalid query parameters"
+    401:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Unauthorized access"
+    500:
+      description: Server error
+
+getSummary:
+  summary: Get wallet summary for home screen — referrals count, total earnings, wallet balance
+  tags:
+    - Wallet
+  security:
+    - bearerAuth: []
+  responses:
+    200:
+      description: Wallet summary retrieved successfully
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Success"
+              data:
+                type: object
+                properties:
+                  referrals:
+                    type: integer
+                    example: 4
+                    description: Total number of direct (L1) referrals made by the user across all their codes
+                  totalEarnings:
+                    type: number
+                    example: 12000
+                    description: Lifetime earnings — never decrements regardless of withdrawals
+                  walletBalance:
+                    type: number
+                    example: 10000
+                    description: Current spendable balance — decrements after withdrawals
+    401:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Unauthorized access"
+    500:
+      description: Server error

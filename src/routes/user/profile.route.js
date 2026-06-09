@@ -6,12 +6,19 @@ import {
   addAddressValidator,
   updateAddressValidator,
   deleteAddressValidator,
+  getNextLevelValidator,
+  getReferralCodesValidator,
+  getReferralTreeValidator,
+  referralDetailsValidator,
+  validateContactUs,
+  applyCodeValidator,
 } from "../../validators/user/profile.validator.js";
 import { walletTransactionsValidator } from "../../validators/user/wallet.validator.js";
 import { validate } from "../../middlewares/validate.js";
 import { USER_TYPE } from "../../config/appConstants.js";
 import auth from "../../middlewares/auth.js";
 import * as profileController from "../../controllers/user/profile.controller.js";
+import * as referralController from "../../controllers/user/referral.controller.js"
 import * as walletController from "../../controllers/user/wallet.controller.js";
 
 const router = Router();
@@ -78,5 +85,30 @@ router.get(
 
 // wallet.routes.js
 router.get("/summary", auth(USER_TYPE.USER), walletController.getSummary);
+
+router.get(
+  "/my-referral-codes",
+  auth(USER_TYPE.USER),
+  validate(getReferralCodesValidator),
+  referralController.getReferralCodes,
+);
+router.get(
+  "/referral-by-id/:codeId",
+  auth(USER_TYPE.USER),
+  validate(referralDetailsValidator),
+  referralController.getReferralById,
+);
+router.get(
+  "/referral-tree/:codeId",
+  auth(USER_TYPE.USER),
+  validate(getReferralTreeValidator),
+  referralController.getReferralTree,
+);
+router.get(
+  "/next-level/:codeId",
+  auth(USER_TYPE.USER),
+  validate(getNextLevelValidator),
+  referralController.getNextLevel,
+);
 
 export default router;

@@ -1,0 +1,545 @@
+checkCodeAvailability:
+  summary: Check if a referral code is valid and available to use
+  tags:
+    - Referral
+  security:
+    - bearerAuth: []
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - code
+          properties:
+            code:
+              type: integer
+              example: 5823947610
+              description: 10-digit numeric referral code (without # prefix)
+  responses:
+    200:
+      description: Code is valid and available
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Success"
+    400:
+      description: Validation failed - invalid code format
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Invalid query parameters"
+    401:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Unauthorized access"
+    406:
+      description: Code is invalid, inactive, exhausted, or already used by this user
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Invalid referral code"
+    500:
+      description: Server error
+
+getReferralCodes:
+  summary: Get all referral codes owned by the logged-in user (paginated)
+  tags:
+    - Referral
+  security:
+    - bearerAuth: []
+  parameters:
+    - in: query
+      name: page
+      required: true
+      schema:
+        type: integer
+        default: 0
+      description: Page number for pagination (0-indexed)
+      example: 0
+    - in: query
+      name: limit
+      required: true
+      schema:
+        type: integer
+        default: 10
+      description: Number of referral codes per page
+      example: 10
+  responses:
+    200:
+      description: Referral codes retrieved successfully
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Success"
+              data:
+                type: object
+                properties:
+                  totalCount:
+                    type: integer
+                    example: 3
+                    description: Total number of referral codes owned by the user
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        codeId:
+                          type: string
+                          example: "60c72b2f9b1d8e5a5c8f9b1a"
+                          description: Referral document ID
+                        code:
+                          type: string
+                          example: "5823947610"
+                          description: 10-digit referral code
+                        timesUsed:
+                          type: integer
+                          example: 7
+                          description: Number of times this code has been used
+                        maxUses:
+                          type: integer
+                          example: 10
+                          description: Maximum allowed uses for this code
+                        isActive:
+                          type: boolean
+                          example: true
+                        totalEarnings:
+                          type: number
+                          example: 6400
+                          description: Sum of earnings across all levels (l1+l2+l3+l4)
+                        frequencyTable:
+                          type: object
+                          description: Number of referrals at each level
+                          properties:
+                            "1":
+                              type: integer
+                              example: 7
+                            "2":
+                              type: integer
+                              example: 4
+                            "3":
+                              type: integer
+                              example: 3
+                            "4":
+                              type: integer
+                              example: 2
+    400:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Invalid query parameters"
+    401:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Unauthorized access"
+    500:
+      description: Server error
+
+getReferralById:
+  summary: Get transactions for a specific referral code filtered by level (paginated)
+  tags:
+    - Referral
+  security:
+    - bearerAuth: []
+  parameters:
+    - in: path
+      name: codeId
+      required: true
+      schema:
+        type: string
+      description: MongoDB ObjectId of the referral document
+      example: "60c72b2f9b1d8e5a5c8f9b1a"
+    - in: query
+      name: level
+      required: true
+      schema:
+        type: integer
+        enum: [1, 2, 3, 4]
+      description: Referral level to filter transactions by
+      example: 1
+    - in: query
+      name: page
+      required: true
+      schema:
+        type: integer
+        default: 0
+      description: Page number for pagination (0-indexed)
+      example: 0
+    - in: query
+      name: limit
+      required: true
+      schema:
+        type: integer
+        default: 10
+      description: Number of transactions per page
+      example: 10
+  responses:
+    200:
+      description: Referral transactions retrieved successfully
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Success"
+              data:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: "5823947610"
+                  levelStats:
+                    type: object
+                    description: Aggregated stats for the requested level
+                    properties:
+                      earnings:
+                        type: number
+                        example: 3500
+                      referrals:
+                        type: integer
+                        example: 7
+                  totalTransactions:
+                    type: integer
+                    example: 7
+                  transactions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                          example: "60c72b2f9b1d8e5a5c8f9b2a"
+                        paidBy:
+                          type: string
+                          example: "60c72b2f9b1d8e5a5c8f9b3a"
+                        paidByUsername:
+                          type: string
+                          example: "rahul_sharma"
+                        paidByImage:
+                          type: string
+                          example: "https://cdn.example.com/users/rahul.jpg"
+                        amount:
+                          type: number
+                          example: 500
+                        level:
+                          type: integer
+                          example: 1
+                        parent:
+                          type: string
+                          nullable: true
+                          example: null
+                        paidOn:
+                          type: string
+                          format: date-time
+                          example: "2024-02-01T10:00:00.000Z"
+    400:
+      description: Validation failed - invalid level or pagination params
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Invalid query parameters"
+    401:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Unauthorized access"
+    406:
+      description: Referral code not found or does not belong to the user
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "No such referral code"
+    500:
+      description: Server error
+
+getReferralTree:
+  summary: Get the root referral tree for a code — returns owner info and all L1 children
+  tags:
+    - Referral
+  security:
+    - bearerAuth: []
+  parameters:
+    - in: path
+      name: codeId
+      required: true
+      schema:
+        type: string
+      description: MongoDB ObjectId of the referral document
+      example: "60c72b2f9b1d8e5a5c8f9b1a"
+  responses:
+    200:
+      description: Referral tree root retrieved successfully
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Success"
+              data:
+                type: object
+                properties:
+                  codeId:
+                    type: string
+                    example: "60c72b2f9b1d8e5a5c8f9b1a"
+                  code:
+                    type: string
+                    example: "5823947610"
+                  name:
+                    type: string
+                    example: "Arjun Mehta"
+                    description: Name of the referral code owner (root node)
+                  image:
+                    type: string
+                    example: "https://cdn.example.com/users/arjun.jpg"
+                    description: Profile image of the referral code owner
+                  children:
+                    type: array
+                    description: All L1 nodes — users who directly used this code
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                          example: "60c72b2f9b1d8e5a5c8f9b2a"
+                        paidBy:
+                          type: string
+                          example: "60c72b2f9b1d8e5a5c8f9b3a"
+                        paidByUsername:
+                          type: string
+                          example: "priya_sharma"
+                        paidByImage:
+                          type: string
+                          example: "https://cdn.example.com/users/priya.jpg"
+                        amount:
+                          type: number
+                          example: 500
+                        paidOn:
+                          type: string
+                          format: date-time
+                          example: "2024-01-20T11:00:00.000Z"
+    401:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Unauthorized access"
+    406:
+      description: Referral code not found or does not belong to the user
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "No such referral code"
+    500:
+      description: Server error
+
+getNextLevel:
+  summary: Lazy-load children of a tree node — call when user expands a node in the referral tree
+  tags:
+    - Referral
+  security:
+    - bearerAuth: []
+  parameters:
+    - in: path
+      name: codeId
+      required: true
+      schema:
+        type: string
+      description: MongoDB ObjectId of the root referral document (stays the same across all tree expansions)
+      example: "60c72b2f9b1d8e5a5c8f9b1a"
+    - in: query
+      name: level
+      required: true
+      schema:
+        type: integer
+        enum: [1, 2, 3, 4]
+        default: 1
+      description: Level of children to fetch. Pass level=2 to get children of an L1 node, level=3 for children of an L2 node, etc.
+      example: 2
+    - in: query
+      name: parent
+      required: false
+      schema:
+        type: string
+      description: MongoDB ObjectId of the parent user whose children to fetch. Omit for L1 nodes (root children).
+      example: "60c72b2f9b1d8e5a5c8f9b3a"
+  responses:
+    200:
+      description: Children nodes retrieved successfully
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Success"
+              data:
+                type: array
+                description: Children of the expanded node at the requested level
+                items:
+                  type: object
+                  properties:
+                    _id:
+                      type: string
+                      example: "60c72b2f9b1d8e5a5c8f9b4a"
+                    paidBy:
+                      type: string
+                      example: "60c72b2f9b1d8e5a5c8f9b5a"
+                    paidByUsername:
+                      type: string
+                      example: "rahul_verma"
+                    paidByImage:
+                      type: string
+                      example: "https://cdn.example.com/users/rahul.jpg"
+                    amount:
+                      type: number
+                      example: 400
+                    paidOn:
+                      type: string
+                      format: date-time
+                      example: "2024-02-01T08:30:00.000Z"
+    400:
+      description: Validation failed - invalid level or codeId
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Invalid query parameters"
+    401:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Unauthorized access"
+    406:
+      description: Referral code not found or does not belong to the user
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "No such referral code"
+    500:
+      description: Server error

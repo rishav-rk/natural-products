@@ -19,7 +19,7 @@ const calculateGrandTotal = (products, tax, shippingFee) => {
 
 // Generate unique order ID based on user name
 const generateOrderId = (name) => {
-  const userSubstr = name.slice(0, 4).toUpperCase();
+  const userSubstr = name.slice(0, 4).toUpperCase().trim();
   return userSubstr.length === 4
     ? `${userSubstr}-${Date.now()}`
     : `${userSubstr.padEnd(4, "0")}-${Date.now()}`;

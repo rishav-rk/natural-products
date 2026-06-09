@@ -31,7 +31,7 @@ export const getTransactions = catchAsync(async (req, res) => {
 });
 
 export const getEarnings = catchAsync(async (req, res) => {
-  const data = await walletService.getEarnings(req.token.user._id);
+  const data = await walletService.getEarnings(req.token.user._id, req.query);
   return successResponse(
     req,
     res,

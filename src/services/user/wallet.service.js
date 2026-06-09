@@ -1,20 +1,21 @@
-import { Wallet, WalletTransaction,Referral } from "../../models/index.js";
+import { Wallet, WalletTransaction, Referral } from "../../models/index.js";
 import {
   TRANSACTION_STATUS,
   TRANSACTION_TYPES,
 } from "../../config/appConstants.js";
 import mongoose from "mongoose";
+import { paginationOptions } from "../../utils/universalFunctions.js";
 
 export const creditWallet = async ({
   userId,
   amount,
   type,
-  note           = null,
-  referralId     = null,
-  level          = null,
-  paidBy         = null,
-  paidByUsername = null,      
-  orderRef       = null,
+  note = null,
+  referralId = null,
+  level = null,
+  paidBy = null,
+  paidByUsername = null,
+  orderRef = null,
   session,
 }) => {
   let wallet = await Wallet.findOne({ user: userId }).session(session);
@@ -23,7 +24,7 @@ export const creditWallet = async ({
   }
 
   const balanceBefore = wallet.balance;
-  const balanceAfter  = balanceBefore + amount;
+  const balanceAfter = balanceBefore + amount;
 
   await Wallet.updateOne(
     { _id: wallet._id },
@@ -32,21 +33,23 @@ export const creditWallet = async ({
   );
 
   await WalletTransaction.create(
-    [{
-      wallet:         wallet._id,
-      user:           userId,
-      type,
-      status:         TRANSACTION_STATUS.SUCCESS,
-      amount,
-      balanceBefore,
-      balanceAfter,
-      referral:       referralId,
-      level,
-      paidBy,
-      paidByUsername,
-      orderRef,
-      note,
-    }],
+    [
+      {
+        wallet: wallet._id,
+        user: userId,
+        type,
+        status: TRANSACTION_STATUS.SUCCESS,
+        amount,
+        balanceBefore,
+        balanceAfter,
+        referral: referralId,
+        level,
+        paidBy,
+        paidByUsername,
+        orderRef,
+        note,
+      },
+    ],
     { session },
   );
 };
@@ -75,8 +78,11 @@ export const getBalance = async (userId) => {
 // ── Get paginated transaction history ────────────────────────────────────
 // wallet.service.js
 
-export const getTransactions = async (userId, { page = 0, limit = 10, level, startDate, endDate }) => {
-  const skip   = parseInt(page) * parseInt(limit);
+export const getTransactions = async (
+  userId,
+  { page = 0, limit = 10, level, startDate, endDate },
+) => {
+  const skip = parseInt(page) * parseInt(limit);
   const filter = { user: new mongoose.Types.ObjectId(userId) };
 
   // Filter by level — joins ReferralTransaction to check level
@@ -90,16 +96,18 @@ export const getTransactions = async (userId, { page = 0, limit = 10, level, sta
   if (startDate || endDate) {
     filter.createdAt = {};
     if (startDate) filter.createdAt.$gte = new Date(startDate);
-    if (endDate)   filter.createdAt.$lte = new Date(new Date(endDate).setHours(23, 59, 59, 999));
+    if (endDate)
+      filter.createdAt.$lte = new Date(
+        new Date(endDate).setHours(23, 59, 59, 999),
+      );
   }
 
   const [transactions, totalCount, totalEarnings] = await Promise.all([
-    WalletTransaction.find(filter)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(parseInt(limit))
-      .select("-wallet -__v")
-      .lean(),
+    WalletTransaction.find(
+      filter,
+      { wallet: 0, __v: 0 },
+      paginationOptions(page, limit),
+    ).lean(),
     WalletTransaction.countDocuments(filter),
 
     // Total earnings matching the current filter (not just this page)
@@ -117,44 +125,96 @@ export const getTransactions = async (userId, { page = 0, limit = 10, level, sta
 };
 
 // ── Earnings breakdown — total per type ──────────────────────────────────
-export const getEarnings = async (userId) => {
-  const [wallet, breakdown] = await Promise.all([
-    // Overall balance
-    Wallet.findOne(
-      { user: userId },
+// export const getEarnings = async (userId) => {
+//   const [wallet, breakdown] = await Promise.all([
+//     // Overall balance
+//     Wallet.findOne(
+//       { user: userId },
+//       {
+//         balance: 1,
+//         lifetimeEarnings: 1,
+//       },
+//     ).lean(),
+
+//     // Group by transaction type to show breakdown
+//     WalletTransaction.aggregate([
+//       { $match: { user: new mongoose.Types.ObjectId(userId) } },
+//       {
+//         $group: {
+//           _id: "$type",
+//           total: { $sum: "$amount" },
+//           count: { $sum: 1 },
+//           lastEarned: { $max: "$createdAt" },
+//         },
+//       },
+//       {
+//         $project: {
+//           _id: 0,
+//           type: "$_id",
+//           total: 1,
+//           count: 1,
+//           lastEarned: 1,
+//         },
+//       },
+//     ]),
+//   ]);
+
+//   return {
+//     balance: wallet?.balance ?? 0,
+//     lifetimeEarnings: wallet?.lifetimeEarnings ?? 0,
+//     breakdown, // [ { type: "referral_credit", total: 1400, count: 3 }, ... ]
+//   };
+// };
+
+// wallet.service.js
+export const getEarnings = async (
+  userId,
+  { page = 0, limit = 10, level, startDate, endDate },
+) => {
+  const filter = {
+    user: new mongoose.Types.ObjectId(userId),
+    type: { $in: [TRANSACTION_TYPES.REFERRAL_CREDIT, TRANSACTION_TYPES.BONUS] }, // ← only credits
+    status: TRANSACTION_STATUS.SUCCESS,
+  };
+
+  if (level) filter.level = parseInt(level);
+
+  if (startDate || endDate) {
+    filter.createdAt = {};
+    if (startDate) filter.createdAt.$gte = new Date(startDate);
+    if (endDate)
+      filter.createdAt.$lte = new Date(
+        new Date(endDate).setHours(23, 59, 59, 999),
+      );
+  }
+
+  const [transactions, totalCount, totalEarnings] = await Promise.all([
+    WalletTransaction.find(
+      filter,
       {
-        balance: 1,
-        lifetimeEarnings: 1,
+        amount: 1,
+        level: 1,
+        paidByUsername: 1,
+        orderRef: 1,
+        createdAt: 1,
+        type: 1,
       },
+      paginationOptions(page, limit),
     ).lean(),
 
-    // Group by transaction type to show breakdown
+    WalletTransaction.countDocuments(filter),
+
+    // Total credited amount matching current filter — shown in green card
     WalletTransaction.aggregate([
-      { $match: { user: new mongoose.Types.ObjectId(userId) } },
-      {
-        $group: {
-          _id: "$type",
-          total: { $sum: "$amount" },
-          count: { $sum: 1 },
-          lastEarned: { $max: "$createdAt" },
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          type: "$_id",
-          total: 1,
-          count: 1,
-          lastEarned: 1,
-        },
-      },
+      { $match: filter },
+      { $group: { _id: null, total: { $sum: "$amount" } } },
     ]),
   ]);
 
   return {
-    balance: wallet?.balance ?? 0,
-    lifetimeEarnings: wallet?.lifetimeEarnings ?? 0,
-    breakdown, // [ { type: "referral_credit", total: 1400, count: 3 }, ... ]
+    totalEarnings: totalEarnings[0]?.total ?? 0, // ← only credited amounts
+    totalCount,
+    transactions,
   };
 };
 
@@ -171,7 +231,7 @@ export const getSummary = async (userId) => {
       { $match: { user: new mongoose.Types.ObjectId(userId), byAdmin: false } },
       {
         $group: {
-          _id:   null,
+          _id: null,
           total: { $sum: "$l1.referrals" }, // only count direct referrals
         },
       },
@@ -179,8 +239,8 @@ export const getSummary = async (userId) => {
   ]);
 
   return {
-    referrals:        totalReferrals[0]?.total  ?? 0,  // "4" in UI
-    totalEarnings:    wallet?.lifetimeEarnings  ?? 0,  // "₹12,000" in UI
-    walletBalance:    wallet?.balance           ?? 0,  // "₹10,000" in UI
+    referrals: totalReferrals[0]?.total ?? 0, // "4" in UI
+    totalEarnings: wallet?.lifetimeEarnings ?? 0, // "₹12,000" in UI
+    walletBalance: wallet?.balance ?? 0, // "₹10,000" in UI
   };
 };

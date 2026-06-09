@@ -44,6 +44,10 @@ components:
       description: Order creation and payment verification endpoints
     - name: Admin Warehouse Operations
       description: Admin warehouse management endpoints
+    - name: Wallet
+      description: User wallet management
+    - name: Referral
+      description: Referral User Operations
 
 
 paths:
@@ -91,6 +95,38 @@ paths:
   /profile/delete-address:
     delete:
       $ref: "./paths/userProfile.yaml#/deleteAddress"
+
+  /profile/balance:
+    get:
+      $ref: './paths/wallet.yaml#/getBalance'
+
+  /profile/transactions:
+    get:
+      $ref: './paths/wallet.yaml#/getTransactions'
+
+  /profile/earnings:
+    get:
+      $ref: './paths/wallet.yaml#/getEarnings'
+
+  /profile/summary:
+    get:
+      $ref: './paths/wallet.yaml#/getSummary'
+    
+  /profile/my-referral-codes:
+    get:
+      $ref: "./paths/referral.yaml#/getReferralCodes"
+
+  /profile/referral-by-id/{codeId}:
+    get:
+      $ref: "./paths/referral.yaml#/getReferralById"
+
+  /profile/referral-tree/{codeId}:
+    get:
+      $ref: "./paths/referral.yaml#/getReferralTree"
+
+  /profile/next-level/{codeId}:
+    get:
+      $ref: "./paths/referral.yaml#/getNextLevel"
 
   /cart/add:
     post:
@@ -172,6 +208,10 @@ paths:
   /constants:
     get:
       $ref: "./paths/appConstants.yaml#/getConstants"
+
+  /check-code:
+    post:
+      $ref: "./paths/referral.yaml#/checkCodeAvailability"
   
   /products/get-products:
     get: 
@@ -226,5 +266,3 @@ paths:
       $ref: "./paths/adminWarehouseOperations.yaml#/updateWarehouse"
     delete:
       $ref: "./paths/adminWarehouseOperations.yaml#/deleteWarehouse"
-
-
