@@ -29,7 +29,7 @@ router.post(
 ); 
 
 router.get("/test", async (req, res) => {
-  const id = "69f1e37b6df72aa60ebeca27";
+  const id = "6a2669009b6f865cb0220139";
   const user = await User.findById(id, { cart: 1 }, { lean: true });
   const itemTotal = user.cart.products.reduce(
     (sum, p) => sum + p.price * p.quantity,

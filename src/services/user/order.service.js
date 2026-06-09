@@ -755,7 +755,7 @@ const handlePaymentCaptured = async (payment) => {
         { _id: pendingOrder._id },
         { $set: { "referral.isActivated": true } },
         { session },
-      );
+    );
     }
 
     // 3d. Mark fully completed
