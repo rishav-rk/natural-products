@@ -212,7 +212,6 @@ export const useReferralCode = async ({ order, user, session }) => {
       parent: referral.user,
     });
 
-    // Credit each ancestor's wallet
     walletCredits.push(
       creditWallet({
         userId: ancestor.user,
@@ -227,19 +226,19 @@ export const useReferralCode = async ({ order, user, session }) => {
         session,
       }),
     );
+  } // ← loop ends here
 
-    const newCode = await generateReferralCode();
+  // These MUST be outside the loop — runs once after all levels are collected
+  const newCode = await generateReferralCode();
 
-    // Execute everything in parallel
-    await Promise.all([
-      Referral.bulkWrite(bulkReferralOps, { session }),
-      ReferralTransaction.insertMany(transactionsToInsert, { session }),
-      Referral.create([{ user: userId, code: newCode, parent: referral._id }], {
-        session,
-      }),
-      ...walletCredits, // credit all wallets atomically with everything else
-    ]);
-  }
+  await Promise.all([
+    Referral.bulkWrite(bulkReferralOps, { session }),
+    ReferralTransaction.insertMany(transactionsToInsert, { session }),
+    Referral.create([{ user: userId, code: newCode, parent: referral._id }], {
+      session,
+    }),
+    ...walletCredits,
+  ]);
 };
 
 // ─── Query Services ──────────────────────────────────────────────────────────
