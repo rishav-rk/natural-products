@@ -263,6 +263,14 @@ export const getReferralCodes = async (userId, page, limit) => {
               timesUsed: 1,
               maxUses: 1,
               isActive: 1,
+              totalReferrals: {
+                $add: [
+                  "$l1.referrals",
+                  "$l2.referrals",
+                  "$l3.referrals",
+                  "$l4.referrals",
+                ],
+              },
               totalEarnings: {
                 $add: [
                   "$l1.earnings",
