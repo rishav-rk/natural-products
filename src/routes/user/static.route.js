@@ -8,7 +8,7 @@ import {
   ERROR_MESSAGES,
 } from "../../config/appConstants.js";
 import { validateContactUs, applyCodeValidator } from "../../validators/user/profile.validator.js";
-import { checkCodeAvailability } from "../../services/referral.service.js";
+import { checkCodeAvailability } from "../../controllers/user/referral.controller.js";
 import { OperationalError } from "../../utils/error.js";
 
 const router = Router();
