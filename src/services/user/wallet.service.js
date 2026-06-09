@@ -1,4 +1,4 @@
-import { Wallet, WalletTransaction } from "../../models/index.js";
+import { Wallet, WalletTransaction,Referral } from "../../models/index.js";
 import {
   TRANSACTION_STATUS,
   TRANSACTION_TYPES,
@@ -155,5 +155,32 @@ export const getEarnings = async (userId) => {
     balance: wallet?.balance ?? 0,
     lifetimeEarnings: wallet?.lifetimeEarnings ?? 0,
     breakdown, // [ { type: "referral_credit", total: 1400, count: 3 }, ... ]
+  };
+};
+
+export const getSummary = async (userId) => {
+  const [wallet, totalReferrals] = await Promise.all([
+    // Wallet balance + lifetime earnings
+    Wallet.findOne(
+      { user: userId },
+      { balance: 1, lifetimeEarnings: 1 },
+    ).lean(),
+
+    // Total referrals = sum of all l1 referrals across all codes owned by user
+    Referral.aggregate([
+      { $match: { user: new mongoose.Types.ObjectId(userId), byAdmin: false } },
+      {
+        $group: {
+          _id:   null,
+          total: { $sum: "$l1.referrals" }, // only count direct referrals
+        },
+      },
+    ]),
+  ]);
+
+  return {
+    referrals:        totalReferrals[0]?.total  ?? 0,  // "4" in UI
+    totalEarnings:    wallet?.lifetimeEarnings  ?? 0,  // "₹12,000" in UI
+    walletBalance:    wallet?.balance           ?? 0,  // "₹10,000" in UI
   };
 };

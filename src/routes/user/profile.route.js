@@ -12,7 +12,7 @@ import { validate } from "../../middlewares/validate.js";
 import { USER_TYPE } from "../../config/appConstants.js";
 import auth from "../../middlewares/auth.js";
 import * as profileController from "../../controllers/user/profile.controller.js";
-import * as walletController from "../../controllers/user/wallet.controller.js"
+import * as walletController from "../../controllers/user/wallet.controller.js";
 
 const router = Router();
 
@@ -61,11 +61,8 @@ router.delete(
 );
 
 // wallet.routes.js
-router.get(
-  "/balance",
-  auth(USER_TYPE.USER),
-  walletController.getBalance,
-);
+router.get("/balance", auth(USER_TYPE.USER), walletController.getBalance);
+
 router.get(
   "/transactions",
   auth(USER_TYPE.USER),
@@ -75,7 +72,11 @@ router.get(
 router.get(
   "/earnings",
   auth(USER_TYPE.USER),
-  walletController.getEarnings
+  validate(walletTransactionsValidator),
+  walletController.getEarnings,
 );
+
+// wallet.routes.js
+router.get("/summary", auth(USER_TYPE.USER), walletController.getSummary);
 
 export default router;
