@@ -18,7 +18,7 @@ export const addProduct = async (productData) => {
     "details.useBefore": productData.details.useBefore,
     "details.approvedName": productData.details.approvedName,
     images: productData.images,
-    backgroundColor: product.backgroundColor,
+    backgroundColor: productData.backgroundColor,
     weight: productData.weight,
     discount,
     discountedPrice,

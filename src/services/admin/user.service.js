@@ -60,7 +60,7 @@ export const createReferralCode = async (userId, adminId) => {
   const referral = await Referral.create({
     user: userId,
     admin: adminId,
-    code: "5823347610",
+    code: "7823247610",
     byAdmin: true,
     parent: null,
     maxUses: 1, // ← admin codes are single-use
