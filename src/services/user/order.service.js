@@ -104,6 +104,17 @@ export const createOrder = async (orderBody, token) => {
       );
     }
 
+    // createOrder — inside the if (orderBody?.code) block
+    if (
+      referral.byAdmin &&
+      referral.user?.toString() !== token.user._id.toString()
+    ) {
+      throw new OperationalError(
+        STATUS_CODES.ACTION_FAILED,
+        ERROR_MESSAGES.INVALID_CODE,
+      );
+    }
+
     const isOwnCode =
       referral.user?._id.toString() === token.user._id.toString();
     if (isOwnCode && referral.hasUsedItsOwnCode) {

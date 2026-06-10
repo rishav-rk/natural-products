@@ -50,6 +50,16 @@ export const checkCodeAvailability = async ({ code }, userId) => {
     );
   }
 
+  if (
+    referral.byAdmin &&
+    referral.user?.toString() !== token.user._id.toString()
+  ) {
+    throw new OperationalError(
+      STATUS_CODES.ACTION_FAILED,
+      ERROR_MESSAGES.INVALID_CODE,
+    );
+  }
+
   // Own code — can only use it once
   const isOwnCode = referral.user?.toString() === userId.toString();
   if (isOwnCode && referral.hasUsedItsOwnCode) {
@@ -61,8 +71,8 @@ export const checkCodeAvailability = async ({ code }, userId) => {
 
   // Already used this code on a previous order
   const alreadyUsed = await Order.exists({
-    user:                   userId,
-    "referral.code":        code,
+    user: userId,
+    "referral.code": code,
     "referral.isActivated": true,
   });
 
