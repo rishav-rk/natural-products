@@ -36,13 +36,12 @@ export async function generateReferralCode() {
 }
 
 export const checkCodeAvailability = async ({ code }, userId) => {
-  console.log(code, userId);
   const referral = await Referral.findOne({
     code,
     isActive: true,
-    user: new mongoose.Types.ObjectId(userId),
-    $expr: { $lt: ["$timesUsed", "$maxUses"] }, // respects the actual maxUses field
-  });
+    $expr: { $lt: ["$timesUsed", "$maxUses"] },
+    // ← removed user filter — code can belong to anyone
+  }).lean();
 
   if (!referral) {
     throw new OperationalError(
@@ -51,12 +50,26 @@ export const checkCodeAvailability = async ({ code }, userId) => {
     );
   }
 
+  // Own code — can only use it once
   const isOwnCode = referral.user?.toString() === userId.toString();
-
   if (isOwnCode && referral.hasUsedItsOwnCode) {
     throw new OperationalError(
       STATUS_CODES.ACTION_FAILED,
       ERROR_MESSAGES.INVALID_CODE,
+    );
+  }
+
+  // Already used this code on a previous order
+  const alreadyUsed = await Order.exists({
+    user:                   userId,
+    "referral.code":        code,
+    "referral.isActivated": true,
+  });
+
+  if (alreadyUsed) {
+    throw new OperationalError(
+      STATUS_CODES.ACTION_FAILED,
+      "You have already used this referral code",
     );
   }
 };
