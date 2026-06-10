@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { ADC, Referral, ReferralTransaction } from "../models/index.js";
+import { ADC, Referral, ReferralTransaction, Order } from "../models/index.js";
 import { OperationalError } from "../utils/error.js";
 import {
   ERROR_MESSAGES,
