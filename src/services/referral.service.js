@@ -52,7 +52,7 @@ export const checkCodeAvailability = async ({ code }, userId) => {
 
   if (
     referral.byAdmin &&
-    referral.user?.toString() !== token.user._id.toString()
+    referral.user?.toString() !== userId.toString()
   ) {
     throw new OperationalError(
       STATUS_CODES.ACTION_FAILED,
