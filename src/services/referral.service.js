@@ -36,6 +36,7 @@ export async function generateReferralCode() {
 }
 
 export const checkCodeAvailability = async ({ code }, userId) => {
+  console.log(code, userId);
   const referral = await Referral.findOne({
     code,
     isActive: true,

@@ -7,6 +7,7 @@ import {
 import { OperationalError } from "../../utils/error.js";
 import { Admin, Token, User, Referral } from "../../models/index.js";
 import { paginationOptions } from "../../utils/universalFunctions.js";
+import {generateReferralCode} from "../../services/referral.service.js"
 
 export const getUsers = async (query) => {
   const filter = { isVerified: true };
@@ -57,10 +58,11 @@ export const enableDisableUser = async (userId) => {
 };
 
 export const createReferralCode = async (userId, adminId) => {
+  const code = await generateReferralCode();
   const referral = await Referral.create({
     user: userId,
     admin: adminId,
-    code: "7823247610",
+    code,
     byAdmin: true,
     parent: null,
     maxUses: 1, // ← admin codes are single-use
