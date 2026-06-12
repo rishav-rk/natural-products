@@ -17,9 +17,9 @@ export const getUserReferrals = async (userId, page, limit) => {
       $facet: {
         metadata: [{ $count: "total" }],
         data: [
+          { $sort: { createdAt: -1 } },
           { $skip: skip },
           { $limit: parseInt(limit) },
-          {$sort : {createdAt : -1}},
           {
             $project: {
               _id: 0,
@@ -55,7 +55,7 @@ export const getUserReferrals = async (userId, page, limit) => {
     },
   ]);
 
-    return { referralStats: result.data, totalCount: result.totalCount ?? 0 };
+  return { referralStats: result.data, totalCount: result.totalCount ?? 0 };
 };
 
 export const getReferralById = async (userId, codeId, page, limit) => {
@@ -71,7 +71,7 @@ export const getReferralById = async (userId, codeId, page, limit) => {
       _id: new mongoose.Types.ObjectId(codeId),
       user: new mongoose.Types.ObjectId(userId),
     },
-    {createdAt: 0, _v: 0, updatedAt : 0},
+    { createdAt: 0, _v: 0, updatedAt: 0 },
     paginationOptions(page, limit),
   ).lean();
 

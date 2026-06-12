@@ -50,24 +50,20 @@ export const checkCodeAvailability = async ({ code }, userId) => {
     );
   }
 
-  if (
-    referral.byAdmin &&
-    referral.user?.toString() !== userId.toString()
-  ) {
+  if (referral.byAdmin && referral.user?.toString() !== userId.toString()) {
     throw new OperationalError(
       STATUS_CODES.ACTION_FAILED,
       ERROR_MESSAGES.INVALID_CODE,
     );
   }
 
-  
   // Already used this code on a previous order
   const alreadyUsed = await Order.exists({
     user: userId,
     "referral.code": code,
     "referral.isActivated": true,
   });
-  
+
   if (alreadyUsed) {
     throw new OperationalError(
       STATUS_CODES.ACTION_FAILED,
@@ -269,62 +265,68 @@ export const useReferralCode = async ({ order, user, session }) => {
 
 // Uses l1/l2/l3/l4 counters directly — no array scanning
 export const getReferralCodes = async (userId, page, limit) => {
-  const skip = parseInt(page) * parseInt(limit);
+const skip = parseInt(page) * parseInt(limit);
 
-  const [result] = await Referral.aggregate([
-    { $match: { user: new mongoose.Types.ObjectId(userId), byAdmin: false } },
-    {
-      $facet: {
-        metadata: [{ $count: "total" }],
-        data: [
-          { $skip: skip },
-          { $limit: parseInt(limit) },
-          { $sort: {createdAt: -1}},
-          {
-            $project: {
-              _id: 0,
-              codeId: "$_id",
-              code: 1,
-              timesUsed: 1,
-              maxUses: 1,
-              isActive: 1,
-              totalReferrals: {
-                $add: [
-                  "$l1.referrals",
-                  "$l2.referrals",
-                  "$l3.referrals",
-                  "$l4.referrals",
-                ],
-              },
-              totalEarnings: {
-                $add: [
-                  "$l1.earnings",
-                  "$l2.earnings",
-                  "$l3.earnings",
-                  "$l4.earnings",
-                ],
-              },
-              frequencyTable: {
-                1: "$l1.referrals",
-                2: "$l2.referrals",
-                3: "$l3.referrals",
-                4: "$l4.referrals",
-              },
+const [result] = await Referral.aggregate([
+  {
+    $match: {
+      user: new mongoose.Types.ObjectId(userId),
+      isActive: true,
+      byAdmin: false,
+    },
+  },
+  {
+    $facet: {
+      metadata: [{ $count: "total" }],
+      data: [
+        { $sort: { createdAt: -1 } },   // ← moved to first
+        { $skip: skip },
+        { $limit: parseInt(limit) },
+        {
+          $project: {
+            _id: 0,
+            codeId: "$_id",
+            code: 1,
+            timesUsed: 1,
+            maxUses: 1,
+            isActive: 1,
+            totalReferrals: {
+              $add: [
+                "$l1.referrals",
+                "$l2.referrals",
+                "$l3.referrals",
+                "$l4.referrals",
+              ],
+            },
+            totalEarnings: {
+              $add: [
+                "$l1.earnings",
+                "$l2.earnings",
+                "$l3.earnings",
+                "$l4.earnings",
+              ],
+            },
+            frequencyTable: {
+              1: "$l1.referrals",
+              2: "$l2.referrals",
+              3: "$l3.referrals",
+              4: "$l4.referrals",
             },
           },
-        ],
-      },
+        },
+      ],
     },
-    {
-      $project: {
-        totalCount: { $arrayElemAt: ["$metadata.total", 0] },
-        data: 1,
-      },
+  },
+  {
+    $project: {
+      data: 1,
+      totalCount: { $arrayElemAt: ["$metadata.total", 0] },  // ← moved here from return
     },
-  ]);
+  },
+]);
 
-  return { data: result.data, totalCount: result.totalCount ?? 0 };
-};
+return { data: result.data, totalCount: result.totalCount ?? 0 };
+}
 
 // Now queries ReferralTransaction collection — works at any scale
 export const getReferralById = async (codeId, userId, level, page, limit) => {
