@@ -279,6 +279,7 @@ export const getReferralCodes = async (userId, page, limit) => {
         data: [
           { $skip: skip },
           { $limit: parseInt(limit) },
+          { $sort: {createdAt: -1}},
           {
             $project: {
               _id: 0,
