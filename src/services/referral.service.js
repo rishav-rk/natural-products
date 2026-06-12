@@ -50,19 +50,7 @@ export const checkCodeAvailability = async ({ code }, userId) => {
     );
   }
 
-  if (
-    referral.byAdmin &&
-    referral.user?.toString() !== userId.toString()
-  ) {
-    throw new OperationalError(
-      STATUS_CODES.ACTION_FAILED,
-      ERROR_MESSAGES.INVALID_CODE,
-    );
-  }
-
-  // Own code — can only use it once
-  const isOwnCode = referral.user?.toString() === userId.toString();
-  if (isOwnCode && referral.hasUsedItsOwnCode) {
+  if (referral.byAdmin && referral.user?.toString() !== userId.toString()) {
     throw new OperationalError(
       STATUS_CODES.ACTION_FAILED,
       ERROR_MESSAGES.INVALID_CODE,
@@ -83,6 +71,14 @@ export const checkCodeAvailability = async ({ code }, userId) => {
     );
   }
 };
+// Own code — can only use it once
+const isOwnCode = referral.user?.toString() === userId.toString();
+if (isOwnCode && referral.hasUsedItsOwnCode) {
+  throw new OperationalError(
+    STATUS_CODES.ACTION_FAILED,
+    ERROR_MESSAGES.INVALID_CODE,
+  );
+}
 
 // referral.service.js
 export const useReferralCode = async ({ order, user, session }) => {
@@ -279,7 +275,7 @@ export const getReferralCodes = async (userId, page, limit) => {
         data: [
           { $skip: skip },
           { $limit: parseInt(limit) },
-          { $sort: {createdAt: -1}},
+          { $sort: { createdAt: -1 } },
           {
             $project: {
               _id: 0,
