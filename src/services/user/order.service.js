@@ -69,7 +69,19 @@ const sendOrderConfirmationEmail = async (user, order) => {
 };
 
 export const createOrder = async (orderBody, token) => {
-  console.log(orderBody);
+  const user = await User.findById(token.user._id, {
+    cart: 1,
+    name: 1,
+    phoneNumber: 1,
+    addresses: 1,
+  }).lean();
+
+  if (!user.cart.deliveryAddress) {
+    throw new OperationalError(
+      STATUS_CODES.ACTION_FAILED,
+      ERROR_MESSAGES.ADDRESS_REQUIRED,
+    );
+  }
   let codeDetails = null;
 
   if (orderBody?.code) {
@@ -124,7 +136,6 @@ export const createOrder = async (orderBody, token) => {
       );
     }
 
-    
     codeDetails = {
       codeId: referral._id,
       code: referral.code,
@@ -132,20 +143,7 @@ export const createOrder = async (orderBody, token) => {
       referralUserImage: referral.user.image,
       isActivated: false,
     };
-  }
-
-  const user = await User.findById(token.user._id, {
-    cart: 1,
-    name: 1,
-    phoneNumber: 1,
-    addresses: 1,
-  }).lean();
-
-  if (!user.cart.deliveryAddress) {
-    throw new OperationalError(
-      STATUS_CODES.ACTION_FAILED,
-      ERROR_MESSAGES.ADDRESS_REQUIRED,
-    );
+    await Referral.updateOne({ _id: referral._id }, { $inc: { timesUsed: 1 } });
   }
 
   const shippingAddress = await validateAndGetCart(user, user.cart);
@@ -153,30 +151,29 @@ export const createOrder = async (orderBody, token) => {
     {},
     { tax: 1, shippingFee: 1 },
   ).lean();
-  
+
   const productIds = user.cart.products.map((p) => p.product);
   const productMap = await getProductsWithPrices(productIds);
   const updatedProducts = updateProductsWithPrices(
     user.cart.products,
     productMap,
   );
-  
+
   const { itemTotal, grandTotalAmount } = calculateGrandTotal(
     updatedProducts,
     tax,
     shippingFee,
   );
-  
+
   const orderId = generateOrderId(user.name);
-  
+
   const razorpayOrder = await razorpay.orders.create({
     amount: Math.round(grandTotalAmount * 100),
     currency: "INR",
     receipt: orderId,
   });
-  
+
   // Reserve the slot atomically — increment now, rollback if payment fails
-  await Referral.updateOne({ _id: referral._id }, { $inc: { timesUsed: 1 } });
   await Order.create({
     orderId,
     placedOn: new Date(),
@@ -197,7 +194,7 @@ export const createOrder = async (orderBody, token) => {
       currency: "INR",
     },
   });
-  
+
   return { razorpayOrder };
 };
 
