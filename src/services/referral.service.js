@@ -97,7 +97,6 @@ export const useReferralCode = async ({ order, user, session }) => {
 
   // 2. Admin code — credit ₹500 to the user who USED the code, no chain
   if (referral.byAdmin) {
-    console.log("Admin referral------------------")
     await Promise.all([
       creditWallet({
         userId,
@@ -186,7 +185,7 @@ export const useReferralCode = async ({ order, user, session }) => {
     amount: l1Amount,
     level: 1,
     parent: null,
-    codeUsed: referral.code
+    codeUsed: referral.code,
   });
 
   // Credit L1 owner's wallet
@@ -232,10 +231,8 @@ export const useReferralCode = async ({ order, user, session }) => {
       amount,
       level,
       parent: referral.user,
-      codeUsed: referral.code
+      codeUsed: referral.code,
     });
-
-    console.log("Level : ", level, " -> transaction to push: ", transactionsToInsert)
 
     walletCredits.push(
       creditWallet({
@@ -270,68 +267,68 @@ export const useReferralCode = async ({ order, user, session }) => {
 
 // Uses l1/l2/l3/l4 counters directly — no array scanning
 export const getReferralCodes = async (userId, page, limit) => {
-const skip = parseInt(page) * parseInt(limit);
+  const skip = parseInt(page) * parseInt(limit);
 
-const [result] = await Referral.aggregate([
-  {
-    $match: {
-      user: new mongoose.Types.ObjectId(userId),
-      isActive: true,
-      byAdmin: false,
+  const [result] = await Referral.aggregate([
+    {
+      $match: {
+        user: new mongoose.Types.ObjectId(userId),
+        isActive: true,
+        byAdmin: false,
+      },
     },
-  },
-  {
-    $facet: {
-      metadata: [{ $count: "total" }],
-      data: [
-        { $sort: { createdAt: -1 } },   // ← moved to first
-        { $skip: skip },
-        { $limit: parseInt(limit) },
-        {
-          $project: {
-            _id: 0,
-            codeId: "$_id",
-            code: 1,
-            timesUsed: 1,
-            maxUses: 1,
-            isActive: 1,
-            totalReferrals: {
-              $add: [
-                "$l1.referrals",
-                "$l2.referrals",
-                "$l3.referrals",
-                "$l4.referrals",
-              ],
-            },
-            totalEarnings: {
-              $add: [
-                "$l1.earnings",
-                "$l2.earnings",
-                "$l3.earnings",
-                "$l4.earnings",
-              ],
-            },
-            frequencyTable: {
-              1: "$l1.referrals",
-              2: "$l2.referrals",
-              3: "$l3.referrals",
-              4: "$l4.referrals",
+    {
+      $facet: {
+        metadata: [{ $count: "total" }],
+        data: [
+          { $sort: { createdAt: -1 } }, // ← moved to first
+          { $skip: skip },
+          { $limit: parseInt(limit) },
+          {
+            $project: {
+              _id: 0,
+              codeId: "$_id",
+              code: 1,
+              timesUsed: 1,
+              maxUses: 1,
+              isActive: 1,
+              totalReferrals: {
+                $add: [
+                  "$l1.referrals",
+                  "$l2.referrals",
+                  "$l3.referrals",
+                  "$l4.referrals",
+                ],
+              },
+              totalEarnings: {
+                $add: [
+                  "$l1.earnings",
+                  "$l2.earnings",
+                  "$l3.earnings",
+                  "$l4.earnings",
+                ],
+              },
+              frequencyTable: {
+                1: "$l1.referrals",
+                2: "$l2.referrals",
+                3: "$l3.referrals",
+                4: "$l4.referrals",
+              },
             },
           },
-        },
-      ],
+        ],
+      },
     },
-  },
-  {
-    $project: {
-      data: 1,
-      totalCount: { $arrayElemAt: ["$metadata.total", 0] },  // ← moved here from return
+    {
+      $project: {
+        data: 1,
+        totalCount: { $arrayElemAt: ["$metadata.total", 0] }, // ← moved here from return
+      },
     },
-  },
-]);
+  ]);
 
-return { data: result.data, totalCount: result.totalCount ?? 0 };
-}
+  return { data: result.data, totalCount: result.totalCount ?? 0 };
+};
 
 // Now queries ReferralTransaction collection — works at any scale
 export const getReferralById = async (codeId, userId, level, page, limit) => {
