@@ -124,9 +124,7 @@ export const createOrder = async (orderBody, token) => {
       );
     }
 
-    // Reserve the slot atomically — increment now, rollback if payment fails
-    await Referral.updateOne({ _id: referral._id }, { $inc: { timesUsed: 1 } });
-
+    
     codeDetails = {
       codeId: referral._id,
       code: referral.code,
@@ -155,28 +153,30 @@ export const createOrder = async (orderBody, token) => {
     {},
     { tax: 1, shippingFee: 1 },
   ).lean();
-
+  
   const productIds = user.cart.products.map((p) => p.product);
   const productMap = await getProductsWithPrices(productIds);
   const updatedProducts = updateProductsWithPrices(
     user.cart.products,
     productMap,
   );
-
+  
   const { itemTotal, grandTotalAmount } = calculateGrandTotal(
     updatedProducts,
     tax,
     shippingFee,
   );
-
+  
   const orderId = generateOrderId(user.name);
-
+  
   const razorpayOrder = await razorpay.orders.create({
     amount: Math.round(grandTotalAmount * 100),
     currency: "INR",
     receipt: orderId,
   });
-
+  
+  // Reserve the slot atomically — increment now, rollback if payment fails
+  await Referral.updateOne({ _id: referral._id }, { $inc: { timesUsed: 1 } });
   await Order.create({
     orderId,
     placedOn: new Date(),
@@ -197,7 +197,7 @@ export const createOrder = async (orderBody, token) => {
       currency: "INR",
     },
   });
-
+  
   return { razorpayOrder };
 };
 
