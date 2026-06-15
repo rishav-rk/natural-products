@@ -97,14 +97,15 @@ export const useReferralCode = async ({ order, user, session }) => {
 
   // 2. Admin code — credit ₹500 to the user who USED the code, no chain
   if (referral.byAdmin) {
+    console.log("Admin referral------------------")
     await Promise.all([
       creditWallet({
         userId,
         amount: REFERRAL_CONSTANTS.LEVEL_AMOUNTS[1],
         type: TRANSACTION_TYPES.BONUS,
         level: null, // bonus — no level context
-        paidBy: null, // user credited themselves via admin code
-        paidByUsername: null,
+        paidBy: referral.admin, // user credited themselves via admin code
+        paidByUsername: "Admin",
         orderRef: order.orderId, // ← add
         note: "Admin referral code bonus",
         referralId: codeId,
@@ -185,6 +186,7 @@ export const useReferralCode = async ({ order, user, session }) => {
     amount: l1Amount,
     level: 1,
     parent: null,
+    codeUsed: referral.code
   });
 
   // Credit L1 owner's wallet
@@ -230,7 +232,10 @@ export const useReferralCode = async ({ order, user, session }) => {
       amount,
       level,
       parent: referral.user,
+      codeUsed: referral.code
     });
+
+    console.log("Level : ", level, " -> transaction to push: ", transactionsToInsert)
 
     walletCredits.push(
       creditWallet({
@@ -386,7 +391,7 @@ export const getReferralTree = async (codeId, token) => {
   }
 
   const l1Nodes = await ReferralTransaction.find({ referral: codeId, level: 1 })
-    .select("paidBy paidByUsername paidByImage amount paidOn")
+    .select("paidBy paidByUsername paidByImage amount paidOn codeUsed")
     .lean();
 
   return {
@@ -424,7 +429,7 @@ export const getNextLevel = async (codeId, userId, level, parentUserId) => {
     level: parsedLevel,
     parent: parentUserId ? new mongoose.Types.ObjectId(parentUserId) : null,
   })
-    .select("paidBy paidByUsername paidByImage amount paidOn level")
+    .select("paidBy paidByUsername paidByImage amount paidOn level codeUsed")
     .lean();
 
   return children;

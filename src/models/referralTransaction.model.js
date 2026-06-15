@@ -1,7 +1,9 @@
 import mongoose from "mongoose";
 
 const { Schema, model } = mongoose;
-const { Types: { ObjectId } } = Schema;
+const {
+  Types: { ObjectId },
+} = Schema;
 
 // ── Schema ────────────────────────────────────────────────────────────────
 
@@ -23,9 +25,14 @@ const referralTransactionSchema = new Schema(
 
     // Denormalised for display — avoids joins on every tree render
     paidByUsername: { type: String, default: null },
-    paidByImage:    { type: String, default: null },
+    paidByImage: { type: String, default: null },
 
     paidOn: { type: Date, default: Date.now },
+
+    codeUsed: {
+      type: String,
+      default: null,
+    },
 
     amount: {
       type: Number,
@@ -60,6 +67,9 @@ referralTransactionSchema.index({ referral: 1, level: 1, parent: 1 });
 
 // ── Model ─────────────────────────────────────────────────────────────────
 
-const ReferralTransaction = model("ReferralTransaction", referralTransactionSchema);
+const ReferralTransaction = model(
+  "ReferralTransaction",
+  referralTransactionSchema,
+);
 
 export default ReferralTransaction;
