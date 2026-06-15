@@ -394,16 +394,10 @@ export const handleRazorpayWebhook = async (req) => {
   const isValidPayment =
     crypto
       .createHmac("sha256", config.razorpay.secret)
-      .update(rawBody)
+      .update(req.body)
       .digest("hex") === signature;
 
-  const isValidPayout =
-    crypto
-      .createHmac("sha256", config.razorpayX.secret)
-      .update(rawBody)
-      .digest("hex") === signature;
-
-  if (!isValidPayment && !isValidPayout) {
+  if (!isValidPayment) {
     throw new OperationalError(
       STATUS_CODES.ACTION_FAILED,
       "Invalid webhook signature",
@@ -412,7 +406,6 @@ export const handleRazorpayWebhook = async (req) => {
 
   const event = JSON.parse(req.body.toString());
   const payment = event.payload.payment.entity;
-  const payout = event.payload.payout.entity;
 
   console.log(event);
 
@@ -439,7 +432,7 @@ export const handleRazorpayXWebhook = async (req) => {
   const isValidPayout =
     crypto
       .createHmac("sha256", config.razorpayX.secret)
-      .update(rawBody)
+      .update(req.body)
       .digest("hex") === signature;
 
   if (!isValidPayout) {
