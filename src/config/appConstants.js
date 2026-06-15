@@ -13,20 +13,19 @@ export const ADDRESS_TYPE = {
 };
 
 export const TRANSACTION_TYPES = {
-  REFERRAL_CREDIT: "referral_credit",   // earned by sharing referral code
-  WITHDRAWAL:      "withdrawal",         // future: transfer to bank/UPI
-  REFUND:          "refund",             // future: refund to wallet
-  BONUS:           "bonus",              // admin manually credits
-  DEBIT:           "debit",             // generic debit
+  REFERRAL_CREDIT: "referral_credit", // earned by sharing referral code
+  WITHDRAWAL: "withdrawal", // future: transfer to bank/UPI
+  REFUND: "refund", // future: refund to wallet
+  BONUS: "bonus", // admin manually credits
+  DEBIT: "debit", // generic debit
 };
 
 export const TRANSACTION_STATUS = {
-  PENDING:   "pending",    // initiated
-  SUCCESS:   "success",    // completed
-  FAILED:    "failed",     // failed
-  REVERSED:  "reversed",   // rolled back
+  PENDING: "pending", // initiated
+  SUCCESS: "success", // completed
+  FAILED: "failed", // failed
+  REVERSED: "reversed", // rolled back
 };
-
 
 export const PAYMENT_METHOD = {
   CARD: "card",
@@ -149,15 +148,20 @@ export const REFERRAL_CONSTANTS = {
     3: 300,
     4: 200,
   },
-  MAX_USES: 10
+  MAX_USES: 10,
 };
 
 export const WALLET_TRANSAC_TYPE = {
-  CREDIT: "credit", 
-  WITHDRAWAL: "withdrawal"
-}
+  CREDIT: "credit",
+  WITHDRAWAL: "withdrawal",
+};
 
 export const ERROR_MESSAGES = {
+  WALLET_NOT_FOUND: "Wallet not found",
+  INSUFFICIENT_BALANCE: "Insufficient wallet balance",
+  WITHDRAWAL_NOT_ENABLED: "Withdrawals are not enabled for your account",
+  WITHDRAWAL_IN_PROGRESS:
+    "A withdrawal is already in progress. Please try again shortly.",
   ALREADY_USED_THIS_CODE: "You have already used this referral code",
   INVALID_CODE: "Invalid code",
   NO_SUCH_CODE: "No such code exists",

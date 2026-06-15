@@ -51,3 +51,18 @@ export const getSummary = catchAsync(async (req, res) => {
     data,
   );
 });
+
+export const withdrawFunds = catchAsync(async (req, res) => {
+  const data = await walletService.withdrawFunds(
+    req.token.user._id,
+    req.token.user.phoneNumber,
+    req.body,
+  );
+  return successResponse(
+    req,
+    res,
+    STATUS_CODES.SUCCESS,
+    SUCCESS_MESSAGES.SUCCESS,
+    data,
+  );
+});

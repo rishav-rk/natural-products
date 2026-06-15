@@ -3,7 +3,7 @@ import Razorpay from "razorpay"
 
 const razorpay = new Razorpay({
     key_id: config.razorpay.id, 
-    key_secret: config.razorpay.secret
+    key_secret: config.razorpay.secret, 
 })
 
 export default razorpay;

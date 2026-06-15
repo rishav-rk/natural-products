@@ -17,3 +17,18 @@ export const walletTransactionsValidator = {
       .optional(),
   }),
 };
+
+export const withdrawValidator = {
+  body: Joi.object({
+    name: Joi.string().trim().min(2).max(100).required(),
+    email: Joi.string().email().required(),
+    accountNumber: Joi.string()
+      .pattern(/^\d{9,18}$/)
+      .required()
+      .messages({ "string.pattern.base": "Enter a valid account number" }),
+    ifsc: Joi.string()
+      .pattern(/^[A-Z]{4}0[A-Z0-9]{6}$/)
+      .required()
+      .messages({ "string.pattern.base": "Enter a valid IFSC code" }),
+  }).required(),
+};

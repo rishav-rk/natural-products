@@ -5,7 +5,7 @@ import {
   USER_TYPE,
 } from "../../config/appConstants.js";
 import { OperationalError } from "../../utils/error.js";
-import { User } from "../../models/index.js";
+import { User, Wallet } from "../../models/index.js";
 import {
   deletePreviousToken,
   generateAuthToken,
@@ -14,6 +14,7 @@ import {
   resendOTP,
 } from "../token.service.js";
 import { successResponse } from "../../utils/response.js";
+import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import { sendOTPViaSMS } from "../../utils/smsService.js";
 
@@ -60,7 +61,7 @@ export const signUp = async (userData) => {
     otp,
   );
 
-  sendOTPViaSMS(userDataToSave.phoneNumber, otp.code)
+  sendOTPViaSMS(userDataToSave.phoneNumber, otp.code);
 
   return { user: user.toObject(), token: authToken };
 };
@@ -79,11 +80,11 @@ export const login = async (loginData) => {
     );
   }
 
-  if(!user.isActive) {
+  if (!user.isActive) {
     throw new OperationalError(
-      STATUS_CODES.ACTION_FAILED, 
-      ERROR_MESSAGES.ACCOUNT_BLOCKED
-    )
+      STATUS_CODES.ACTION_FAILED,
+      ERROR_MESSAGES.ACCOUNT_BLOCKED,
+    );
   }
 
   if (!(await user.comparePassword(loginData.password))) {
@@ -138,7 +139,7 @@ export const forgotPassword = async (data) => {
     otp,
   );
 
-  sendOTPViaSMS(user.phoneNumber, otp.code)
+  sendOTPViaSMS(user.phoneNumber, otp.code);
 
   return resetToken;
 };
@@ -146,6 +147,16 @@ export const forgotPassword = async (data) => {
 export const verifyOtp = async (data, token) => {
   if (data.otp === "2222") {
     console.log("Bypassing OTP verification for testing purposes");
+
+    if (token.type !== TOKEN_TYPE.FORGOTPASSWORD) {
+      await Wallet.create({
+        user: new mongoose.Types.ObjectId(token.user._id),
+        balance: 0,
+        lifeTimeEarnings: 0,
+        isWithdrawable: true,
+      });
+    }
+
     Promise.all([
       await User.findByIdAndUpdate(token.user._id, {
         $set: { isVerified: true },
@@ -169,14 +180,24 @@ export const verifyOtp = async (data, token) => {
     );
   }
 
+  if (token.type !== TOKEN_TYPE.FORGOTPASSWORD) {
+    await Wallet.create({
+      user: new mongoose.Types.ObjectId(token.user._id),
+      balance: 0,
+      lifeTimeEarnings: 0,
+      isWithdrawable: true,
+    });
+  }
+
   Promise.all([
-    await User.findByIdAndUpdate(token.user._id, { $set: { isVerified: true } }),
+    await User.findByIdAndUpdate(token.user._id, {
+      $set: { isVerified: true },
+    }),
     await updateToken(token._id),
   ]);
 };
 
 export const resetPassword = async (data, token) => {
-  console.log(token.type !== TOKEN_TYPE.FORGOTPASSWORD);
   if (token.type !== TOKEN_TYPE.FORGOTPASSWORD) {
     throw new OperationalError(
       STATUS_CODES.ACTION_FAILED,

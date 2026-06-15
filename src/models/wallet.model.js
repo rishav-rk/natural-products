@@ -2,7 +2,9 @@
 import mongoose from "mongoose";
 
 const { Schema, model } = mongoose;
-const { Types: { ObjectId } } = Schema;
+const {
+  Types: { ObjectId },
+} = Schema;
 
 const walletSchema = new Schema(
   {
@@ -29,8 +31,12 @@ const walletSchema = new Schema(
       type: Boolean,
       default: false, // flip to true when you enable payouts
     },
+    withdrawalInProgress: {
+      type: Boolean,
+      default: false,
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 walletSchema.index({ user: 1 });

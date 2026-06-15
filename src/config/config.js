@@ -21,7 +21,6 @@ const envVarsSchema = Joi.object()
     ENVIRONMENT: Joi.string()
       .required()
       .valid(...Object.values(ENVIRONMENT)),
-
     RAZORPAY_KEY_ID: Joi.string()
       .required()
       .description("Razorpay key id required"),
@@ -49,6 +48,12 @@ const envVarsSchema = Joi.object()
     WAREHOUSE_PINCODE: Joi.string()
       .required()
       .description("warehouse pincode is required"),
+    RAZORPAY_X_KEY_ID: Joi.string()
+      .required()
+      .description("Razorpay key id required"),
+    RAZORPAY_X_KEY_SECRET: Joi.string()
+      .required()
+      .description("Razorpay secret key required"),
   })
   .unknown();
 
@@ -93,4 +98,8 @@ export default {
     warehouseName: envVars.WAREHOUSE_NAME,
     warehousePincode: envVars.WAREHOUSE_PINCODE,
   },
+  razorpayX: {
+    id: envVars.RAZORPAY_X_KEY_ID, 
+    secret: envVars.RAZORPAY_X_KEY_SECRET
+  }
 };

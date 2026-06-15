@@ -394,14 +394,19 @@ export const handleRazorpayWebhook = async (req) => {
   console.log("processing payment");
   const signature = req.headers["x-razorpay-signature"];
 
-  const expected = crypto
-    .createHmac("sha256", config.razorpay.secret)
-    .update(req.body) // raw Buffer — express.raw() required
-    .digest("hex");
+  const isValidPayment =
+    crypto
+      .createHmac("sha256", config.razorpay.secret)
+      .update(rawBody)
+      .digest("hex") === signature;
 
-  console.log("Recieved: ", signature, "\nExpected: ", expected);
+  const isValidPayout =
+    crypto
+      .createHmac("sha256", config.razorpayX.secret)
+      .update(rawBody)
+      .digest("hex") === signature;
 
-  if (expected !== signature) {
+  if (!isValidPayment && !isValidPayout) {
     throw new OperationalError(
       STATUS_CODES.ACTION_FAILED,
       "Invalid webhook signature",
@@ -410,6 +415,7 @@ export const handleRazorpayWebhook = async (req) => {
 
   const event = JSON.parse(req.body.toString());
   const payment = event.payload.payment.entity;
+  const payout = event.payload.payout.entity;
 
   console.log(event);
 
@@ -422,6 +428,44 @@ export const handleRazorpayWebhook = async (req) => {
       await handlePaymentFailed(payment);
       break;
 
+    // ── Payout events (new) ──────────────────────────────────────────────
+    default:
+      console.log("[WEBHOOK] Unhandled event:", event.event);
+  }
+};
+
+export const handleRazorpayXWebhook = async (req) => {
+  // 1. Verify webhook signature
+  console.log("processing payout");
+  const signature = req.headers["x-razorpay-signature"];
+
+  const isValidPayout =
+    crypto
+      .createHmac("sha256", config.razorpayX.secret)
+      .update(rawBody)
+      .digest("hex") === signature;
+
+  if (!isValidPayout) {
+    throw new OperationalError(
+      STATUS_CODES.ACTION_FAILED,
+      "Invalid webhook signature",
+    );
+  }
+
+  const event = JSON.parse(req.body.toString());
+  const payout = event.payload.payout.entity;
+
+  console.log(event);
+
+  switch (event.event) {
+    case "payout.processed":
+      await handlePayoutProcessed(event.payload.payout.entity);
+      break;
+
+    case "payout.reversed":
+    case "payout.rejected": // ← replace payout.failed with payout.rejected
+      await handlePayoutFailed(event.payload.payout.entity);
+      break;
     default:
       console.log("[WEBHOOK] Unhandled event:", event.event);
   }
@@ -636,4 +680,82 @@ const handlePaymentFailed = async (payment) => {
   }
 
   console.log("[WEBHOOK] Payment failed, order marked:", order.orderId);
+};
+
+// ── Payout processed ──────────────────────────────────────────────────────
+const handlePayoutProcessed = async (payout) => {
+  const transaction = await WalletTransaction.findOne({
+    "payout.gatewayRef": payout.id,
+  });
+
+  if (!transaction) {
+    console.error("[WEBHOOK] Transaction not found for payout:", payout.id);
+    return;
+  }
+
+  // Guard — already handled
+  if (transaction.status === TRANSACTION_STATUS.SUCCESS) return;
+
+  await WalletTransaction.updateOne(
+    { _id: transaction._id },
+    {
+      status: TRANSACTION_STATUS.SUCCESS,
+      "payout.processedAt": new Date(),
+    },
+  );
+
+  console.log("[WEBHOOK] Payout processed successfully:", payout.id);
+};
+
+// ── Payout failed / reversed ──────────────────────────────────────────────
+const handlePayoutFailed = async (payout) => {
+  const transaction = await WalletTransaction.findOne({
+    "payout.gatewayRef": payout.id,
+  });
+
+  if (!transaction) {
+    console.error("[WEBHOOK] Transaction not found for payout:", payout.id);
+    return;
+  }
+
+  // Guard — don't refund twice
+  if (transaction.status === TRANSACTION_STATUS.FAILED) return;
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    await creditWallet({
+      userId: transaction.user,
+      amount: transaction.amount,
+      type: TRANSACTION_TYPES.REFUND,
+      note: `Refund: payout ${payout.status}`,
+      session,
+    });
+
+    await WalletTransaction.updateOne(
+      { _id: transaction._id },
+      { status: TRANSACTION_STATUS.FAILED },
+      { session },
+    );
+
+    // Release lock in case it's still set
+    await Wallet.updateOne(
+      { user: transaction.user },
+      { withdrawalInProgress: false },
+      { session },
+    );
+
+    await session.commitTransaction();
+    console.log("[WEBHOOK] Refund issued for failed payout:", payout.id);
+  } catch (err) {
+    await session.abortTransaction();
+    console.error(
+      "[WEBHOOK] CRITICAL: Refund failed for payout:",
+      payout.id,
+      err.message,
+    );
+  } finally {
+    session.endSession();
+  }
 };

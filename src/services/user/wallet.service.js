@@ -2,9 +2,12 @@ import { Wallet, WalletTransaction, Referral } from "../../models/index.js";
 import {
   TRANSACTION_STATUS,
   TRANSACTION_TYPES,
+  ERROR_MESSAGES,
+  STATUS_CODES,
 } from "../../config/appConstants.js";
 import mongoose from "mongoose";
 import { paginationOptions } from "../../utils/universalFunctions.js";
+import { initiateRazorpayPayout } from "../../utils/razorpayPayout.js";
 
 export const creditWallet = async ({
   userId,
@@ -243,4 +246,201 @@ export const getSummary = async (userId) => {
     totalEarnings: wallet?.lifetimeEarnings ?? 0, // "₹12,000" in UI
     walletBalance: wallet?.balance ?? 0, // "₹10,000" in UI
   };
+};
+
+// ── Debit wallet ──────────────────────────────────────────────────────────
+export const debitWallet = async ({
+  userId,
+  amount,
+  type,
+  status = TRANSACTION_STATUS.PENDING,
+  note = null,
+  accountIdentifier = null,
+  session,
+}) => {
+  const wallet = await Wallet.findOne({ user: userId }).session(session);
+
+  if (!wallet)
+    throw new OperationalError(
+      STATUS_CODES.NOT_FOUND,
+      ERROR_MESSAGES.WALLET_NOT_FOUND,
+    );
+  if (wallet.balance < amount)
+    throw new OperationalError(
+      STATUS_CODES.BAD_REQUEST,
+      ERROR_MESSAGES.INSUFFICIENT_BALANCE,
+    );
+
+  const balanceBefore = wallet.balance;
+  const balanceAfter = balanceBefore - amount;
+
+  await Wallet.updateOne(
+    { _id: wallet._id },
+    { $inc: { balance: -amount } },
+    { session },
+  );
+
+  const [transaction] = await WalletTransaction.create(
+    [
+      {
+        wallet: wallet._id,
+        user: userId,
+        type,
+        status,
+        amount,
+        balanceBefore,
+        balanceAfter,
+        note,
+        payout: {
+          method: "bank",
+          accountIdentifier, // masked account number stored here
+        },
+      },
+    ],
+    { session },
+  );
+
+  return transaction;
+};
+
+// ── Withdraw funds ────────────────────────────────────────────────────────
+export const withdrawFunds = async (
+  userId,
+  contact,
+  { name, email, accountNumber, ifsc },
+) => {
+  const wallet = await Wallet.findOne({ user: userId });
+
+  if (!wallet)
+    throw new OperationalError(
+      STATUS_CODES.ACTION_FAILED,
+      ERROR_MESSAGES.WALLET_NOT_FOUND,
+    );
+  if (!wallet.isWithdrawable)
+    throw new OperationalError(
+      STATUS_CODES.ACTION_FAILED,
+      ERROR_MESSAGES.WITHDRAWAL_NOT_ENABLED,
+    );
+  if (wallet.balance <= 0)
+    throw new OperationalError(
+      STATUS_CODES.ACTION_FAILED,
+      ERROR_MESSAGES.INSUFFICIENT_BALANCE,
+    );
+  if (wallet.withdrawalInProgress)
+    throw new OperationalError(
+      STATUS_CODES.ACTION_FAILED,
+      ERROR_MESSAGES.WITHDRAWAL_IN_PROGRESS,
+    );
+
+  const amount = wallet.balance;
+
+  // ── Lock ────────────────────────────────────────────────────────────────
+  await Wallet.updateOne({ _id: wallet._id }, { withdrawalInProgress: true });
+
+  // ── Debit ───────────────────────────────────────────────────────────────
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  let transaction;
+
+  try {
+    transaction = await debitWallet({
+      userId,
+      amount,
+      type: TRANSACTION_TYPES.WITHDRAWAL,
+      status: TRANSACTION_STATUS.PENDING,
+      accountIdentifier: `****${accountNumber.slice(-4)}`,
+      note: `Withdrawal to bank account ****${accountNumber.slice(-4)}`,
+      session,
+    });
+    await session.commitTransaction();
+  } catch (err) {
+    await session.abortTransaction();
+    // Debit failed — nothing was charged, just release lock and throw
+    await Wallet.updateOne(
+      { _id: wallet._id },
+      { withdrawalInProgress: false },
+    );
+    throw err;
+  } finally {
+    session.endSession();
+  }
+
+  // ── Payout ──────────────────────────────────────────────────────────────
+  // Debit is committed at this point — must handle all failures from here manually
+  try {
+    const payout = await initiateRazorpayPayout({
+      userId,
+      name,
+      email,
+      accountNumber,
+      ifsc,
+      amount,
+      transactionId: transaction._id,
+      contact,
+    });
+
+    await WalletTransaction.updateOne(
+      { _id: transaction._id },
+      {
+        "payout.gatewayRef": payout.id,
+        "payout.processedAt": new Date(),
+      },
+    );
+
+    await Wallet.updateOne(
+      { _id: wallet._id },
+      { withdrawalInProgress: false },
+    );
+
+    return { success: true, payoutId: payout.id, amount };
+  } catch (err) {
+    // Razorpay failed — balance already debited, must refund
+    console.error("[WALLET] Payout failed, initiating refund", {
+      userId,
+      amount,
+      transactionId: transaction._id,
+      error: err.message,
+    });
+
+    const refundSession = await mongoose.startSession();
+    refundSession.startTransaction();
+
+    try {
+      await creditWallet({
+        userId,
+        amount,
+        type: TRANSACTION_TYPES.REFUND,
+        note: "Refund: payout initiation failed",
+        session: refundSession,
+      });
+
+      await WalletTransaction.updateOne(
+        { _id: transaction._id },
+        { status: TRANSACTION_STATUS.FAILED },
+        { session: refundSession },
+      );
+
+      await refundSession.commitTransaction();
+    } catch (refundErr) {
+      await refundSession.abortTransaction();
+      // CRITICAL — needs manual fix, log everything
+      console.error(
+        "[WALLET] CRITICAL: Refund failed, manual intervention required",
+        {
+          userId,
+          amount,
+          transactionId: transaction._id,
+          error: refundErr.message,
+        },
+      );
+    } finally {
+      refundSession.endSession();
+    }
+
+    await Wallet.updateOne(
+      { _id: wallet._id },
+      { withdrawalInProgress: false },
+    );
+    throw err; // let global handler return error response to user
+  }
 };
