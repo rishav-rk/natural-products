@@ -19,10 +19,18 @@ const calculateGrandTotal = (products, tax, shippingFee) => {
 
 // Generate unique order ID based on user name
 const generateOrderId = (name) => {
-  const userSubstr = name.slice(0, 4).toUpperCase().trim();
-  return userSubstr.length === 4
-    ? `${userSubstr}-${Date.now()}`
-    : `${userSubstr.padEnd(4, "0")}-${Date.now()}`;
+  const prefix = (name || "USER")
+    .replace(/\s+/g, "")
+    .slice(0, 4)
+    .toUpperCase()
+    .padEnd(4, "0");
+
+  const time = new Date();
+  const datePart = time.toISOString().slice(2, 10).replace(/-/g, ""); // YYMMDD
+
+  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+
+  return `${prefix}-${datePart}-${random}`;
 };
 
 // Validate cart and fetch shipping address
