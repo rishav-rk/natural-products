@@ -32,6 +32,7 @@ export const getProducts = async (query, token) => {
   // Search — prefer $text index, fall back to $regex
   if (query.search) {
     // Requires: ProductSchema.index({ name: "text", description: "text", benefits: "text", keywords: "text" })
+    const search = query.search;
     filter.$or = [
       { name: { $regex: search, $options: "i" } },
       { description: { $regex: search, $options: "i" } },
