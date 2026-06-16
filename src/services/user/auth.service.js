@@ -17,6 +17,7 @@ import { successResponse } from "../../utils/response.js";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import { sendOTPViaSMS } from "../../utils/smsService.js";
+import config from "../../config/config.js";
 
 export const signUp = async (userData) => {
   if (
@@ -145,7 +146,8 @@ export const forgotPassword = async (data) => {
 };
 
 export const verifyOtp = async (data, token) => {
-  if (data.otp === "2222") {
+if(config.environment === 'development'){
+    if (data.otp === "2222") {
     console.log("Bypassing OTP verification for testing purposes");
 
     if (token.type !== TOKEN_TYPE.FORGOTPASSWORD) {
@@ -165,6 +167,8 @@ export const verifyOtp = async (data, token) => {
     ]);
     return;
   }
+}
+
 
   if (token.isVerified) {
     throw new OperationalError(

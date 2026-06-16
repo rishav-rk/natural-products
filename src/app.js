@@ -60,7 +60,7 @@ app.post(
 app.use(express.json());
 
 //swagger
-if (config.environment !== "production") {
+if (config.environment === "development") {
   app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerSpec));
 }
 
