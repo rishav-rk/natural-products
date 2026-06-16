@@ -173,7 +173,7 @@ const validateStock = (dbProduct, requestedQty, currentCartQty = 0) => {
   if (totalRequested > dbProduct.stock) {
     throw new OperationalError(
       STATUS_CODES.ACTION_FAILED,
-      `Sorry, only ${dbProduct.stock} units of ${dbProduct.name} are available.`,
+      `Only ${dbProduct.stock} units available.`,
     );
   }
 };

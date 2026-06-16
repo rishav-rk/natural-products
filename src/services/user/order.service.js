@@ -168,6 +168,14 @@ export const createOrder = async (orderBody, token) => {
 
   const orderId = generateOrderId(user.name);
 
+  // UPI threshold
+  if (grandTotalAmount >= 500000) {
+    throw new OperationalError(
+      STATUS_CODES.ACTION_FAILED,
+     "Order limit exceeded (max ₹5,00,000)"
+    );
+  }
+
   const razorpayOrder = await razorpay.orders.create({
     amount: Math.round(grandTotalAmount * 100),
     currency: "INR",
@@ -535,9 +543,18 @@ const handlePaymentCaptured = async (payment) => {
         { session },
       );
     } else {
-      Referral.create([{ user: pendingOrder.user, code: await generateReferralCode(), parent: null }], {
-        session,
-      });
+      Referral.create(
+        [
+          {
+            user: pendingOrder.user,
+            code: await generateReferralCode(),
+            parent: null,
+          },
+        ],
+        {
+          session,
+        },
+      );
     }
     // 3d. Mark fully completed
     await Order.updateOne(
