@@ -40,7 +40,7 @@ export const saveToken = async (data) => {
   }
   if (data.userType === USER_TYPE.ADMIN) {
     dataToBeSaved.admin = data.user;
-  } else if(data.userType === USER_TYPE.USER){
+  } else if (data.userType === USER_TYPE.USER) {
     dataToBeSaved.user = data.user;
   }
 
@@ -147,6 +147,26 @@ export const resendOTP = async (token, otp) => {
 export const deletePreviousToken = async (tokenId) => {
   await Token.updateMany(
     { _id: tokenId },
+    { $set: { isDeleted: true } },
+    { lean: true },
+  );
+};
+
+export const logOutFromAll = async (userId) => {
+  await Token.updateMany(
+    {
+      user: new mongoose.Types.ObjectId(userId),
+    },
+    { $set: { isDeleted: true } },
+    { lean: true },
+  );
+};
+
+export const logOutFromAllAdmin = async (adminId) => {
+  await Token.updateMany(
+    {
+      admin: new mongoose.Types.ObjectId(adminId),
+    },
     { $set: { isDeleted: true } },
     { lean: true },
   );

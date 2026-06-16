@@ -13,10 +13,6 @@ router.post(
   authController.signUp,
 );
 
-router.get('/test', (req, res) => {
-  res.json({ message: "Test route is working!" });
-});
-
 router.post(
   "/login",
   validate(authValidator.loginValidator),

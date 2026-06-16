@@ -12,6 +12,7 @@ import {
   generateForgotPasswordToken,
   updateToken,
   resendOTP,
+  logOutFromAll,
 } from "../token.service.js";
 import { successResponse } from "../../utils/response.js";
 import mongoose from "mongoose";
@@ -146,29 +147,28 @@ export const forgotPassword = async (data) => {
 };
 
 export const verifyOtp = async (data, token) => {
-if(config.environment === 'development'){
+  if (config.environment === "development") {
     if (data.otp === "2222") {
-    console.log("Bypassing OTP verification for testing purposes");
+      console.log("Bypassing OTP verification for testing purposes");
 
-    if (token.type !== TOKEN_TYPE.FORGOTPASSWORD) {
-      await Wallet.create({
-        user: new mongoose.Types.ObjectId(token.user._id),
-        balance: 0,
-        lifeTimeEarnings: 0,
-        isWithdrawable: true,
-      });
+      if (token.type !== TOKEN_TYPE.FORGOTPASSWORD) {
+        await Wallet.create({
+          user: new mongoose.Types.ObjectId(token.user._id),
+          balance: 0,
+          lifeTimeEarnings: 0,
+          isWithdrawable: true,
+        });
+      }
+
+      Promise.all([
+        await User.findByIdAndUpdate(token.user._id, {
+          $set: { isVerified: true },
+        }),
+        await updateToken(token._id),
+      ]);
+      return;
     }
-
-    Promise.all([
-      await User.findByIdAndUpdate(token.user._id, {
-        $set: { isVerified: true },
-      }),
-      await updateToken(token._id),
-    ]);
-    return;
   }
-}
-
 
   if (token.isVerified) {
     throw new OperationalError(
@@ -218,12 +218,10 @@ export const resetPassword = async (data, token) => {
 
   const hashedPassword = await bcrypt.hash(data.password, 10);
 
-  await Promise.all([
-    await User.findByIdAndUpdate(token.user._id, {
-      $set: { password: hashedPassword },
-    }),
-    await deletePreviousToken(token._id),
-  ]);
+  await User.findByIdAndUpdate(token.user._id, {
+    $set: { password: hashedPassword },
+  });
+  await logOutFromAll(token.user._id);
 };
 
 export const resendOtp = async (token) => {

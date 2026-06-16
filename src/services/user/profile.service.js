@@ -5,10 +5,10 @@ import {
   SUCCESS_MESSAGES,
 } from "../../config/appConstants.js";
 import { OperationalError } from "../../utils/error.js";
-import { User, Product, ADC, Warehouse } from "../../models/index.js";
+import { User, Product, ADC, Warehouse, Token } from "../../models/index.js";
 
 // profile
-import { deletePreviousToken } from "../token.service.js";
+import { logOutFromAll } from "../token.service.js";
 import { successResponse } from "../../utils/response.js";
 import bcrypt from "bcrypt";
 import { checkShippingRate } from "../../utils/delivery.js";
@@ -42,6 +42,7 @@ export const changePassword = async (passwordData, token) => {
   const passwordHash = await bcrypt.hash(passwordData.newPassword, 10);
 
   await User.findByIdAndUpdate(token.user._id, { password: passwordHash });
+  await logOutFromAll(token.user._id);
 };
 
 export const deleteAccount = async (token) => {
@@ -51,10 +52,15 @@ export const deleteAccount = async (token) => {
       ERROR_MESSAGES.USER_NOT_FOUND,
     );
   }
-  await Promise.all([
-    await User.findByIdAndUpdate(token.user._id, { $set: { isDeleted: true } }),
-    await deletePreviousToken(token._id),
-  ]);
+  // await Promise.all([
+  //   User.findByIdAndUpdate(token.user._id, { $set: { isDeleted: true } }),
+  //   logOutFromAll(token._id),
+  // ]);
+  await User.findByIdAndUpdate(token.user._id, {
+    $set: { isDeleted: true },
+  });
+
+  await logOutFromAll(token._id);
 };
 
 export const updateAddress = async (addressData, addressId, token) => {
@@ -147,7 +153,10 @@ export const deleteAddress = async (addressId, token) => {
 // cart
 
 const recalculateCharges = async (cart) => {
-  const { tax, shippingFee } = await ADC.findOne({}, {tax : 1, shippingFee: 1}).lean();
+  const { tax, shippingFee } = await ADC.findOne(
+    {},
+    { tax: 1, shippingFee: 1 },
+  ).lean();
 
   const itemTotal = cart.products.reduce(
     (sum, p) => sum + p.price * p.quantity,

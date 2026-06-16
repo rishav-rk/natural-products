@@ -11,6 +11,7 @@ import {
   deletePreviousToken,
   generateAuthToken,
   generateForgotPasswordToken,
+  logOutFromAllAdmin,
   updateToken,
 } from "../token.service.js";
 import { successResponse } from "../../utils/response.js";
@@ -73,6 +74,7 @@ export const changePassword = async (passwordData, token) => {
   await Admin.findByIdAndUpdate(token.admin._id, {
     $set: { password: hashedPassword },
   });
+  await logOutFromAllAdmin(token.admin._id);
 };
 
 export const logout = async (token) => {
