@@ -108,7 +108,7 @@ export const getTransactions = async (
   const [transactions, totalCount, totalSpendings] = await Promise.all([
     Order.find(
       filter,
-      { orderId: 1, grandTotalAmount: 1 },
+      { orderId: 1, grandTotalAmount: 1, "payment.paidAt" : 1, createdAt : 1, userName : 1},
       paginationOptions(page, limit),
     ).lean(),
     Order.countDocuments(filter),
