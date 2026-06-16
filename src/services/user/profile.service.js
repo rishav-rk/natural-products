@@ -57,7 +57,7 @@ export const deleteAccount = async (token) => {
   //   logOutFromAll(token._id),
   // ]);
   await User.findByIdAndUpdate(token.user._id, {
-    $set: { isDeleted: true },
+    $set: { isDeleted: true, isActive : false },
   });
 
   await logOutFromAll(token._id);
