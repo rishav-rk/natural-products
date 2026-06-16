@@ -1,9 +1,15 @@
-import { Wallet, WalletTransaction, Referral } from "../../models/index.js";
+import {
+  Wallet,
+  WalletTransaction,
+  Referral,
+  Order,
+} from "../../models/index.js";
 import {
   TRANSACTION_STATUS,
   TRANSACTION_TYPES,
   ERROR_MESSAGES,
   STATUS_CODES,
+  PAYMENT_STATUS,
 } from "../../config/appConstants.js";
 import mongoose from "mongoose";
 import { paginationOptions } from "../../utils/universalFunctions.js";
@@ -79,23 +85,17 @@ export const getBalance = async (userId) => {
 };
 
 // ── Get paginated transaction history ────────────────────────────────────
-// wallet.service.js
+// amount spent on transactions
 
 export const getTransactions = async (
   userId,
-  { page = 0, limit = 10, level, startDate, endDate },
+  { page = 0, limit = 10, startDate, endDate },
 ) => {
-  const skip = parseInt(page) * parseInt(limit);
-  const filter = { user: new mongoose.Types.ObjectId(userId) };
+  const filter = {
+    user: new mongoose.Types.ObjectId(userId),
+    "payment.status": PAYMENT_STATUS.COMPLETED,
+  };
 
-  // Filter by level — joins ReferralTransaction to check level
-  // We store level on WalletTransaction via referralTransaction field
-  // Simpler: store level directly on WalletTransaction (see model update below)
-  if (level) {
-    filter.level = parseInt(level);
-  }
-
-  // Filter by date range
   if (startDate || endDate) {
     filter.createdAt = {};
     if (startDate) filter.createdAt.$gte = new Date(startDate);
@@ -105,24 +105,29 @@ export const getTransactions = async (
       );
   }
 
-  const [transactions, totalCount, totalEarnings] = await Promise.all([
-    WalletTransaction.find(
+  const [transactions, totalCount, totalSpendings] = await Promise.all([
+    Order.find(
       filter,
-      { wallet: 0, __v: 0 },
+      { orderId: 1, grandTotalAmount: 1 },
       paginationOptions(page, limit),
     ).lean(),
-    WalletTransaction.countDocuments(filter),
+    Order.countDocuments(filter),
 
     // Total earnings matching the current filter (not just this page)
-    WalletTransaction.aggregate([
+    Order.aggregate([
       { $match: filter },
-      { $group: { _id: null, total: { $sum: "$amount" } } },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: { $toDouble: "$grandTotalAmount" } },
+        },
+      },
     ]),
   ]);
 
   return {
     totalCount,
-    totalEarnings: totalEarnings[0]?.total ?? 0,
+    totalSpendings: totalSpendings[0]?.total ?? 0,
     transactions,
   };
 };

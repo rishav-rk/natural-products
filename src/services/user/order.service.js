@@ -26,6 +26,7 @@ import {
   updateProductsWithPrices,
   orderFilter,
 } from "../../utils/orderUtils.js";
+import { generateReferralCode } from "../referral.service.js";
 import { createDelhiveryShipment } from "../../utils/delivery.js";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -533,8 +534,11 @@ const handlePaymentCaptured = async (payment) => {
         { $set: { "referral.isActivated": true } },
         { session },
       );
+    } else {
+      Referral.create([{ user: pendingOrder.user, code: await generateReferralCode(), parent: null }], {
+        session,
+      });
     }
-
     // 3d. Mark fully completed
     await Order.updateOne(
       { _id: pendingOrder._id },

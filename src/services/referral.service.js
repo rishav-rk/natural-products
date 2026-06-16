@@ -104,7 +104,7 @@ export const useReferralCode = async ({ order, user, session }) => {
         type: TRANSACTION_TYPES.BONUS,
         level: null, // bonus — no level context
         paidBy: referral.admin, // user credited themselves via admin code
-        paidByUsername: "Admin",
+        paidByUsername: "Bonus",
         orderRef: order.orderId, // ← add
         note: "Admin referral code bonus",
         referralId: codeId,

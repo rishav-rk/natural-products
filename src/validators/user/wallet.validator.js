@@ -6,10 +6,6 @@ export const walletTransactionsValidator = {
   query: Joi.object({
     page: JOI.PAGE.required(),
     limit: JOI.LIMIT.required(),
-    level: Joi.number()
-      .integer()
-      .valid(...REFERRAL_CONSTANTS.VALID_LEVELS) // 1, 2, 3, 4
-      .optional(),
     startDate: Joi.date().iso().optional(),
     endDate: Joi.date()
       .iso()

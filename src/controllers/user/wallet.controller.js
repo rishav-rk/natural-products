@@ -16,7 +16,7 @@ export const getBalance = catchAsync(async (req, res) => {
 });
 
 export const getTransactions = catchAsync(async (req, res) => {
-  const { page, limit, type } = req.query;
+console.log(req.query)
   const data = await walletService.getTransactions(
     req.token.user._id,
     req.query,
