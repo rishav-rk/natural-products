@@ -172,7 +172,7 @@ export const createOrder = async (orderBody, token) => {
   if (grandTotalAmount >= 500000) {
     throw new OperationalError(
       STATUS_CODES.ACTION_FAILED,
-     "Order limit exceeded (max ₹5,00,000)"
+      "Order limit exceeded (max ₹5,00,000)",
     );
   }
 
@@ -608,7 +608,6 @@ const handlePaymentCaptured = async (payment) => {
       location: {
         $nearSphere: {
           $geometry: { type: "Point", coordinates: [longitude, latitude] },
-          $maxDistance: 3215000,
         },
       },
     }).lean();
@@ -769,4 +768,58 @@ const handlePayoutFailed = async (payout) => {
   } finally {
     session.endSession();
   }
+};
+
+const mapOrderStatus = (shipmentStatus) => {
+  switch (shipmentStatus) {
+    case "Delivered":
+      return ORDER_STATUS.DELIVERED;
+
+    case "Picked Up":
+    case "In Transit":
+    case "Out For Delivery":
+      return ORDER_STATUS.OTW;
+
+    default:
+      return ORDER_STATUS.INPROGRESS;
+  }
+};
+
+export const handleDelhiveryWebhook = async (req, res) => {
+  console.log("Headers:", req.headers);
+  console.log("Body:", req.body);
+
+  const shipment = req.body.Shipment;
+
+  if (!shipment) {
+    return res.status(200).send("ignored");
+  }
+
+  const awb = shipment.AWB;
+  const status = shipment.Status?.Status;
+  const statusDate = shipment.Status?.StatusDateTime;
+  const location = shipment.Status?.StatusLocation;
+
+  const result = await Order.updateOne(
+    { "shipment.waybillNumber": awb },
+    {
+      $set: {
+        "shipment.status": status,
+        status: mapOrderStatus(status),
+      },
+
+      $push: {
+        "shipment.trackingEvents": {
+          status,
+          location,
+          timestamp: statusDate,
+        },
+      },
+    },
+  );
+
+  if (!result.matchedCount) {
+    console.warn(`Order not found for AWB ${awb}`);
+  }
+  
 };

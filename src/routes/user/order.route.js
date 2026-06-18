@@ -5,14 +5,14 @@ import {
   verifyPaymentValidator,
   getMyOrderValidator,
   getMyOrderByIdValidator,
-  
 } from "../../validators/user/order.validator.js";
 import {
   createOrder,
   verifyPayment,
   getMyOrders,
   getMyOrderById,
-  handleRazorpayWebhook
+  handleRazorpayWebhook,
+  handleDelhiveryWebhook,
 } from "../../controllers/user/order.controller.js";
 import auth from "../../middlewares/auth.js";
 import { validate } from "../../middlewares/validate.js";
@@ -26,7 +26,7 @@ router.post(
   auth(USER_TYPE.USER),
   validate(createOrderValidator),
   createOrder,
-); 
+);
 
 router.get("/test", async (req, res) => {
   const id = "69f1e37b6df72aa60ebeca27";
@@ -67,5 +67,6 @@ router.get(
   getMyOrderById,
 );
 
+router.post("/webhooks/delhivery", handleDelhiveryWebhook);
 
 export default router;

@@ -29,7 +29,7 @@ const orderSchema = new mongoose.Schema(
       code: { type: String, default: null },
       referralUserName: { type: String, default: null },
       referralUserImage: { type: String, default: null },
-      isActivated: { type: Boolean, default: false }, 
+      isActivated: { type: Boolean, default: false },
     },
     products: [
       {
@@ -91,13 +91,23 @@ const orderSchema = new mongoose.Schema(
       type: String,
     },
     shipment: {
-      waybillNumber: { type: String, default: null },
-      courierName: { type: String, default: null },
+      waybillNumber: String,
+      courierName: String,
       warehouseId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Warehouse",
-        default: null,
+        ref: "Warehouse"
       },
+      status: String,
+
+      deliveredAt: Date,
+
+      trackingEvents: [
+        {
+          status: String,
+          location: String,
+          timestamp: Date,
+        },
+      ],
     },
     payment: {
       razorpayOrderId: {
@@ -136,6 +146,7 @@ const orderSchema = new mongoose.Schema(
 );
 
 orderSchema.index({ paidAt: 1 });
+orderSchema.index({ "shipment.waybillNumber": 1 });
 
 orderSchema.index(
   { createdAt: 1 },
