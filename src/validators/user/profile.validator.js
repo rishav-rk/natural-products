@@ -166,3 +166,7 @@ export const applyCodeValidator = {
     code: Joi.number().integer().required()
   }).required()
 }
+
+export const getNotificationValidator = {
+  body: Joi.object({})
+}

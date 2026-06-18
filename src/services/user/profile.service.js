@@ -5,13 +5,21 @@ import {
   SUCCESS_MESSAGES,
 } from "../../config/appConstants.js";
 import { OperationalError } from "../../utils/error.js";
-import { User, Product, ADC, Warehouse, Token } from "../../models/index.js";
+import {
+  User,
+  Product,
+  ADC,
+  Warehouse,
+  Token,
+  Notification,
+} from "../../models/index.js";
 
 // profile
 import { logOutFromAll } from "../token.service.js";
 import { successResponse } from "../../utils/response.js";
 import bcrypt from "bcrypt";
 import { checkShippingRate } from "../../utils/delivery.js";
+import moment from "moment";
 
 export const updateProfile = async (profileData, token) => {
   const user = await User.findByIdAndUpdate(token.user._id, profileData, {
@@ -57,7 +65,7 @@ export const deleteAccount = async (token) => {
   //   logOutFromAll(token._id),
   // ]);
   await User.findByIdAndUpdate(token.user._id, {
-    $set: { isDeleted: true, isActive : false },
+    $set: { isDeleted: true, isActive: false },
   });
 
   await logOutFromAll(token._id);
@@ -313,7 +321,6 @@ export const updateCart = async (cartData, token) => {
   }
 
   if (addressId) {
-    // ! add check for courier availability for shiprocket
     const addressExists = user.addresses.id(addressId);
 
     if (!addressExists) {
@@ -370,4 +377,12 @@ const populateCart = async (user) => {
     "name images",
   );
   return populatedUser.cart;
+};
+
+export const getNotifications = async (userId) => {
+  return await Notification.find({
+    $or: [{ user: userId }, { user: null }],
+    isDeleted: false,
+    createdAt: { $gte: moment().subtract(15, "days").toISOString() },
+  }).sort({ createdAt: -1 }).lean();
 };

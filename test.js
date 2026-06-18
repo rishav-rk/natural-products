@@ -15,5 +15,6 @@ console.log(
 );
 
 console.log(moment().startOf("year"));
-console.log(moment(moment().toISOString()).month());
 console.log(moment().startOf("week").toISOString());
+console.log(moment().toISOString());
+console.log(moment().subtract(15, "days").toISOString())

@@ -1,5 +1,9 @@
 import { successResponse } from "../../utils/response.js";
-import { ERROR_MESSAGES, STATUS_CODES, SUCCESS_MESSAGES } from "../../config/appConstants.js";
+import {
+  ERROR_MESSAGES,
+  STATUS_CODES,
+  SUCCESS_MESSAGES,
+} from "../../config/appConstants.js";
 import { formatUser } from "../../utils/formatResponse.js";
 import { catchAsync } from "../../utils/universalFunctions.js";
 import { checkPincodeServiceability } from "../../utils/delivery.js";
@@ -50,12 +54,14 @@ export const deleteAccount = catchAsync(async (req, res) => {
 // implement this
 export const updateAddress = catchAsync(async (req, res) => {
   const addressData = req.body;
-   const { serviceable, isOda } = await checkPincodeServiceability(addressData.pincode);
+  const { serviceable, isOda } = await checkPincodeServiceability(
+    addressData.pincode,
+  );
 
   if (!serviceable) {
     throw new OperationalError(
       STATUS_CODES.ACTION_FAILED,
-      ERROR_MESSAGES.NOT_SERVICEABLE
+      ERROR_MESSAGES.NOT_SERVICEABLE,
     );
   }
   await profileService.updateAddress(
@@ -74,12 +80,14 @@ export const updateAddress = catchAsync(async (req, res) => {
 export const addAddress = catchAsync(async (req, res) => {
   const addressData = req.body;
 
-  const { serviceable, isOda } = await checkPincodeServiceability(addressData.pincode);
+  const { serviceable, isOda } = await checkPincodeServiceability(
+    addressData.pincode,
+  );
 
   if (!serviceable) {
     throw new OperationalError(
       STATUS_CODES.ACTION_FAILED,
-      ERROR_MESSAGES.NOT_SERVICEABLE
+      ERROR_MESSAGES.NOT_SERVICEABLE,
     );
   }
 
@@ -108,7 +116,6 @@ export const deleteAddress = catchAsync(async (req, res) => {
     SUCCESS_MESSAGES.SUCCESS,
   );
 });
-
 
 export const addToCart = catchAsync(async (req, res) => {
   await profileService.addToCart(req.body, req.token);
@@ -155,7 +162,7 @@ export const deleteFromCart = catchAsync(async (req, res) => {
   );
 });
 
-export const  clearCart = catchAsync(async (req, res) => {
+export const clearCart = catchAsync(async (req, res) => {
   const result = await profileService.clearCart(req.token);
   return successResponse(
     req,
@@ -163,5 +170,15 @@ export const  clearCart = catchAsync(async (req, res) => {
     STATUS_CODES.SUCCESS,
     SUCCESS_MESSAGES.SUCCESS,
     result,
+  );
+});
+
+export const getNotifications = catchAsync(async (req, res) => {
+  return successResponse(
+    req,
+    res,
+    STATUS_CODES.SUCCESS,
+    SUCCESS_MESSAGES.SUCCESS,
+    await profileService.getNotifications(req.token.user._id),
   );
 });

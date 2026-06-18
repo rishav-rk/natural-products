@@ -12,6 +12,7 @@ import {
   referralDetailsValidator,
   validateContactUs,
   applyCodeValidator,
+  getNotificationValidator,
 } from "../../validators/user/profile.validator.js";
 import {
   walletTransactionsValidator,
@@ -119,6 +120,13 @@ router.get(
   auth(USER_TYPE.USER),
   validate(getNextLevelValidator),
   referralController.getNextLevel,
+);
+
+router.get(
+  "/notifications",
+  auth(USER_TYPE.USER),
+  validate(getNotificationValidator),
+  profileController.getNotifications,
 );
 
 export default router;

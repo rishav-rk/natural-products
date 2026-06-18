@@ -218,7 +218,7 @@ export const useReferralCode = async ({ order, user, session }) => {
   // sending notification to app that code is used at l1
 if(!isOwnCode){
     const notification = await Notification.create({
-    user: user._id,
+    user: referral.user,
     type: NOTIFICATION_TYPE.REFERRAL,
     title: NOTIFICATION_MESSAGE_TITLE.REFERRAL,
     body: NOTIFICATION_MESSAGE_BODY.REFERRAL,
