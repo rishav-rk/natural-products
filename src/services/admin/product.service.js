@@ -1,14 +1,22 @@
 import { catchAsync } from "../../utils/universalFunctions.js";
-import { Product } from "../../models/index.js";
+import { Product, Notification, Token } from "../../models/index.js";
 import { OperationalError } from "../../utils/error.js";
-import { ERROR_MESSAGES, STATUS_CODES } from "../../config/appConstants.js";
+import {
+  ERROR_MESSAGES,
+  STATUS_CODES,
+  NOTIFICATION_TYPE,
+  NOTIFICATION_MESSAGE_TITLE,
+  NOTIFICATION_MESSAGE_BODY,
+} from "../../config/appConstants.js";
+import { sendPushNotifications } from "../../utils/pushNotifications.js";
+import { getNotificationTokens } from "../token.service.js";
 
 export const addProduct = async (productData) => {
   const price = parseFloat(productData.price); // parse once, cleanly
   const discount = productData.discount || 0;
   const discountedPrice = (price - (price * discount) / 100).toFixed(2);
 
-  return await Product.create({
+  const { _id: productId } = await Product.create({
     name: productData.name,
     description: productData.description,
     benefits: productData.benefits,
@@ -23,6 +31,27 @@ export const addProduct = async (productData) => {
     discount,
     discountedPrice,
   });
+
+  const notification = await Notification.create({
+    user: null,
+    type: NOTIFICATION_TYPE.NEW_PRODUCT,
+    title: NOTIFICATION_MESSAGE_TITLE.NEW_PRODUCT,
+    body: NOTIFICATION_MESSAGE_BODY.NEW_PRODUCT,
+    isRead: false,
+    data: {
+      productId: productId,
+      type: NOTIFICATION_TYPE.NEW_PRODUCT,
+    },
+  });
+
+  sendPushNotifications(
+    await getNotificationTokens(),
+    notification.title,
+    notification.body,
+    notification.data,
+  ).then((data) => console.log("Notifications metadata : ", data));
+
+  return productId;
 };
 
 export const updateProduct = async (productData, productId) => {
@@ -50,7 +79,6 @@ export const updateProduct = async (productData, productId) => {
     if (productData.details.approvedName !== undefined)
       updateFields["details.approvedName"] = productData.details.approvedName;
   }
-  
 
   // Price & discount must stay in sync
   if (productData.price !== undefined || productData.discount !== undefined) {

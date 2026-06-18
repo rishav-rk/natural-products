@@ -41,8 +41,8 @@ const tokenSchema = new mongoose.Schema(
   },
 );
 
-tokenSchema.index({ isDeleted: 1 });
-tokenSchema.index({ "device.type": 1, isDeleted: 1 });
+tokenSchema.index({user: 1});
+tokenSchema.index({ "device.token": 1, "device.id" : 1, isDeleted: 1 });
 
 const Token = mongoose.model("Token", tokenSchema);
 

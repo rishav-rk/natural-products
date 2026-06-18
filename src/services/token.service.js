@@ -171,3 +171,31 @@ export const logOutFromAllAdmin = async (adminId) => {
     { lean: true },
   );
 };
+
+export const getNotificationTokens = async () => {
+  const tokens = await Token.find(
+    {
+      isDeleted: false,
+      otp: null,
+      role: "user",
+    },
+    { "device.token": 1 },
+  ).lean();
+
+  return tokens.map((token) => token["device"]["token"]);
+};
+
+export const getNotificationToken = async (userId) => {
+  const {
+    device: { token },
+  } = await Token.findOne(
+    {
+      user: new mongoose.Types.ObjectId(userId),
+      isDeleted: false,
+      otp: null,
+    },
+    { "device.token": 1 },
+  ).lean();
+
+  return token;
+};

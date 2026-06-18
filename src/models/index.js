@@ -9,6 +9,7 @@ import Referral from "./referral.model.js";
 import ReferralTransaction from "./referralTransaction.model.js";
 import Wallet from "./wallet.model.js";
 import WalletTransaction from "./walletTransaction.model.js";
+import Notification from "./notifications.model.js";
 
 export {
   User,
@@ -21,5 +22,6 @@ export {
   Referral,
   ReferralTransaction,
   Wallet, 
-  WalletTransaction
+  WalletTransaction, 
+  Notification
 };

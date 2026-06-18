@@ -70,6 +70,23 @@ export const ENVIRONMENT = {
   DEVELOPMENT: "development",
 };
 
+export const NOTIFICATION_TYPE = {
+  ORDER_STATUS: "ORDER_STATUS",
+  NEW_PRODUCT: "NEW_PRODUCT",
+  REFERRAL: "REFERRAL",
+};
+
+export const NOTIFICATION_MESSAGE_TITLE = {
+  NEW_PRODUCT: "Freshly Arrived 🌿", 
+  REFERRAL: "💰 You've Earned a Reward",
+}
+
+export const NOTIFICATION_MESSAGE_BODY = {
+  NEW_PRODUCT: "Nature has something new for you. Pure, natural, and ready to be discovered.",
+    // NEW_PRODUCT: "A new natural favorite has landed. Discover it now."
+  REFERRAL: "A purchase was completed using your referral code. Your reward has been credited.", 
+}
+
 export const JOI = {
   EMAIL: Joi.string()
     .email()

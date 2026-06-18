@@ -11,7 +11,7 @@ export const addProduct = catchAsync(async (req, res) => {
     res,
     STATUS_CODES.CREATED,
     SUCCESS_MESSAGES.SUCCESS,
-    { product : formatProducts(product) },
+    { product },
   );
 });
 

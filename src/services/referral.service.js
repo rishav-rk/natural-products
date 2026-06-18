@@ -1,14 +1,25 @@
 import mongoose from "mongoose";
-import { ADC, Referral, ReferralTransaction, Order } from "../models/index.js";
+import {
+  ADC,
+  Referral,
+  ReferralTransaction,
+  Order,
+  Notification,
+} from "../models/index.js";
 import { OperationalError } from "../utils/error.js";
 import {
   ERROR_MESSAGES,
   STATUS_CODES,
   TRANSACTION_TYPES,
   REFERRAL_CONSTANTS,
+  NOTIFICATION_TYPE,
+  NOTIFICATION_MESSAGE_TITLE,
+  NOTIFICATION_MESSAGE_BODY,
 } from "../config/appConstants.js";
 import { paginationOptions } from "../utils/universalFunctions.js";
 import { creditWallet } from "../services/user/wallet.service.js";
+import { sendPushNotifications } from "../utils/pushNotifications.js";
+import { getNotificationToken } from "./token.service.js";
 
 const CODE_MIN = 1_000_000_000; // 1000000000
 const CODE_MAX = 9_999_999_999; // 9999999999 — 9 billion possible codes
@@ -203,6 +214,26 @@ export const useReferralCode = async ({ order, user, session }) => {
       session,
     }),
   );
+
+  // sending notification to app that code is used at l1
+if(!isOwnCode){
+    const notification = await Notification.create({
+    user: user._id,
+    type: NOTIFICATION_TYPE.REFERRAL,
+    title: NOTIFICATION_MESSAGE_TITLE.REFERRAL,
+    body: NOTIFICATION_MESSAGE_BODY.REFERRAL,
+    data: {
+      referralId: referral._id,
+      type: NOTIFICATION_TYPE.REFERRAL,
+    },
+  });
+  sendPushNotifications(
+    await getNotificationToken(referral.user),
+    notification.title,
+    notification.body,
+    notification.data,
+  ).then((data) => console.log("Notification metadata: ", data));
+}
 
   // ── L2–L4 — ancestors ────────────────────────────────────────────────────
   for (const ancestor of ancestors) {
