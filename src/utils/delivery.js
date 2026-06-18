@@ -96,13 +96,10 @@ const delhiveryHeaders = {
   Authorization: `Token ${config.delhivery.secret}`,
 };
 
-// ── Shipment creation uses form-encoded despite what docs say ─────────────
-// Delhivery's /api/cmu/create.json expects format=json&data=<encoded JSON>
-// Sending application/json causes "format key missing in POST" error
 const delhiveryHeadersForShipmentCreation = {
   "Content-Type": "application/x-www-form-urlencoded", // ← fixed
-  Authorization:  `Token ${config.delhivery.secret}`,
-  Accept:         "application/json",
+  Authorization: `Token ${config.delhivery.secret}`,
+  Accept: "application/json",
 };
 
 export const createDelhiveryShipment = async ({ order, warehouse }) => {
@@ -116,6 +113,8 @@ export const createDelhiveryShipment = async ({ order, warehouse }) => {
       .replace(/['"]/g, "")
       .trim();
   };
+  console.log("Shipment weight:", calculateTotalWeight(order.products));
+  console.log("Pickup location:", warehouse.name);
 
   const fullAddress = [
     address.houseNumberAndFloor,
@@ -129,38 +128,38 @@ export const createDelhiveryShipment = async ({ order, warehouse }) => {
   const shipmentData = {
     shipments: [
       {
-        name:          clean(order.userName) || "Customer",
-        add:           fullAddress,
-        city:          clean(address.city),
-        state:         clean(address.state),
-        country:       clean(address.country) || "India",
-        pin:           String(address.pincode),
-        phone:         clean(order.userPhone),
+        name: clean(order.userName) || "Customer",
+        add: fullAddress,
+        city: clean(address.city),
+        state: clean(address.state),
+        country: clean(address.country) || "India",
+        pin: String(address.pincode),
+        phone: clean(order.userPhone),
 
-        order:         clean(order.orderId),
-        payment_mode:  "Prepaid",
-        cod_amount:    0,
-        total_amount:  parseFloat(order.grandTotalAmount),
-        weight:        calculateTotalWeight(order.products),
+        order: clean(order.orderId),
+        payment_mode: "Prepaid",
+        cod_amount: 0,
+        total_amount: parseFloat(order.grandTotalAmount),
+        weight: calculateTotalWeight(order.products),
         products_desc: clean(order.products.map((p) => p.name).join(" | ")),
-        quantity:      order.products.reduce((sum, p) => sum + p.quantity, 0),
+        quantity: order.products.reduce((sum, p) => sum + p.quantity, 0),
         shipping_mode: "Surface",
-        address_type:  clean(address.type?.toLowerCase()) || "home",
+        address_type: clean(address.type?.toLowerCase()) || "home",
 
-        seller_name:    clean(warehouse.name),
-        seller_add:     clean(warehouse.address),
-        seller_city:    clean(warehouse.city),
-        seller_state:   clean(warehouse.state),
-        seller_pin:     String(warehouse.pin),
-        seller_phone:   String(warehouse.phone),
+        seller_name: clean(warehouse.name),
+        seller_add: clean(warehouse.address),
+        seller_city: clean(warehouse.city),
+        seller_state: clean(warehouse.state),
+        seller_pin: String(warehouse.pin),
+        seller_phone: String(warehouse.phone),
         seller_gst_tin: clean(warehouse.gstNumber),
 
-        rto_name:    clean(warehouse.name),
-        rto_add:     clean(warehouse.return_address || warehouse.address),
-        rto_city:    clean(warehouse.return_city    || warehouse.city),
-        rto_state:   clean(warehouse.return_state   || warehouse.state),
-        rto_pin:     String(warehouse.return_pin    || warehouse.pin),
-        rto_phone:   String(warehouse.phone),
+        rto_name: clean(warehouse.name),
+        rto_add: clean(warehouse.return_address || warehouse.address),
+        rto_city: clean(warehouse.return_city || warehouse.city),
+        rto_state: clean(warehouse.return_state || warehouse.state),
+        rto_pin: String(warehouse.return_pin || warehouse.pin),
+        rto_phone: String(warehouse.phone),
         rto_country: clean(warehouse.return_country) || "India",
       },
     ],
@@ -209,8 +208,8 @@ export const createDelhiveryShipment = async ({ order, warehouse }) => {
 
   return {
     waybillNumber: shipment.waybill,
-    courierName:   "Delhivery",
-    status:        shipment.status,
+    courierName: "Delhivery",
+    status: shipment.status,
   };
 };
 
@@ -272,10 +271,11 @@ export const createDelhiveryWarehouse = async (warehouse) => {
       phone: result.data?.phone || String(warehouse.phone),
     };
   } catch (error) {
-    const errorMsg = error.response?.data?.error?.[0] || 
-                     error.response?.data?.message || 
-                     error.message ||
-                     "Unknown error";
+    const errorMsg =
+      error.response?.data?.error?.[0] ||
+      error.response?.data?.message ||
+      error.message ||
+      "Unknown error";
     throw new OperationalError(
       STATUS_CODES.ACTION_FAILED,
       `[DELHIVERY] Warehouse creation failed: ${errorMsg}`,
