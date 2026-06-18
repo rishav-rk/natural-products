@@ -186,9 +186,7 @@ export const getNotificationTokens = async () => {
 };
 
 export const getNotificationToken = async (userId) => {
-  const {
-    device: { token },
-  } = await Token.find(
+  const tokens = await Token.find(
     {
       user: new mongoose.Types.ObjectId(userId),
       isDeleted: false,
@@ -197,5 +195,5 @@ export const getNotificationToken = async (userId) => {
     { "device.token": 1 },
   ).lean();
 
-  return token;
+  return tokens.map((token) => token["device"]["token"]);
 };
