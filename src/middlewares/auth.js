@@ -42,7 +42,7 @@ const verifyCallback =
       // Allow unauthenticated access for public routes
       if (!token) {
         if (role.includes(USER_TYPE.NONE)) {
-          req.token.role = USER_TYPE.NONE;
+          req.token = { role : USER_TYPE.NONE}
           return resolve();
         }
         throw new AuthFailedError(
