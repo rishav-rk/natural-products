@@ -62,6 +62,7 @@ const verifyCallback =
       }
       // Restrict admin if userOnly is true
       if (role.includes(USER_TYPE.NONE)) {
+        req.token = token
         return resolve();
       } else {
         if(!role.includes(token.role)){
