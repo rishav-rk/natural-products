@@ -96,7 +96,6 @@ const orderSchema = new mongoose.Schema(
       warehouseId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Warehouse",
-        required: true
       },
       status: String,
 
