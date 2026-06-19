@@ -41,7 +41,10 @@ const verifyCallback =
     try {
       // Allow unauthenticated access for public routes
       if (!token) {
-        if (role.includes(USER_TYPE.NONE)) return resolve();
+        if (role.includes(USER_TYPE.NONE)) {
+          req.token.role = USER_TYPE.NONE;
+          return resolve();
+        }
         throw new AuthFailedError(
           ERROR_MESSAGES.FORBIDDEN,
           STATUS_CODES.FORBIDDEN,
@@ -62,10 +65,10 @@ const verifyCallback =
       }
       // Restrict admin if userOnly is true
       if (role.includes(USER_TYPE.NONE)) {
-        req.token = token
+        req.token = token;
         return resolve();
       } else {
-        if(!role.includes(token.role)){
+        if (!role.includes(token.role)) {
           throw isUnauthorized();
         }
       }
