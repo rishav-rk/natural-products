@@ -68,11 +68,12 @@ export const handleRazorpayXWebhook = catchAsync(async (req, res) => {
 });
 
 export const handleDelhiveryWebhook = catchAsync(async (req, res) => {
-  await orderService.handleDelhiveryWebhook(req, res);
+  const {message} = await orderService.handleDelhiveryWebhook(req, res);
   return successResponse(
     req,
     res,
     STATUS_CODES.SUCCESS,
     SUCCESS_MESSAGES.SUCCESS,
+    message
   );
 });

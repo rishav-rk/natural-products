@@ -792,7 +792,7 @@ export const handleDelhiveryWebhook = async (req, res) => {
   const shipment = req.body.Shipment;
 
   if (!shipment) {
-    return res.status(200).send("ignored");
+    return { message: "ignored" };
   }
 
   const awb = shipment.AWB;
