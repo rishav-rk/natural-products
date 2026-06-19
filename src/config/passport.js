@@ -21,6 +21,7 @@ const jwtVerify = async (payload, done) => {
         .populate("admin")
         .lean();
     }
+    console.log(token)
     done(null, token);
   } catch (error) {
     done(error, false);
