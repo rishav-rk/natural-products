@@ -8,6 +8,7 @@ import { OperationalError } from "../utils/error.js";
 import { paginationOptions } from "../utils/universalFunctions.js";
 
 export const getProducts = async (query, token) => {
+  console.log(token)
   const filter = {
     isDeleted: false,
   };
