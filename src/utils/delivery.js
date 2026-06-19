@@ -168,6 +168,8 @@ export const createDelhiveryShipment = async ({ order, warehouse }) => {
     },
   };
 
+  console.log("Shipment Data =>>>>>> ", shipmentData)
+
   const jsonString = JSON.stringify(shipmentData);
 
   // Sanity check before sending
