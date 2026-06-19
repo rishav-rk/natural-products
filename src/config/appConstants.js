@@ -174,6 +174,7 @@ export const WALLET_TRANSAC_TYPE = {
 };
 
 export const ERROR_MESSAGES = {
+  FORBIDDEN: "Please sign in to continue",
   WALLET_NOT_FOUND: "Wallet not found",
   INSUFFICIENT_BALANCE: "Insufficient wallet balance",
   WITHDRAWAL_NOT_ENABLED: "Withdrawals are not enabled for your account",

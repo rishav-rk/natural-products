@@ -11,27 +11,27 @@ const isUnauthorized = () =>
   new AuthFailedError(ERROR_MESSAGES.UNAUTHORIZED, STATUS_CODES.AUTH_FAILED);
 
 const verifyOtpRoute = (req) =>
-  ['/verify-otp', '/resend-otp'].includes(req.url);
+  ["/verify-otp", "/resend-otp"].includes(req.url);
 
 const validateUserStatus = (user) => {
   if (user.isDeleted) {
     throw new OperationalError(
       STATUS_CODES.AUTH_FAILED,
-      ERROR_MESSAGES.ACCOUNT_NOT_EXIST
+      ERROR_MESSAGES.ACCOUNT_NOT_EXIST,
     );
   }
 
-  if(!user.isVerified){
+  if (!user.isVerified) {
     throw new OperationalError(
       STATUS_CODES.AUTH_FAILED,
-      ERROR_MESSAGES.ACCOUNT_NOT_VERIFIED
+      ERROR_MESSAGES.ACCOUNT_NOT_VERIFIED,
     );
   }
 
   if (!user.isActive) {
     throw new OperationalError(
       STATUS_CODES.AUTH_FAILED,
-      ERROR_MESSAGES.ACCOUNT_BLOCKED
+      ERROR_MESSAGES.ACCOUNT_BLOCKED,
     );
   }
 };
@@ -42,30 +42,31 @@ const verifyCallback =
       // Allow unauthenticated access for public routes
       if (!token) {
         if (role === USER_TYPE.NONE) return resolve();
-        throw new AuthFailedError();
+        throw new AuthFailedError(
+          ERROR_MESSAGES.FORBIDDEN,
+          STATUS_CODES.FORBIDDEN,
+        );
       }
 
       if (err || info) throw new AuthFailedError();
 
-      
-      if(token.type === TOKEN_TYPE.FORGOTPASSWORD && !verifyOtpRoute(req) && !['/forgot-password', '/reset-password'].includes(req.url)){
+      if (
+        token.type === TOKEN_TYPE.FORGOTPASSWORD &&
+        !verifyOtpRoute(req) &&
+        !["/forgot-password", "/reset-password"].includes(req.url)
+      ) {
         throw new AuthFailedError(
           ERROR_MESSAGES.INVALID_TOKEN,
-          STATUS_CODES.ACTION_FAILED
+          STATUS_CODES.ACTION_FAILED,
         );
       }
-        // Restrict admin if userOnly is true
-      if (
-        role === USER_TYPE.NONE &&
-        options.userOnly &&
-        token.role === USER_TYPE.ADMIN
-      ) {
-        throw isUnauthorized();
-      }
-
-      // Role validation
-      if (role !== USER_TYPE.NONE && !role.includes(token.role)) {
-        throw isUnauthorized();
+      // Restrict admin if userOnly is true
+      if (role.includes(USER_TYPE.NONE)) {
+        return resolve();
+      } else {
+        if(!role.includes(token.role)){
+          throw isUnauthorized();
+        }
       }
 
       // Admin validation
@@ -74,17 +75,17 @@ const verifyCallback =
         req.token = token;
         return resolve();
       }
-     
+
       // OTP route validation
       if (verifyOtpRoute(req)) {
-        if(!token.otp){
+        if (!token.otp) {
           throw new AuthFailedError(
             ERROR_MESSAGES.INVALID_TOKEN,
-            STATUS_CODES.ACTION_FAILED
+            STATUS_CODES.ACTION_FAILED,
           );
         }
         req.token = token;
-        resolve();
+        return resolve();
       }
 
       const user = token.user;
@@ -92,12 +93,10 @@ const verifyCallback =
 
       validateUserStatus(user);
 
-      
-
       req.token = token;
-      resolve();
+      return resolve();
     } catch (error) {
-      reject(error);
+      return reject(error);
     }
   };
 
@@ -108,7 +107,7 @@ const auth =
       passport.authenticate(
         "jwt",
         { session: false },
-        verifyCallback(req, resolve, reject, role, options)
+        verifyCallback(req, resolve, reject, role, options),
       )(req, res, next);
     })
       .then(() => next())

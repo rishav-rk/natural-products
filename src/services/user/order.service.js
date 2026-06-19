@@ -618,12 +618,12 @@ const handlePaymentCaptured = async (payment) => {
         pendingOrder.orderId,
       );
     } else {
-      console.log("nearest warehouse ===> ", nearestWarehouse)
       createDelhiveryShipment({
         order: pendingOrder,
         warehouse: nearestWarehouse,
       })
         .then(async (shipment) => {
+          console.log('Shipment ------------>  ', shipment)
           await Order.findByIdAndUpdate(pendingOrder._id, {
             "shipment.waybillNumber": shipment.waybillNumber,
             "shipment.courierName": shipment.courierName,

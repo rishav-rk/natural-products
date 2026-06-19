@@ -15,14 +15,14 @@ const router = Router();
 
 router.get(
   "/products/get-products",
-  auth([USER_TYPE.ADMIN, USER_TYPE.USER]),
+  auth([USER_TYPE.ADMIN, USER_TYPE.USER, USER_TYPE.NONE]),
   validate(productValidator.getProducts),
   productController.getProducts,
 );
 
 router.get(
   "/products/get-product/:productId",
-  auth([USER_TYPE.ADMIN, USER_TYPE.USER]),
+  auth([USER_TYPE.ADMIN, USER_TYPE.USER, USER_TYPE.NONE]),
   validate(productValidator.getProductById),
   productController.getProductById,
 );
