@@ -1,15 +1,33 @@
-import mongoose, { mongo } from "mongoose"
-import config from "./config.js"
+import mongoose, { mongo } from "mongoose";
+import config from "./config.js";
 import { OperationalError } from "../utils/error.js";
 
-async function connectDB(){
+async function connectDB() {
+  try {
+    mongoose.set("strictQuery", true);
+    return await mongoose.connect(config.mongoose.url, config.mongoose.options);
+  } catch (err) {
+    console.error(err);
+    process.exit(1);
+  }
+}
+
+export async function shutdown(server) {
+  console.log("Shutting down server...");
+
+  server.close(async () => {
     try {
-        mongoose.set('strictQuery', true);
-        return await mongoose.connect(config.mongoose.url, config.mongoose.options);
+      console.log("HTTP server closed");
+
+      await mongoose.connection.close();
+
+      console.log("MongoDB connection closed");
+      process.exit(0);
     } catch (err) {
-        throw new OperationalError(500)
-        process.exit(1)
+      console.error("Shutdown failed:", err);
+      process.exit(1);
     }
+  });
 }
 
 export default connectDB;
