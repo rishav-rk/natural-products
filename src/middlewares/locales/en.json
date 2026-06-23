@@ -212,5 +212,6 @@
 	"Invalid level": {
 		" Valid levels are": " 1, 2, 3, 4"
 	},
-	"page is required, limit is required": "page is required, limit is required"
+	"page is required, limit is required": "page is required, limit is required",
+	"Please sign in to continue": "Please sign in to continue"
 }
