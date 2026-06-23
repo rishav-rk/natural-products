@@ -15,7 +15,7 @@ export const addProduct = {
         "1. Soothes sunburns: Aloe Vera Gel has cooling properties that can help to relieve the pain and redness associated with sunburns. 2. Moisturizes the skin: Aloe Vera Gel is a natural moisturizer that can help to hydrate and soft the skin. 3. Heals wounds: Aloe Vera Gel has antibacterial and anti-inflammatory properties that can help to promote wound healing and reduce the risk of infection. 4. Reduces acne: Aloe Vera Gel can help to reduce inflammation and redness associated with acne, as well as to prevent future breakouts. 5. Anti-aging properties: Aloe Vera Gel contains antioxidants that can help to protect the skin from damage caused by free radicals, which can contribute to premature aging.",
       ),
     price: Joi.string().required().example("19.99"),
-    stock: Joi.number().required().example(100),
+    stock: Joi.number().required().example(100).min(1),
     keywords: Joi.array()
       .items(Joi.string())
       .example(["aloe vera", "gel", "skincare"]),
@@ -78,7 +78,7 @@ export const updateProduct = {
       ]),
     backgroundColor: Joi.string().example("#000000"),
     weight: Joi.number().required().example("300 for 300gm and 1000 for 1kg"),
-    discount: Joi.number()
+    discount: Joi.number().max(90)
       .required()
       .example("in percent like 49 for 49 % discount"),
   }).required(),
