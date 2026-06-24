@@ -213,5 +213,7 @@
 		" Valid levels are": " 1, 2, 3, 4"
 	},
 	"page is required, limit is required": "page is required, limit is required",
-	"Please sign in to continue": "Please sign in to continue"
+	"Please sign in to continue": "Please sign in to continue",
+	"phoneNumber is required, deviceId is required, deviceType is required": "phoneNumber is required, deviceId is required, deviceType is required",
+	"phoneNumber is not allowed, password is not allowed, deviceId is not allowed, deviceType is not allowed": "phoneNumber is not allowed, password is not allowed, deviceId is not allowed, deviceType is not allowed"
 }

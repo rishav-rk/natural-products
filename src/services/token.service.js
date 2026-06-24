@@ -97,7 +97,7 @@ export const updateToken = async (tokenId) => {
   await Token.updateOne(
     { _id: tokenId },
     {
-      $set: { isVerified: true, otp: null },
+      $set: { "otp.isVerified": true },
     },
   );
 };
@@ -141,7 +141,10 @@ export const generateForgotPasswordToken = async (
 };
 
 export const resendOTP = async (token, otp) => {
-  await Token.updateOne({ _id: token._id }, { otp, isVerified: false });
+  await Token.updateOne(
+    { _id: token._id },
+    { $set: { otp } },
+  );
 };
 
 export const deletePreviousToken = async (tokenId) => {

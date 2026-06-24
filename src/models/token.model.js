@@ -1,10 +1,6 @@
 import mongoose from "mongoose";
 
-import {
-  TOKEN_TYPE,
-  DEVICE_TYPE,
-  USER_TYPE,
-} from "../config/appConstants.js";
+import { TOKEN_TYPE, DEVICE_TYPE, USER_TYPE } from "../config/appConstants.js";
 
 const tokenSchema = new mongoose.Schema(
   {
@@ -32,8 +28,11 @@ const tokenSchema = new mongoose.Schema(
       expiresAt: {
         type: Date,
       },
+      isVerified: {
+        type: Boolean,
+        default: false,
+      },
     },
-    isVerified: { type: Boolean, default: false },
     isDeleted: { type: Boolean, default: false },
   },
   {
@@ -41,8 +40,8 @@ const tokenSchema = new mongoose.Schema(
   },
 );
 
-tokenSchema.index({user: 1});
-tokenSchema.index({ "device.token": 1, "device.id" : 1, isDeleted: 1 });
+tokenSchema.index({ user: 1 });
+tokenSchema.index({ "device.token": 1, "device.id": 1, isDeleted: 1 });
 
 const Token = mongoose.model("Token", tokenSchema);
 
