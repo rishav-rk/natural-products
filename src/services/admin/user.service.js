@@ -10,7 +10,7 @@ import { paginationOptions } from "../../utils/universalFunctions.js";
 import {generateReferralCode} from "../../services/referral.service.js"
 
 export const getUsers = async (query) => {
-  const filter = { isVerified: true };
+  const filter = { isVerified: true, isDeleted : false };
   if (query.search) {
     filter.$or = [
       { name: { $regex: query.search, $options: "i" } },
@@ -22,7 +22,7 @@ export const getUsers = async (query) => {
     {},
     paginationOptions(query.page, query.limit),
   );
-  const totalUsers = await User.countDocuments({ isVerified: true });
+  const totalUsers = await User.countDocuments(filter);
   return { users, totalUsers };
 };
 
