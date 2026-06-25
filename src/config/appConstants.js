@@ -176,7 +176,7 @@ export const WALLET_TRANSAC_TYPE = {
 export const ERROR_MESSAGES = {
   FORBIDDEN: "Please sign in to continue",
   WALLET_NOT_FOUND: "Wallet not found",
-  INSUFFICIENT_BALANCE: "Insufficient wallet balance",
+  INSUFFICIENT_BALANCE: "Minimum balance of ₹100 is required.",
   WITHDRAWAL_NOT_ENABLED: "Withdrawals are not enabled for your account",
   WITHDRAWAL_IN_PROGRESS:
     "A withdrawal is already in progress. Please try again shortly.",

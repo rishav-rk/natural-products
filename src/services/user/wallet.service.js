@@ -326,7 +326,7 @@ export const withdrawFunds = async (
       STATUS_CODES.ACTION_FAILED,
       ERROR_MESSAGES.WITHDRAWAL_NOT_ENABLED,
     );
-  if (wallet.balance <= 0)
+  if (wallet.balance < 100)
     throw new OperationalError(
       STATUS_CODES.ACTION_FAILED,
       ERROR_MESSAGES.INSUFFICIENT_BALANCE,
@@ -383,6 +383,8 @@ export const withdrawFunds = async (
       transactionId: transaction._id,
       contact,
     });
+
+    console.log("Payout data =====> ", payout)
 
     await WalletTransaction.updateOne(
       { _id: transaction._id },

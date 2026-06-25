@@ -14,6 +14,8 @@ import {
   User,
   Warehouse,
   Referral,
+  WalletTransaction,
+  Wallet,
 } from "../../models/index.js";
 import { OperationalError } from "../../utils/error.js";
 import config from "../../config/config.js";
@@ -623,7 +625,7 @@ const handlePaymentCaptured = async (payment) => {
         warehouse: nearestWarehouse,
       })
         .then(async (shipment) => {
-          console.log('Shipment ------------>  ', shipment)
+          console.log("Shipment ------------>  ", shipment);
           await Order.findByIdAndUpdate(pendingOrder._id, {
             "shipment.waybillNumber": shipment.waybillNumber,
             "shipment.courierName": shipment.courierName,
@@ -822,5 +824,4 @@ export const handleDelhiveryWebhook = async (req, res) => {
   if (!result.matchedCount) {
     console.warn(`Order not found for AWB ${awb}`);
   }
-  
 };
