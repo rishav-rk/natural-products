@@ -697,6 +697,7 @@ const handlePaymentFailed = async (payment) => {
 
 // ── Payout processed ──────────────────────────────────────────────────────
 const handlePayoutProcessed = async (payout) => {
+  console.log("Payout ======> ", payout)
   const transaction = await WalletTransaction.findOne({
     "payout.gatewayRef": payout.id,
   });
